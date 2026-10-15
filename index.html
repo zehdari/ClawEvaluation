@@ -593,7 +593,7 @@ const S = {
   index: [], data: new Map(), errors: new Map(), talos: null,
   cur: null, selTok: 0,
   mode: 'robot',            // robot | grasp | torpedo
-  activeSweep: 'open_close', sweepT: {}, stowT: 0,
+  activeSweep: 'open_close', sweepT: {}, stowT: 0, q: {}, lastServo: null, poseSrc: 'sequence', servoModel: null,
   view: 'iso', body: 'clear',
   layers: { holebar: true, dvl: true, ghost: true, foot: true, targets: false, frustum: false, payload: false, stowhw: true },
   showHidden: false, ghost: null,
@@ -1668,10 +1668,91 @@ function initPose(v) {
   S.activeSweep = sw[ds.sweep] ? ds.sweep : (sw.open_close ? 'open_close' : Object.keys(S.sweepT)[0]);
   const st = sw.stow;
   S.stowT = st && (st.samples || []).length > 1 && isNum(ds.stow_index) ? ds.stow_index / (st.samples.length - 1) : 0;
+  // servo state: start from the default point of the open/close path; per-servo sliders show it
+  S.servoModel = buildServoModel(v);
+  S.q = {};
+  if (sw.open_close && (sw.open_close.samples || []).length) Object.assign(S.q, interpSample(sw.open_close.samples, S.sweepT.open_close != null ? S.sweepT.open_close : 0.5).q);
+  (v.servos || []).forEach((sv) => {
+    if (!isNum(S.q[sv.name])) S.q[sv.name] = isNum(sv.open) ? sv.open : (sv.min + sv.max) / 2;
+    if (sv.max !== sv.min) S.sweepT['servo:' + sv.name] = (S.q[sv.name] - sv.min) / (sv.max - sv.min);
+  });
+  S.lastServo = null;
+  S.poseSrc = 'sequence';
+}
+// Composable multi-servo pose. The bundle has one 1-D sweep per servo (the others held at their open value). For each
+// link: its pose relative to its parent (links[].parent; absolute for roots) at every sample of every servo sweep, and
+// its DRIVER = the servo whose sweep changes that relative pose (> 0.05 mm / 0.05 deg; links[].driver from the
+// toolkit wins when present). Any slider combination is then composed in topological order:
+// T_link = T_parent(current) * T_rel(driver sweep at the driver's current angle) (screw interpolation between samples).
+// Minor coupling (a second servo moving the link by < 1 mm and < 1 deg, numeric noise of the sampled model) is
+// composed as a delta from the reference; real coupling falls back to the most recently moved servo's sweep and is
+// logged to the console.
+function interpMats(arr, t) {
+  const n = arr.length;
+  if (n < 2) return arr[0].clone();
+  const f = Math.min(Math.max(t, 0), 1) * (n - 1);
+  const i = Math.min(Math.floor(f), n - 2);
+  return screwBetween(arr[i], arr[i + 1], f - i, new T3.Matrix4());
+}
+function buildServoModel(v) {
+  if (!renderer) return null;
+  const sw = sweepsOf(v);
+  const servos = (v.servos || []).filter((s) => s.max !== s.min && sw['servo:' + s.name] && (sw['servo:' + s.name].samples || []).length > 1);
+  if (servos.length < 2) return null;              // single servo: the open/close sweep is exact
+  const parent = {}, given = {};
+  (v.links || []).forEach((L) => { parent[L.name] = L.parent || null; if (L.driver) given[L.name] = L.driver; });
+  const names = Object.keys(sw['servo:' + servos[0].name].samples[0].T || {});
+  const has = new Set(names);
+  const relOf = (T, n) => {
+    const p = parent[n];
+    return p && has.has(p) && T[p] ? matOf(T[p]).clone().invert().multiply(matOf(T[n])) : matOf(T[n]).clone();
+  };
+  const s0 = servos[0];
+  const tOpen0 = (s0.open - s0.min) / (s0.max - s0.min);
+  const M = { servos, parent, info: {}, order: [], coupled: [] };
+  names.forEach((n) => {
+    const per = {}, size = {};
+    servos.forEach((s) => {
+      const arr = sw['servo:' + s.name].samples.map((smp) => relOf(smp.T, n));
+      per[s.name] = arr;
+      size[s.name] = arr.reduce((m, A) => { const e = poseErr(A, arr[0]); return Math.max(m, e.mm, e.deg); }, 0);
+    });
+    let drivers = given[n] ? [given[n]].filter((x) => per[x]) : servos.map((s) => s.name).filter((x) => size[x] > 0.05);
+    drivers.sort((a, b) => size[b] - size[a]);
+    const ref = interpMats(per[s0.name], isNum(tOpen0) ? tOpen0 : 0.5);
+    let mode = drivers.length ? 'single' : 'static';
+    if (drivers.length > 1) {
+      mode = drivers.slice(1).every((x) => size[x] < 1) ? 'delta' : 'coupled';
+      M.coupled.push({ link: n, mode, drivers: drivers.map((x) => `${x} ${fix(size[x], 2)}`) });
+    }
+    M.info[n] = { per, drivers, ref, refInv: ref.clone().invert(), mode, root: !(parent[n] && has.has(parent[n])) };
+  });
+  const seen = new Set();
+  const visit = (n) => { if (seen.has(n)) return; seen.add(n); const p = parent[n]; if (p && M.info[p]) visit(p); M.order.push(n); };
+  names.forEach(visit);
+  if (M.coupled.length) console.info('[claw viewer] ' + (v.concept && v.concept.id) + ': links moved by more than one servo sweep (delta = minor, composed; coupled = last-moved servo wins):', M.coupled);
+  return M;
+}
+function composePose(M, q, last) {
+  const out = {};
+  const relAt = (I, drv) => { const s = M.servos.find((x) => x.name === drv); return interpMats(I.per[drv], (q[drv] - s.min) / (s.max - s.min)); };
+  M.order.forEach((n) => {
+    const I = M.info[n];
+    let rel;
+    if (I.mode === 'static') rel = I.ref;
+    else if (I.mode === 'single') rel = relAt(I, I.drivers[0]);
+    else if (I.mode === 'delta') { rel = I.ref.clone(); I.drivers.forEach((d) => rel.multiply(I.refInv.clone().multiply(relAt(I, d)))); }
+    else rel = relAt(I, I.drivers.includes(last) ? last : I.drivers[0]);
+    out[n] = !I.root && out[M.parent[n]] ? out[M.parent[n]].clone().multiply(rel) : rel.clone();
+  });
+  return out;
 }
 function deployedSample(v) {
   const sw = sweepsOf(v);
-  const key = sw[S.activeSweep] ? S.activeSweep : 'open_close';
+  if (S.poseSrc === 'servos' && S.servoModel) {
+    return { s: { T: composePose(S.servoModel, S.q, S.lastServo), q: Object.assign({}, S.q), stow: (v.stow || {}).deployed || 0, pinch: null }, src: 'servos' };
+  }
+  const key = sw.open_close ? 'open_close' : (sw[S.activeSweep] ? S.activeSweep : Object.keys(sw).find((k) => k !== 'stow'));
   const s = sw[key];
   if (!s || !(s.samples || []).length) return null;
   return { s: interpSample(s.samples, S.sweepT[key] != null ? S.sweepT[key] : 0.5), src: key };
@@ -1745,6 +1826,19 @@ function currentSample(v) {
   if (S.stowT > 0 && sw.stow && (sw.stow.samples || []).length) {
     const s0 = sw.stow.samples[0];
     const cur = deployedSample(v);
+    const SMh = S.stowModel;
+    if (SMh && SMh.hinge && cur) {
+      // the current servo state (any slider combination), carried by the hand-stow hinge
+      const f = S.stowT;
+      const R = SMh.hinge.rot(SMh.hinge.sign * SMh.hinge.tot * SMh.jointFrac(f), new T3.Matrix4());
+      const T = {};
+      Object.keys(cur.s.T).forEach((n) => {
+        T[n] = SMh.rigid.has(n) ? R.clone().multiply(cur.s.T[n]) : (SMh.moving.has(n) ? SMh.pose(n, f, new T3.Matrix4()) : cur.s.T[n]);
+      });
+      const { a, b, u } = bracket(sw.stow.samples, f);
+      const atStowQ = Object.keys(s0.q || {}).every((k) => Math.abs((cur.s.q || {})[k] - s0.q[k]) < 0.02);
+      return { s: { T, q: cur.s.q, stow: lerp(a.stow, b.stow, u), pinch: cur.s.pinch }, src: 'stow', phase: 'fold', fold: f, atStowQ };
+    }
     const PF = cur ? stowPrep(cur.s, s0) : 0;
     if (PF > 0 && S.stowT <= PF) {
       const b = S.stowT / PF;
@@ -1773,7 +1867,7 @@ function applyPose() {
       if (M) holder.matrix.copy(M); else holder.matrix.identity();
       holder.matrixWorldNeedsUpdate = true;
     });
-    if (cs.s.pinch) { pinchMarker.position.set(...cs.s.pinch.point); pinchMarker.visible = S.layers.targets && cs.src !== 'stow'; }
+    if (cs.s.pinch) { pinchMarker.position.set(...cs.s.pinch.point); pinchMarker.visible = S.layers.targets && cs.src !== 'stow'; } else pinchMarker.visible = false;
   }
   applyStowVis();
   poseGhost();
@@ -1817,8 +1911,26 @@ function renderPoseControls(v) {
     if (!el) return;
     el.addEventListener('input', () => {
       if (S.stowAnim.on) stopStowAnim();
-      if (key === 'stow') S.stowT = el.value / 1000;
-      else { S.sweepT[key] = el.value / 1000; S.activeSweep = key; if (S.stowT > 0) { S.stowT = 0; const ss = qs('#sl-stow'); if (ss) ss.value = 0; } }
+      const t = el.value / 1000;
+      if (key === 'stow') S.stowT = t;
+      else if (key === 'open_close') {
+        S.sweepT.open_close = t; S.activeSweep = 'open_close'; S.poseSrc = 'sequence';
+        const oc = sweepsOf(v).open_close;
+        if (oc && (oc.samples || []).length) Object.assign(S.q, interpSample(oc.samples, t).q);
+        (v.servos || []).forEach((sv) => {
+          if (sv.max === sv.min) return;
+          S.sweepT['servo:' + sv.name] = (S.q[sv.name] - sv.min) / (sv.max - sv.min);
+          const se = qs('#sl-sv-' + sv.name.replace(/[^\w-]/g, '_'));
+          if (se) se.value = String(Math.round(S.sweepT['servo:' + sv.name] * 1000));
+        });
+      } else {
+        const name = key.slice(6);
+        const sv = (v.servos || []).find((x) => x.name === name);
+        S.sweepT[key] = t;
+        if (sv) S.q[name] = sv.min + (sv.max - sv.min) * t;
+        S.lastServo = name; S.activeSweep = key;
+        S.poseSrc = S.servoModel ? 'servos' : 'sequence';
+      }
       applyPose();
     });
   };
@@ -1849,17 +1961,18 @@ function renderReadout() {
   const q = Object.entries(s.q || {}).map(([n, r]) => `${esc(n)} <b>${fix(deg(r), 0)}°</b>`).join(' &middot; ');
   if (q) parts.push(`<span><span class="k">Servo</span>${q}</span>`);
   if (isNum(s.stow) && (v.stow || {}).has_stow) parts.push(`<span><span class="k">Stow</span><b>${fix(deg(s.stow), 0)}°</b></span>`);
-  if (cs.src === 'stow') parts.push(`<span class="muted">${cs.phase === 'prep' ? 'servos moving to their stow pose' : 'folding: servos at their stow pose'}</span>`);
+  if (cs.src === 'stow') parts.push(`<span class="muted">${cs.phase === 'prep' ? 'servos moving to their stow pose' : (cs.atStowQ === false ? 'folding with the servo state set above (the stow check used the stow servo pose)' : 'folding: servos at their stow pose')}</span>`);
+  else if (cs.src === 'servos') parts.push('<span class="muted">composed from the per-servo sweeps</span>');
   else if (cs.src && cs.src.startsWith('servo:')) parts.push('<span class="muted">other servos held open</span>');
   box.innerHTML = parts.join('');
   // slider outputs
   const om = qs('#sl-main-out');
-  if (om) om.textContent = p ? `${fix(mm(p.opening), 1)} mm open` : '';
+  if (om) om.textContent = p ? `${fix(mm(p.opening), 1)} mm open` : (cs.src === 'servos' || (cs.src === 'stow' && !p) ? 'per-servo' : '');
   Object.keys(S.sweepT).forEach((k) => {
     if (!k.startsWith('servo:')) return;
     const o = qs('#sl-sv-' + k.slice(6).replace(/[^\w-]/g, '_') + '-out');
     const sv = (v.servos || []).find((x) => x.name === k.slice(6));
-    if (o && sv) o.textContent = `${fix(deg(sv.min + (sv.max - sv.min) * S.sweepT[k]), 0)}°`;
+    if (o && sv) o.textContent = `${fix(deg(isNum(S.q[sv.name]) ? S.q[sv.name] : sv.min + (sv.max - sv.min) * S.sweepT[k]), 0)}°`;
   });
   const so = qs('#sl-stow-out');
   if (so) so.textContent = (v.stow || {}).has_stow ? `${fix(cs.src === 'stow' && isNum(s.stow) ? deg(s.stow - (v.stow.deployed || 0)) : 0, 0)}°` : 'none';
@@ -2917,7 +3030,7 @@ window.addEventListener('hashchange', () => {
   const id = decodeURIComponent((location.hash || '').slice(1));
   if (id && id !== S.cur && S.index.some((e) => e.id === id)) selectConcept(id);
 });
-if (/[?&]debug\b/.test(location.search)) window.__dbg = { S, get scene() { return scene; }, get robot() { return robot; }, T3, render: requestRender, applyPose, renderTabs, renderCompare, selectConcept, loadConceptData, enterGrasp, enterTorpedo, goView };
+if (/[?&]debug\b/.test(location.search)) window.__dbg = { S, get scene() { return scene; }, get robot() { return robot; }, T3, render: requestRender, applyPose, composePose, renderTabs, renderCompare, selectConcept, loadConceptData, enterGrasp, enterTorpedo, goView };
 reduceMQ.addEventListener && reduceMQ.addEventListener('change', () => { if (controls) controls.enableDamping = !reduced(); });
 boot();
 })();
