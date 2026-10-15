@@ -59,7 +59,10 @@
     "dfc_claw_percent": 0.0,
     "forgiveness_score": 0.569529,
     "forgiveness_min_object_score": 0.096296,
-    "forgiveness_grade": "poor"
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
    }
   },
   {
@@ -116,7 +119,10 @@
     "dfc_claw_percent": 0.4224,
     "forgiveness_score": 0.812374,
     "forgiveness_min_object_score": 0.627778,
-    "forgiveness_grade": "fair"
+    "forgiveness_grade": "fair",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
    }
   },
   {
@@ -173,7 +179,10 @@
     "dfc_claw_percent": 0.3134,
     "forgiveness_score": 0.764057,
     "forgiveness_min_object_score": 0.463889,
-    "forgiveness_grade": "poor"
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
    }
   },
   {
@@ -230,7 +239,10 @@
     "dfc_claw_percent": 0.2335,
     "forgiveness_score": 0.656355,
     "forgiveness_min_object_score": 0.338889,
-    "forgiveness_grade": "poor"
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
    }
   },
   {
@@ -287,7 +299,10 @@
     "dfc_claw_percent": 0.6719,
     "forgiveness_score": 0.71048,
     "forgiveness_min_object_score": 0.441667,
-    "forgiveness_grade": "poor"
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
    }
   },
   {
@@ -344,7 +359,10 @@
     "dfc_claw_percent": 2.0031,
     "forgiveness_score": 0.55787,
     "forgiveness_min_object_score": 0.192593,
-    "forgiveness_grade": "poor"
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
    }
   },
   {
@@ -401,7 +419,10 @@
     "dfc_claw_percent": 0.0,
     "forgiveness_score": 0.907955,
     "forgiveness_min_object_score": 0.789352,
-    "forgiveness_grade": "fair"
+    "forgiveness_grade": "fair",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
    }
   },
   {
@@ -458,7 +479,10 @@
     "dfc_claw_percent": 0.5601,
     "forgiveness_score": 0.803451,
     "forgiveness_min_object_score": 0.706481,
-    "forgiveness_grade": "poor"
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
    }
   },
   {
@@ -515,7 +539,10 @@
     "dfc_claw_percent": 0.4431,
     "forgiveness_score": 0.785143,
     "forgiveness_min_object_score": 0.559259,
-    "forgiveness_grade": "poor"
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
    }
   },
   {
@@ -572,7 +599,10 @@
     "dfc_claw_percent": 0.4219,
     "forgiveness_score": 0.767508,
     "forgiveness_min_object_score": 0.452778,
-    "forgiveness_grade": "poor"
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
    }
   },
   {
@@ -629,7 +659,10 @@
     "dfc_claw_percent": 0.7606,
     "forgiveness_score": 0.748232,
     "forgiveness_min_object_score": 0.435185,
-    "forgiveness_grade": "poor"
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
    }
   },
   {
@@ -686,7 +719,10 @@
     "dfc_claw_percent": 0.0,
     "forgiveness_score": 0.815614,
     "forgiveness_min_object_score": 0.680093,
-    "forgiveness_grade": "fair"
+    "forgiveness_grade": "fair",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
    }
   },
   {
@@ -744,7 +780,73 @@
     "dfc_claw_percent": 0.8845,
     "forgiveness_score": 0.632786,
     "forgiveness_min_object_score": 0.312963,
-    "forgiveness_grade": "poor"
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": null,
+    "connector_in_dfc": null
+   }
+  },
+  {
+   "id": "m5_static_pitch_rotate",
+   "name": "Static mount + elbow pitch + wrist roll + parallel Fin Ray claw (3 servos)",
+   "servo_count": 3,
+   "overall": "fail",
+   "quick": true,
+   "generated": "2026-10-15 16:42:50",
+   "hidden": false,
+   "schema_version": 3,
+   "viewer_json": "concepts/m5_static_pitch_rotate/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "warn",
+    "interference": "pass",
+    "mass": "fail",
+    "structure": "fail",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info",
+    "connector": "warn"
+   },
+   "check_counts": {
+    "pass": 7,
+    "warn": 3,
+    "fail": 2,
+    "info": 2
+   },
+   "objects": {
+    "pass": 6,
+    "warn": 5,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.105,
+    "pinch_x_max": 0.12816,
+    "pinch_z": -0.497,
+    "front_x": 0.2265,
+    "jaws_below_feet_mm": 164.7,
+    "mass_g": 1322.78405,
+    "in_water_g": 553.24002,
+    "dvl_clearance_mm": 14.8,
+    "stow_sweep_clearance_mm": 12.3,
+    "stowed_above_feet_mm": 73.0,
+    "torpedo_first_target_clearance_mm": 118.2,
+    "torpedo_d_min_m": 0.3,
+    "dfc_claw_percent": 0.276,
+    "forgiveness_score": 0.72705,
+    "forgiveness_min_object_score": 0.4125,
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": false,
+    "connector_in_dfc": false
    }
   }
  ]
