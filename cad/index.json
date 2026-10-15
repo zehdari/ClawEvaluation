@@ -1,6 +1,6 @@
 {
  "c1_tine_cage": {
-  "bytes": 848926,
+  "bytes": 848931,
   "parts": 19,
   "zip": "cad/c1_tine_cage.zip"
  },
@@ -10,7 +10,7 @@
   "zip": "cad/c2_crab_finray.zip"
  },
  "c3_extend_grip": {
-  "bytes": 1264340,
+  "bytes": 1264338,
   "parts": 21,
   "zip": "cad/c3_extend_grip.zip"
  },
