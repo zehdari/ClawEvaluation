@@ -62,18 +62,28 @@
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
-    "connector_in_dfc": null
+    "connector_in_dfc": null,
+    "table_reach_mean": 0.554348,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": null,
+    "structure_f1_water_hz": null,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
    "id": "c1_tine_cage",
    "name": "Tine-cage clamshell (single servo, gear-coupled comb hands)",
    "servo_count": 1,
-   "overall": "warn",
+   "overall": "fail",
    "quick": false,
-   "generated": "2026-10-15 12:57:18",
+   "generated": "2026-10-15 18:08:18",
    "hidden": false,
-   "schema_version": 2,
+   "schema_version": 3,
    "viewer_json": "concepts/c1_tine_cage/viewer.json",
    "check_status": {
     "forward_reach": "pass",
@@ -82,26 +92,33 @@
     "dvl": "pass",
     "payload_paths": "pass",
     "tension_cable": "pass",
-    "stow": "pass",
+    "stow": "warn",
     "interference": "pass",
     "mass": "pass",
-    "grasp": "warn",
+    "structure": "warn",
+    "assembly": "fail",
+    "grasp": "fail",
     "forgiveness": "info",
-    "dfc": "info"
+    "dfc": "info",
+    "dfc_show": "info",
+    "ffc_in_water": "pass",
+    "connector": "warn"
    },
    "check_counts": {
     "pass": 9,
-    "warn": 1,
-    "info": 2
+    "warn": 3,
+    "fail": 2,
+    "info": 3
    },
    "objects": {
-    "pass": 5,
-    "warn": 6,
-    "fail": 0,
+    "pass": 0,
+    "warn": 4,
+    "fail": 7,
     "total": 11
    },
    "outcomes": {
-    "lifted": 11
+    "pivots": 7,
+    "lifted": 4
    },
    "key": {
     "pinch_x": 0.07,
@@ -109,20 +126,30 @@
     "pinch_z": -0.46004,
     "front_x": 0.1085,
     "jaws_below_feet_mm": 124.0,
-    "mass_g": 680.365563,
-    "in_water_g": 320.748533,
+    "mass_g": 680.36556,
+    "in_water_g": 320.74853,
     "dvl_clearance_mm": 20.5,
     "stow_sweep_clearance_mm": 3.8,
     "stowed_above_feet_mm": 111.1,
     "torpedo_first_target_clearance_mm": 78.0,
-    "torpedo_d_min_m": 0.540161,
-    "dfc_claw_percent": 0.4224,
-    "forgiveness_score": 0.812374,
-    "forgiveness_min_object_score": 0.627778,
-    "forgiveness_grade": "fair",
+    "torpedo_d_min_m": 0.54016,
+    "dfc_claw_percent": 0.572,
+    "forgiveness_score": 0.58812,
+    "forgiveness_min_object_score": 0.31062,
+    "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
-    "connectors_aft": null,
-    "connector_in_dfc": null
+    "connectors_aft": false,
+    "connector_in_dfc": false,
+    "table_reach_mean": 0.989617,
+    "table_reach_full_table_mean": 0.821933,
+    "ffc_in_water_max_percent": 0.0,
+    "structure_landing_mm": 4.4,
+    "structure_f1_water_hz": 19.27527,
+    "heading_offset_deg": 0.0,
+    "yaw_aligned_lifted": 4,
+    "dfc_show_mean_visible": 0.97637,
+    "dfc_show_objects_50": 11,
+    "forgiveness_score_open_tabletop": 0.52012
    }
   },
   {
@@ -182,7 +209,17 @@
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
-    "connector_in_dfc": null
+    "connector_in_dfc": null,
+    "table_reach_mean": 0.912565,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": null,
+    "structure_f1_water_hz": null,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
@@ -242,7 +279,17 @@
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
-    "connector_in_dfc": null
+    "connector_in_dfc": null,
+    "table_reach_mean": 0.926305,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": null,
+    "structure_f1_water_hz": null,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
@@ -302,7 +349,17 @@
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
-    "connector_in_dfc": null
+    "connector_in_dfc": null,
+    "table_reach_mean": 0.869631,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": null,
+    "structure_f1_water_hz": null,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
@@ -362,7 +419,17 @@
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
-    "connector_in_dfc": null
+    "connector_in_dfc": null,
+    "table_reach_mean": 0.931224,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": null,
+    "structure_f1_water_hz": null,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
@@ -422,7 +489,17 @@
     "forgiveness_grade": "fair",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
-    "connector_in_dfc": null
+    "connector_in_dfc": null,
+    "table_reach_mean": 0.863637,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": null,
+    "structure_f1_water_hz": null,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
@@ -482,7 +559,17 @@
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
-    "connector_in_dfc": null
+    "connector_in_dfc": null,
+    "table_reach_mean": 0.966145,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": null,
+    "structure_f1_water_hz": null,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
@@ -542,7 +629,17 @@
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
-    "connector_in_dfc": null
+    "connector_in_dfc": null,
+    "table_reach_mean": 0.799723,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": null,
+    "structure_f1_water_hz": null,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
@@ -602,7 +699,17 @@
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
-    "connector_in_dfc": null
+    "connector_in_dfc": null,
+    "table_reach_mean": 0.90145,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": null,
+    "structure_f1_water_hz": null,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
@@ -662,7 +769,17 @@
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
-    "connector_in_dfc": null
+    "connector_in_dfc": null,
+    "table_reach_mean": 0.945524,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": null,
+    "structure_f1_water_hz": null,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
@@ -722,7 +839,17 @@
     "forgiveness_grade": "fair",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
-    "connector_in_dfc": null
+    "connector_in_dfc": null,
+    "table_reach_mean": 0.913813,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": null,
+    "structure_f1_water_hz": null,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
@@ -783,7 +910,17 @@
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
-    "connector_in_dfc": null
+    "connector_in_dfc": null,
+    "table_reach_mean": 0.949295,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": null,
+    "structure_f1_water_hz": null,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
@@ -845,7 +982,17 @@
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": false,
-    "connector_in_dfc": false
+    "connector_in_dfc": false,
+    "table_reach_mean": 0.931322,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": 6.0,
+    "structure_f1_water_hz": 10.22891,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   },
   {
@@ -908,7 +1055,17 @@
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": false,
-    "connector_in_dfc": false
+    "connector_in_dfc": false,
+    "table_reach_mean": 0.944921,
+    "table_reach_full_table_mean": null,
+    "ffc_in_water_max_percent": null,
+    "structure_landing_mm": 6.4,
+    "structure_f1_water_hz": 8.31021,
+    "heading_offset_deg": null,
+    "yaw_aligned_lifted": null,
+    "dfc_show_mean_visible": null,
+    "dfc_show_objects_50": null,
+    "forgiveness_score_open_tabletop": null
    }
   }
  ]
