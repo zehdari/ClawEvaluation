@@ -1,0 +1,62 @@
+{
+ "c1_tine_cage": {
+  "bytes": 848926,
+  "parts": 19,
+  "zip": "cad/c1_tine_cage.zip"
+ },
+ "c2_crab_finray": {
+  "bytes": 1284781,
+  "parts": 33,
+  "zip": "cad/c2_crab_finray.zip"
+ },
+ "c3_extend_grip": {
+  "bytes": 1264338,
+  "parts": 21,
+  "zip": "cad/c3_extend_grip.zip"
+ },
+ "c4_rack_finray2": {
+  "bytes": 729396,
+  "parts": 15,
+  "zip": "cad/c4_rack_finray2.zip"
+ },
+ "c5_fixed_sweep": {
+  "bytes": 121014,
+  "parts": 8,
+  "zip": "cad/c5_fixed_sweep.zip"
+ },
+ "c6_current_mod": {
+  "bytes": 659942,
+  "parts": 10,
+  "zip": "cad/c6_current_mod.zip"
+ },
+ "c7_intermesh": {
+  "bytes": 781536,
+  "parts": 22,
+  "zip": "cad/c7_intermesh.zip"
+ },
+ "c8_centric": {
+  "bytes": 393945,
+  "parts": 31,
+  "zip": "cad/c8_centric.zip"
+ },
+ "c9_four_finray": {
+  "bytes": 1083158,
+  "parts": 41,
+  "zip": "cad/c9_four_finray.zip"
+ },
+ "m1_grip_lift": {
+  "bytes": 934680,
+  "parts": 16,
+  "zip": "cad/m1_grip_lift.zip"
+ },
+ "m2_twin_finger": {
+  "bytes": 921693,
+  "parts": 15,
+  "zip": "cad/m2_twin_finger.zip"
+ },
+ "m3_arm": {
+  "bytes": 1969125,
+  "parts": 17,
+  "zip": "cad/m3_arm.zip"
+ }
+}

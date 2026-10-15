@@ -12,6 +12,10 @@ Needs a current browser (Chrome/Edge, Firefox 113+, Safari 16.4+). To run it loc
 
     python3 -m http.server 8765    # then open http://localhost:8765/
 
+**CAD downloads:** one zip of STEP files (every part) per concept in [`cad/`](cad/), e.g.
+`https://zehdari.github.io/ClawEvaluation/cad/c7_intermesh.zip`; [`cad/index.json`](cad/index.json) lists them. Target
+printer: Bambu Lab P1S (256 x 256 x 256 mm); Bambu Studio imports STEP directly.
+
 Generated from the `~/claw_prototypes` workspace (clawlab toolkit + concept models) with `viewer/make_publish.py`
 and `viewer/make_local.py`. Results are pre-revision: a revision pass and a consistent re-run on the final toolkit
 are pending.
