@@ -983,12 +983,38 @@ function dec(arr) {
   return d;
 }
 const _p = renderer ? new T3.Vector3() : null, _q = renderer ? new T3.Quaternion() : null, _s = renderer ? new T3.Vector3() : null;
+// Pose interpolation. The relative motion D = B * A^-1 between two rigid poses is interpolated as a screw: rotation by
+// u * angle about D's own axis (a fixed line in space) plus u * the slide along it. A part rotating about a pivot
+// follows the arc exactly (a lerp of the translation would cut the chord and pull the part toward the pivot between
+// samples) and stays rigid at every u. Pure translations reduce to a lerp.
+const _mat = new WeakMap();
+function matOf(arr) { let m = _mat.get(arr); if (!m) { m = new T3.Matrix4().set(...arr); _mat.set(arr, m); } return m; }
+const SC = renderer ? { Ai: new T3.Matrix4(), D: new T3.Matrix4(), R: new T3.Matrix4(), T: new T3.Matrix4(), q: new T3.Quaternion(), t: new T3.Vector3(), n: new T3.Vector3(), par: new T3.Vector3(), perp: new T3.Vector3(), c: new T3.Vector3(), x: new T3.Vector3() } : null;
+function screwBetween(A, B, u, out) {
+  if (u <= 0) return out.copy(A);
+  if (u >= 1) return out.copy(B);
+  SC.Ai.copy(A).invert();
+  SC.D.multiplyMatrices(B, SC.Ai);
+  SC.q.setFromRotationMatrix(SC.D);
+  if (SC.q.w < 0) SC.q.set(-SC.q.x, -SC.q.y, -SC.q.z, -SC.q.w);
+  SC.t.setFromMatrixPosition(SC.D);
+  const sh = Math.sqrt(Math.max(0, 1 - SC.q.w * SC.q.w));
+  const th = 2 * Math.atan2(sh, SC.q.w);
+  if (th < 1e-7) return out.makeTranslation(SC.t.x * u, SC.t.y * u, SC.t.z * u).multiply(A);
+  SC.n.set(SC.q.x / sh, SC.q.y / sh, SC.q.z / sh);
+  SC.par.copy(SC.n).multiplyScalar(SC.n.dot(SC.t));
+  SC.perp.copy(SC.t).sub(SC.par);
+  SC.c.copy(SC.n).cross(SC.perp).divideScalar(Math.tan(th / 2)).add(SC.perp).multiplyScalar(0.5);   // point on the axis
+  SC.R.makeRotationAxis(SC.n, th * u);
+  SC.T.makeTranslation(SC.c.x + u * SC.par.x, SC.c.y + u * SC.par.y, SC.c.z + u * SC.par.z);
+  out.makeTranslation(-SC.c.x, -SC.c.y, -SC.c.z).premultiply(SC.R).premultiply(SC.T);
+  return out.multiply(A);
+}
 function lerpM(a, b, u, out) {
   if (!a) return out.identity();
-  if (!b || u <= 0) return out.copy(new T3.Matrix4().set(...a));
-  const A = dec(a), B = dec(b);
-  _p.lerpVectors(A.p, B.p, u); _q.slerpQuaternions(A.q, B.q, u); _s.lerpVectors(A.s, B.s, u);
-  return out.compose(_p, _q, _s);
+  if (!b || a === b || u <= 0) return out.copy(matOf(a));
+  if (u >= 1) return out.copy(matOf(b));
+  return screwBetween(matOf(a), matOf(b), u, out);
 }
 const lerp = (a, b, u) => (isNum(a) && isNum(b) ? a + (b - a) * u : (isNum(a) ? a : b));
 function bracket(samples, t) {
@@ -1587,6 +1613,7 @@ async function selectConcept(id) {
   renderTabs(); renderCompare(); applyLayers();
   setStatus(`Loading ${codeOf(id)}…`);
   if (S.stowAnim.on) stopStowAnim();
+  S.stowOwners = {};
   let v;
   try { v = await loadConceptData(id); } catch (err) {
     if (tok !== S.selTok) return;
@@ -1608,6 +1635,7 @@ async function selectConcept(id) {
   clawHolder.add(grp);
   S.clawGroup = grp;
   setHitHighlight(null, true);
+  S.stowModel = buildStowModel(v);
   buildStowPath(v);
   if (S.playAll.on) { S.playAll.list = playAllList(); S.playAll.i = Math.max(0, S.playAll.list.indexOf(S.grasp.obj)); }
   updateHoleMarkers(v);
@@ -1641,13 +1669,97 @@ function initPose(v) {
   const st = sw.stow;
   S.stowT = st && (st.samples || []).length > 1 && isNum(ds.stow_index) ? ds.stow_index / (st.samples.length - 1) : 0;
 }
-function currentSample(v) {
+function deployedSample(v) {
   const sw = sweepsOf(v);
-  if (S.stowT > 0 && sw.stow && (sw.stow.samples || []).length) return { s: interpSample(sw.stow.samples, S.stowT), src: 'stow' };
   const key = sw[S.activeSweep] ? S.activeSweep : 'open_close';
   const s = sw[key];
   if (!s || !(s.samples || []).length) return null;
   return { s: interpSample(s.samples, S.sweepT[key] != null ? S.sweepT[key] : 0.5), src: key };
+}
+// Stow model. With a fixed hinge (stow.hinge.fixed_axis) every link that rides rigidly on it is posed analytically:
+// T(f) = Rot(hinge point, axis, angle(f)) * T_deployed, exact and smooth at any slider value. Each link is checked
+// against all stow samples first (and the rotation sign chosen to reproduce them); links that do not follow the hinge
+// rigidly, and concepts without a fixed axis, use the screw interpolation between samples.
+const deg2rad = (d) => d * Math.PI / 180;
+function poseErr(A, B) {
+  const pa = new T3.Vector3().setFromMatrixPosition(A), pb = new T3.Vector3().setFromMatrixPosition(B);
+  const qa = new T3.Quaternion().setFromRotationMatrix(A), qb = new T3.Quaternion().setFromRotationMatrix(B);
+  return { mm: pa.distanceTo(pb) * 1000, deg: qa.angleTo(qb) * 180 / Math.PI };
+}
+function buildStowModel(v) {
+  const st = (v && v.stow) || {}, sw = sweepsOf(v).stow;
+  if (!st.has_stow || !sw || !(sw.samples || []).length) return null;
+  const smp = sw.samples, s0 = smp[0], sN = smp[smp.length - 1];
+  const names = Object.keys(s0.T || {});
+  const moving = names.filter((n) => sN.T && sN.T[n] && poseErr(matOf(s0.T[n]), matOf(sN.T[n])).mm + poseErr(matOf(s0.T[n]), matOf(sN.T[n])).deg > 1e-3);
+  const j0 = s0.stow, jN = sN.stow;
+  const jointOK = isNum(j0) && isNum(jN) && Math.abs(jN - j0) > 1e-9;
+  const M = { s0, smp, moving: new Set(moving), rigid: new Set(), hinge: null };
+  M.jointFrac = (f) => {
+    if (!jointOK) return f;
+    const { a, b, u } = bracket(smp, f);
+    const j = lerp(a.stow, b.stow, u);
+    return isNum(j) ? (j - j0) / (jN - j0) : f;
+  };
+  const h = st.hinge;
+  if (h && h.fixed_axis !== false && h.point && h.axis && isNum(h.rotation_deg) && moving.length) {
+    const c = new T3.Vector3(...h.point), n = new T3.Vector3(...h.axis).normalize(), tot = deg2rad(h.rotation_deg);
+    const rot = (ang, out) => out.makeTranslation(-c.x, -c.y, -c.z).premultiply(new T3.Matrix4().makeRotationAxis(n, ang)).premultiply(new T3.Matrix4().makeTranslation(c.x, c.y, c.z));
+    const fracK = (k) => (jointOK ? (smp[k].stow - j0) / (jN - j0) : k / Math.max(1, smp.length - 1));
+    const err = (name, sign) => {
+      let w = 0;
+      for (let k = 0; k < smp.length; k++) {
+        if (!smp[k].T[name]) continue;
+        const pred = rot(sign * tot * fracK(k), new T3.Matrix4()).multiply(matOf(s0.T[name]));
+        const e = poseErr(pred, matOf(smp[k].T[name]));
+        w = Math.max(w, e.mm, e.deg);
+      }
+      return w;
+    };
+    const lead = (h.link && moving.includes(h.link)) ? h.link : moving[0];
+    const sign = err(lead, 1) <= err(lead, -1) ? 1 : -1;
+    moving.forEach((name) => { if (err(name, sign) < 0.6) M.rigid.add(name); });
+    M.hinge = { c, n, tot, sign, rot };
+  }
+  M.pose = (name, f, out) => {
+    if (M.hinge && M.rigid.has(name)) return M.hinge.rot(M.hinge.sign * M.hinge.tot * M.jointFrac(f), out).multiply(matOf(s0.T[name]));
+    const { a, b, u } = bracket(smp, f);
+    return lerpM(a.T[name], (b.T || {})[name], u, out);
+  };
+  return M;
+}
+// The stow sweep holds the servos at their stow pose. When the slider's servo state differs from it, the first part
+// of the stow slider (PREP of its range) moves the servos there (screw blend of each link), then the claw folds.
+const STOW_PREP = 0.12;
+function stowPrep(cur, s0) {
+  if (!cur) return 0;
+  for (const n of Object.keys(s0.T || {})) {
+    if (!cur.T[n]) continue;
+    const e = poseErr(cur.T[n], matOf(s0.T[n]));
+    if (e.mm > 0.5 || e.deg > 0.5) return STOW_PREP;
+  }
+  return 0;
+}
+function currentSample(v) {
+  const sw = sweepsOf(v);
+  if (S.stowT > 0 && sw.stow && (sw.stow.samples || []).length) {
+    const s0 = sw.stow.samples[0];
+    const cur = deployedSample(v);
+    const PF = cur ? stowPrep(cur.s, s0) : 0;
+    if (PF > 0 && S.stowT <= PF) {
+      const b = S.stowT / PF;
+      const s = { T: {}, q: {}, stow: s0.stow, pinch: cur.s.pinch };
+      Object.keys(s0.T).forEach((n) => { s.T[n] = cur.s.T[n] ? screwBetween(cur.s.T[n], matOf(s0.T[n]), b, new T3.Matrix4()) : matOf(s0.T[n]).clone(); });
+      Object.keys(s0.q || {}).forEach((n) => { s.q[n] = lerp((cur.s.q || {})[n], s0.q[n], b); });
+      return { s, src: 'stow', phase: 'prep', fold: 0 };
+    }
+    const f = PF < 1 ? (S.stowT - PF) / (1 - PF) : 1;
+    const s = interpSample(sw.stow.samples, f);
+    const M = S.stowModel;
+    if (M) Object.keys(s.T).forEach((n) => { if (M.moving.has(n)) s.T[n] = M.pose(n, f, new T3.Matrix4()); });
+    return { s, src: 'stow', phase: 'fold', fold: f };
+  }
+  return deployedSample(v);
 }
 let lastSample = null;
 function applyPose() {
@@ -1737,7 +1849,7 @@ function renderReadout() {
   const q = Object.entries(s.q || {}).map(([n, r]) => `${esc(n)} <b>${fix(deg(r), 0)}°</b>`).join(' &middot; ');
   if (q) parts.push(`<span><span class="k">Servo</span>${q}</span>`);
   if (isNum(s.stow) && (v.stow || {}).has_stow) parts.push(`<span><span class="k">Stow</span><b>${fix(deg(s.stow), 0)}°</b></span>`);
-  if (cs.src === 'stow') parts.push('<span class="muted">stow sweep: servos at their stow pose</span>');
+  if (cs.src === 'stow') parts.push(`<span class="muted">${cs.phase === 'prep' ? 'servos moving to their stow pose' : 'folding: servos at their stow pose'}</span>`);
   else if (cs.src && cs.src.startsWith('servo:')) parts.push('<span class="muted">other servos held open</span>');
   box.innerHTML = parts.join('');
   // slider outputs
@@ -1750,7 +1862,7 @@ function renderReadout() {
     if (o && sv) o.textContent = `${fix(deg(sv.min + (sv.max - sv.min) * S.sweepT[k]), 0)}°`;
   });
   const so = qs('#sl-stow-out');
-  if (so) so.textContent = (v.stow || {}).has_stow ? `${fix(deg((v.stow.deployed || 0) + ((v.stow.stowed || 0) - (v.stow.deployed || 0)) * S.stowT), 0)}°` : 'none';
+  if (so) so.textContent = (v.stow || {}).has_stow ? `${fix(cs.src === 'stow' && isNum(s.stow) ? deg(s.stow - (v.stow.deployed || 0)) : 0, 0)}°` : 'none';
 }
 function renderLegend() {
   const v = S.data.get(S.cur);
@@ -2232,16 +2344,66 @@ const stowMats = renderer ? {
 themeHooks.push(() => { if (stowMats) { const c = tokColor('--v3-holebar'); stowMats.path.color.copy(c); stowMats.axis.color.copy(c); stowMats.hw.color.copy(c); } });
 const stowActive = () => (S.stowAnim.on || S.stowT > 0) && S.mode !== 'grasp';
 function clearGroup(g) { g.children.slice().forEach((c) => { g.remove(c); c.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); }); }
+function stowOwner(p, sm0) {
+  const SM = S.stowModel;
+  const links = S.clawGroup ? S.clawGroup.userData.links : {};
+  if (p.link) return SM && SM.moving.has(p.link) && links[p.link] ? p.link : null;
+  if (!SM || !sm0 || !p.point) return null;
+  let best = null, bestD = 0.003;
+  SM.moving.forEach((name) => {
+    const holder = links[name];
+    if (!holder || !sm0.T[name]) return;
+    const d = distToLink(holder, matOf(sm0.T[name]), new T3.Vector3(...p.point), bestD);
+    if (d <= bestD) { bestD = d; best = name; }
+  });
+  return best;
+}
+// distance (m) from a robot-frame point to a link's meshes with the link at pose T (exact over triangles, bbox culled)
+function distToLink(holder, T, pRobot, limit) {
+  const pL = pRobot.clone().applyMatrix4(T.clone().invert());
+  holder.updateMatrixWorld(true);
+  const hInv = holder.matrixWorld.clone().invert();
+  const tri = new T3.Triangle(), cp = new T3.Vector3(), a = new T3.Vector3(), b = new T3.Vector3(), c = new T3.Vector3();
+  let best = Infinity;
+  holder.traverse((o) => {
+    if (!o.isMesh || !o.geometry || o.userData.stowMarker) return;
+    const g = o.geometry;
+    const rel = hInv.clone().multiply(o.matrixWorld);
+    const p = pL.clone().applyMatrix4(rel.clone().invert());
+    if (!g.boundingBox) g.computeBoundingBox();
+    if (g.boundingBox.distanceToPoint(p) > Math.min(best, limit)) return;
+    const pos = g.getAttribute('position'), idx = g.index;
+    const n = idx ? idx.count : pos.count;
+    for (let k = 0; k + 2 < n; k += 3) {
+      const i0 = idx ? idx.getX(k) : k, i1 = idx ? idx.getX(k + 1) : k + 1, i2 = idx ? idx.getX(k + 2) : k + 2;
+      tri.set(a.fromBufferAttribute(pos, i0), b.fromBufferAttribute(pos, i1), c.fromBufferAttribute(pos, i2));
+      tri.closestPointToPoint(p, cp);
+      const d = cp.distanceTo(p);
+      if (d < best) best = d;
+    }
+  });
+  return best;
+}
 function buildStowPath(v) {
   S.stowInfo = null;
   removeLabels('stow');
+  (S.stowMarkers || []).forEach((m) => { if (m.parent) m.parent.remove(m); if (m.geometry) m.geometry.dispose(); });
+  S.stowMarkers = [];
   if (!renderer) return;
   clearGroup(stowGroup); clearGroup(stowHw);
   const st = (v && v.stow) || {};
   const sw = sweepsOf(v).stow;
   if (!st.has_stow) return;
   let pts = null, center = null, axis = null, hingeNote = 'hinge axis';
-  if ((st.pinch_path || []).length >= 2) {
+  const SM = S.stowModel;
+  const sm0 = sw && (sw.samples || [])[0];
+  const lead = SM && SM.hinge ? ((st.hinge && st.hinge.link && SM.rigid.has(st.hinge.link)) ? st.hinge.link : [...SM.rigid][0]) : null;
+  if (lead) {
+    // the pinch carried by the hinge: an exact arc
+    const P0 = new T3.Vector3(...((st.pinch_path || [])[0] || (sm0 && sm0.pinch && sm0.pinch.point) || st.hinge.point));
+    pts = [];
+    for (let i = 0; i <= 64; i++) pts.push(P0.clone().applyMatrix4(SM.hinge.rot(SM.hinge.sign * SM.hinge.tot * (i / 64), new T3.Matrix4())));
+  } else if ((st.pinch_path || []).length >= 2) {
     const raw = st.pinch_path.map((p) => new T3.Vector3(...p));
     pts = raw.length > 2 ? new T3.CatmullRomCurve3(raw).getPoints(48) : raw;
   }
@@ -2290,32 +2452,37 @@ function buildStowPath(v) {
     stowGroup.add(ax);
     addLabel(hingeNote, center.clone().addScaledVector(axis, 0.06).toArray(), robot, stowActive, '--v3-holebar', 'stow');
   }
-  // hand hardware
+  // hand hardware: each marker rides on the link it belongs to (holes on the swinging part move with it, the plunger
+  // on the mount stays). Owner = the bundle's `link` when given, else the moving link whose mesh lies within 3 mm of
+  // the point at the deployed pose, else the fixed mount.
   const hwOn = () => S.layers.stowhw && stowActive();
   const up = new T3.Vector3(0, 1, 0);
-  (st.pins || []).forEach((p, i) => {
+  S.stowOwners = {};
+  const place = (code, p, geo, state) => {
     if (!p.point) return;
-    const r = Math.max(0.0022, (p.diameter || 0.005) / 2);
-    const m = new T3.Mesh(new T3.CylinderGeometry(r, r, 0.026, 14), stowMats.hw);
-    m.position.set(...p.point);
-    if (p.axis) m.quaternion.setFromUnitVectors(up, new T3.Vector3(...p.axis).normalize());
+    const owner = stowOwner(p, sm0);
+    S.stowOwners[code] = owner;
+    const m = new T3.Mesh(geo, stowMats.hw);
     m.renderOrder = 9;
-    stowHw.add(m);
-    addLabel(`P${i + 1}`, p.point, robot, hwOn, '--v3-holebar', 'stow');
-  });
-  (st.detents || []).forEach((p, i) => {
-    if (!p.point) return;
-    const m = new T3.Mesh(new T3.SphereGeometry(0.0038, 12, 8), stowMats.hw);
-    m.position.set(...p.point); m.renderOrder = 9;
-    stowHw.add(m);
-    addLabel(`D${i + 1}`, p.point, robot, hwOn, '--v3-holebar', 'stow');
-  });
-  (st.hard_stops || []).forEach((p, i) => {
-    if (!p.point) return;
-    const m = new T3.Mesh(new T3.BoxGeometry(0.007, 0.007, 0.007), stowMats.hw);
-    m.position.set(...p.point); m.renderOrder = 9;
-    stowHw.add(m);
-    addLabel(`S${i + 1}`, p.point, robot, hwOn, '--v3-holebar', 'stow');
+    m.userData.stowMarker = true;
+    const W = new T3.Matrix4().compose(new T3.Vector3(...p.point), p.axis ? new T3.Quaternion().setFromUnitVectors(up, new T3.Vector3(...p.axis).normalize()) : new T3.Quaternion(), new T3.Vector3(1, 1, 1));
+    const holder = owner && S.clawGroup ? S.clawGroup.userData.links[owner] : null;
+    if (holder && sm0 && sm0.T[owner]) {
+      matOf(sm0.T[owner]).clone().invert().multiply(W).decompose(m.position, m.quaternion, m.scale);
+      holder.add(m);
+    } else {
+      W.decompose(m.position, m.quaternion, m.scale);
+      stowHw.add(m);
+    }
+    S.stowMarkers.push(m);
+    addLabel(state && state !== 'both' ? `${code} ${state}` : code, [0, 0, 0], m, hwOn, '--v3-holebar', 'stow');
+  };
+  (st.pins || []).forEach((p, i) => { const r = Math.max(0.0022, (p.diameter || 0.005) / 2); place(`P${i + 1}`, p, new T3.CylinderGeometry(r, r, 0.026, 14), p.state); });
+  (st.detents || []).forEach((p, i) => place(`D${i + 1}`, p, new T3.SphereGeometry(0.0038, 12, 8), p.state));
+  (st.hard_stops || []).forEach((p, i) => place(`S${i + 1}`, p, new T3.BoxGeometry(0.007, 0.007, 0.007), p.state));
+  document.querySelectorAll('.hw [data-hw]').forEach((el) => {
+    const o = S.stowOwners[el.dataset.hw];
+    el.textContent = o === undefined ? '' : (o ? `on ${o}` : 'on the mount');
   });
   const box = pts && pts.length ? new T3.Box3().setFromPoints(center ? pts.concat([center]) : pts) : null;
   S.stowInfo = { axis: axis || new T3.Vector3(0, 1, 0), center, box };
@@ -2325,6 +2492,7 @@ function applyStowVis() {
   if (!stowGroup) return;
   stowGroup.visible = stowActive();
   stowHw.visible = S.layers.stowhw && S.mode !== 'grasp';
+  (S.stowMarkers || []).forEach((m) => { m.visible = S.layers.stowhw && S.mode !== 'grasp'; });
 }
 function stowInfoHTML(v) {
   const st = (v && v.stow) || {};
@@ -2347,7 +2515,7 @@ function stowInfoHTML(v) {
   const hinge = st.hinge ? `<p class="sl-note">Hinge${st.hinge.link ? ` on ${esc(st.hinge.link)}` : ''}: rotates ${fix(st.hinge.rotation_deg, 0)}°${st.hinge.fixed_axis === false ? ' (not a single hinge; axis shown at the deployed pose)' : ''}.</p>` : '';
   return `<details class="stow-more" open><summary>Stow procedure${proc && (proc.steps || []).length ? ` · ${proc.steps.length} steps` : ''}</summary>
     ${tags.filter(Boolean).length ? `<div class="tagrow">${tags.join('')}</div>` : ''}${steps}${hinge}
-    ${hw.length ? `<ul class="hw">${hw.map(([c, n, s]) => `<li><b>${esc(c)}</b><span>${esc(n || '')}${s ? ` <small>${esc(s)}</small>` : ''}</span></li>`).join('')}</ul>` : ''}
+    ${hw.length ? `<ul class="hw">${hw.map(([c, n, s]) => `<li><b>${esc(c)}</b><span>${esc(n || '')}${s ? ` <small>${esc(s)}</small>` : ''} <small class="hw-on" data-hw="${esc(c)}">${S.stowOwners && S.stowOwners[c] !== undefined ? (S.stowOwners[c] ? 'on ' + esc(S.stowOwners[c]) : 'on the mount') : ''}</small></span></li>`).join('')}</ul>` : ''}
   </details>`;
 }
 
@@ -2749,7 +2917,7 @@ window.addEventListener('hashchange', () => {
   const id = decodeURIComponent((location.hash || '').slice(1));
   if (id && id !== S.cur && S.index.some((e) => e.id === id)) selectConcept(id);
 });
-if (/[?&]debug\b/.test(location.search)) window.__dbg = { S, get scene() { return scene; }, get robot() { return robot; }, T3, render: requestRender, renderTabs, renderCompare, selectConcept, loadConceptData, enterGrasp, enterTorpedo, goView };
+if (/[?&]debug\b/.test(location.search)) window.__dbg = { S, get scene() { return scene; }, get robot() { return robot; }, T3, render: requestRender, applyPose, renderTabs, renderCompare, selectConcept, loadConceptData, enterGrasp, enterTorpedo, goView };
 reduceMQ.addEventListener && reduceMQ.addEventListener('change', () => { if (controls) controls.enableDamping = !reduced(); });
 boot();
 })();
