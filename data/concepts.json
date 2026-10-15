@@ -418,7 +418,7 @@
    "servo_count": 1,
    "overall": "fail",
    "quick": false,
-   "generated": "2026-10-15 18:18:01",
+   "generated": "2026-10-15 19:54:44",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c5_fixed_sweep/viewer.json",
@@ -434,6 +434,7 @@
     "mass": "pass",
     "structure": "warn",
     "assembly": "fail",
+    "printability": "fail",
     "grasp": "warn",
     "forgiveness": "info",
     "dfc": "info",
@@ -443,7 +444,7 @@
    },
    "check_counts": {
     "pass": 9,
-    "fail": 2,
+    "fail": 3,
     "warn": 3,
     "info": 3
    },
@@ -470,8 +471,8 @@
     "torpedo_first_target_clearance_mm": 64.0,
     "torpedo_d_min_m": 0.3,
     "dfc_claw_percent": 2.716,
-    "forgiveness_score": 0.61476,
-    "forgiveness_min_object_score": 0.14874,
+    "forgiveness_score": 0.62183,
+    "forgiveness_min_object_score": 0.20568,
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": false,
@@ -481,15 +482,15 @@
     "ffc_in_water_max_percent": 0.0,
     "structure_landing_mm": 7.7,
     "structure_f1_water_hz": 12.33369,
-    "grasp_score": null,
-    "grasp_score_min": null,
-    "grasp_near_misses": null,
-    "grasp_major_issues": null,
+    "grasp_score": 0.90855,
+    "grasp_score_min": 0.852,
+    "grasp_near_misses": 1,
+    "grasp_major_issues": 18,
     "heading_offset_deg": 135.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.34198,
+    "dfc_show_mean_visible": 0.32939,
     "dfc_show_objects_50": 3,
-    "forgiveness_score_open_tabletop": 0.56852
+    "forgiveness_score_open_tabletop": 0.57609
    }
   },
   {
