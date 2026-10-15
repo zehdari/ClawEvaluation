@@ -163,7 +163,7 @@
    "servo_count": 1,
    "overall": "fail",
    "quick": false,
-   "generated": "2026-10-15 18:11:27",
+   "generated": "2026-10-15 18:58:28",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c2_crab_finray/viewer.json",
@@ -193,14 +193,15 @@
     "info": 3
    },
    "objects": {
-    "pass": 2,
-    "warn": 6,
-    "fail": 3,
+    "pass": 0,
+    "warn": 5,
+    "fail": 6,
     "total": 11
    },
    "outcomes": {
-    "lifted": 8,
-    "pivots": 3
+    "pivots": 3,
+    "lifted": 5,
+    "stays_on_table": 3
    },
    "key": {
     "pinch_x": 0.074,
@@ -216,22 +217,22 @@
     "torpedo_first_target_clearance_mm": 73.3,
     "torpedo_d_min_m": 0.54192,
     "dfc_claw_percent": 0.539,
-    "forgiveness_score": 0.69668,
-    "forgiveness_min_object_score": 0.29608,
+    "forgiveness_score": 0.5798,
+    "forgiveness_min_object_score": 0.22494,
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": false,
     "connector_in_dfc": false,
-    "table_reach_mean": 0.990914,
-    "table_reach_full_table_mean": 0.854101,
+    "table_reach_mean": 0.99076,
+    "table_reach_full_table_mean": 0.855963,
     "ffc_in_water_max_percent": 0.0,
     "structure_landing_mm": 5.0,
     "structure_f1_water_hz": 12.54761,
-    "heading_offset_deg": 0.0,
-    "yaw_aligned_lifted": 8,
-    "dfc_show_mean_visible": 0.93742,
-    "dfc_show_objects_50": 11,
-    "forgiveness_score_open_tabletop": 0.66094
+    "heading_offset_deg": 180.0,
+    "yaw_aligned_lifted": 5,
+    "dfc_show_mean_visible": 0.94406,
+    "dfc_show_objects_50": 8,
+    "forgiveness_score_open_tabletop": 0.54849
    }
   },
   {
