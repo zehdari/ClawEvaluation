@@ -1870,9 +1870,23 @@ function buildStowModel(v) {
       return w;
     };
     const lead = (h.link && moving.includes(h.link)) ? h.link : moving[0];
-    const sign = err(lead, 1) <= err(lead, -1) ? 1 : -1;
+    // direction from all samples (the intermediate ones decide; a 180 deg end pose is the same either way)
+    const ePlus = err(lead, 1), eMinus = err(lead, -1);
+    const sign = ePlus <= eMinus ? 1 : -1;
+    if (sign < 0) console.info(`[claw viewer] ${v.concept && v.concept.id}: stow samples rotate in the negative sense about stow.hinge.axis (schema: positive = deployed -> stowed); following the samples`);
     moving.forEach((name) => { if (err(name, sign) < 0.6) M.rigid.add(name); });
-    M.hinge = { c, n, tot, sign, rot };
+    M.hinge = { c, n, tot, sign, rot, lead };
+    // Is the hinge link also moved by a servo (the hand stow back-drives that servo, e.g. m4 / m5's elbow on the
+    // pitch axis)? Then stowing must not stack the hinge rotation on the current servo state: the servos go to the
+    // stow sweep's state first, then the claw folds as the samples say.
+    const sweepMoves = (name) => Object.entries(sweepsOf(v)).some(([k, s2]) => k !== 'stow' && (s2.samples || []).some((x) => {
+      const a = (s2.samples[0].T || {})[name], b = (x.T || {})[name];
+      if (!a || !b) return false;
+      const e = poseErr(matOf(a), matOf(b));
+      return e.mm > 0.05 || e.deg > 0.05;
+    }));
+    const L = (v.links || []).find((x) => x.name === lead) || {};
+    M.servoDriven = sweepMoves(lead) || (Array.isArray(L.coupled) && L.coupled.includes('stow')) || (L.driver && L.driver !== 'stow' && L.driver !== 'fixed');
   }
   M.pose = (name, f, out) => {
     if (M.hinge && M.rigid.has(name)) return M.hinge.rot(M.hinge.sign * M.hinge.tot * M.jointFrac(f), out).multiply(matOf(s0.T[name]));
@@ -1885,13 +1899,17 @@ function buildStowModel(v) {
 // of the stow slider (PREP of its range) moves the servos there (screw blend of each link), then the claw folds.
 const STOW_PREP = 0.12;
 function stowPrep(cur, s0) {
+  // share of the stow slider spent moving the servos to the stow pose: 12 % for small moves, up to 45 % when a link
+  // must turn far (keeps the motion about 4 deg per slider percent)
   if (!cur) return 0;
+  let worst = 0, any = false;
   for (const n of Object.keys(s0.T || {})) {
     if (!cur.T[n]) continue;
     const e = poseErr(cur.T[n], matOf(s0.T[n]));
-    if (e.mm > 0.5 || e.deg > 0.5) return STOW_PREP;
+    if (e.mm > 0.5 || e.deg > 0.5) any = true;
+    worst = Math.max(worst, e.deg, e.mm / 2);
   }
-  return 0;
+  return any ? Math.min(0.45, Math.max(STOW_PREP, worst / 400)) : 0;
 }
 function currentSample(v) {
   const sw = sweepsOf(v);
@@ -1899,7 +1917,7 @@ function currentSample(v) {
     const s0 = sw.stow.samples[0];
     const cur = deployedSample(v);
     const SMh = S.stowModel;
-    if (SMh && SMh.hinge && cur && SMh.rigid.size === SMh.moving.size) {
+    if (SMh && SMh.hinge && cur && SMh.rigid.size === SMh.moving.size && !SMh.servoDriven) {
       // the current servo state (any slider combination), carried by the hand-stow hinge
       const f = S.stowT;
       const R = SMh.hinge.rot(SMh.hinge.sign * SMh.hinge.tot * SMh.jointFrac(f), new T3.Matrix4());
