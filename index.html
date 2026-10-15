@@ -301,6 +301,8 @@ input[type="range"]:disabled { cursor: not-allowed; opacity: 0.45; }
 .bars .bv { font: 500 11.5px/1 var(--font-data); text-align: right; color: var(--ink-2); }
 .bonus-val { font-weight: 600; }
 .bad-note { color: var(--fail); }
+.warn-note { color: var(--warn); }
+.cap-line.warnline { color: var(--warn); font-weight: 500; }
 .stow-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .stow-row .sl-note { flex: 1 1 200px; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -395,13 +397,13 @@ details.more > summary { cursor: pointer; font: 600 11px/1.2 var(--font-display)
 .table-wrap { overflow-x: auto; }
 table.cmp { border-collapse: collapse; width: 100%; font: 500 12.5px/1.3 var(--font-data); font-variant-numeric: tabular-nums; }
 .cmp th { text-align: right; padding: 0; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: bottom; }
-.cmp th button { appearance: none; border: 0; background: none; cursor: pointer; width: 100%; text-align: inherit; padding: 8px 10px 3px; font: 600 11px/1.2 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.cmp th button { appearance: none; border: 0; background: none; cursor: pointer; width: 100%; text-align: inherit; padding: 8px 7px 3px; font: 600 11px/1.2 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
 .cmp th button:hover { color: var(--ink); }
 .cmp th[aria-sort="ascending"] button::after { content: " \2191"; color: var(--accent); }
 .cmp th[aria-sort="descending"] button::after { content: " \2193"; color: var(--accent); }
-.cmp th .tgt { display: block; padding: 0 10px 7px; font: 500 10.5px/1.2 var(--font-data); color: var(--ink-3); letter-spacing: 0; text-transform: none; }
+.cmp th .tgt { display: block; padding: 0 7px 7px; font: 500 10.5px/1.2 var(--font-data); color: var(--ink-3); letter-spacing: 0; text-transform: none; }
 .cmp th:first-child, .cmp td:first-child { text-align: left; }
-.cmp td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+.cmp td { padding: 8px 7px; text-align: right; border-bottom: 1px solid var(--line-2); white-space: nowrap; }
 .cmp td .mark { margin-left: 6px; }
 .cmp tbody tr { cursor: pointer; }
 .cmp tbody tr:hover td { background: var(--surface-2); }
@@ -409,7 +411,7 @@ table.cmp { border-collapse: collapse; width: 100%; font: 500 12.5px/1.3 var(--f
 .cmp tr.is-cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .cmp .cname { display: flex; align-items: center; gap: 8px; }
 .cmp .cname button { appearance: none; border: 0; background: none; padding: 0; cursor: pointer; font: 600 12.5px/1.2 var(--font-data); color: var(--ink); text-align: left; }
-.cmp .cname span { font: 400 12.5px/1.2 var(--font-body); color: var(--ink-2); max-width: 26ch; overflow: hidden; text-overflow: ellipsis; }
+.cmp .cname span { font: 400 12.5px/1.2 var(--font-body); color: var(--ink-2); max-width: 18ch; overflow: hidden; text-overflow: ellipsis; }
 .cmp td.na { color: var(--ink-3); }
 .foot { font: 400 12px/1.5 var(--font-body); color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 4px 18px; }
 .foot code { font: 500 11.5px/1 var(--font-data); }
@@ -586,7 +588,7 @@ const ST_LABEL = { pass: 'Pass', warn: 'Warn', fail: 'Fail', info: 'Info', error
 const ST_RANK = { pass: 0, info: 1, warn: 2, fail: 3, error: 4 };
 const chip = (st, txt) => `<span class="chip st-${esc(st || 'none')}"><i aria-hidden="true"></i>${esc(txt || ST_LABEL[st] || st || 'n/a')}</span>`;
 const mark = (st, title) => `<span class="mark st-${esc(st || 'none')}" role="img" aria-label="${esc(ST_LABEL[st] || 'no result')}"${title ? ` title="${esc(title)}"` : ''}></span>`;
-const CHECK_ORDER = ['forward_reach', 'torpedo', 'low_reach', 'dvl', 'payload_paths', 'tension_cable', 'stow', 'interference', 'mass', 'grasp', 'forgiveness', 'dfc'];
+const CHECK_ORDER = ['forward_reach', 'torpedo', 'low_reach', 'dvl', 'payload_paths', 'tension_cable', 'stow', 'interference', 'mass', 'structure', 'connector', 'assembly', 'grasp', 'forgiveness', 'dfc', 'ffc_in_water'];
 
 // ------------------------------------------------------------------ state
 const S = {
@@ -595,7 +597,7 @@ const S = {
   mode: 'robot',            // robot | grasp | torpedo
   activeSweep: 'open_close', sweepT: {}, stowT: 0, q: {}, lastServo: null, poseSrc: 'sequence', servoModel: null,
   view: 'iso', body: 'clear',
-  layers: { holebar: true, dvl: true, ghost: false, foot: true, targets: false, frustum: false, payload: false, stowhw: true },
+  layers: { holebar: true, dvl: true, ghost: false, foot: true, targets: false, frustum: false, payload: false, stowhw: true, conn: false },
   showHidden: false, ghost: null,
   grasp: { obj: null, scene: null, row: null, A: null, t: 0, start: 0, end: 4.5, playing: false, last: 0, hold: 0, speed: 1, loop: false, variant: 'nominal' },
   playAll: { on: false, list: [], i: 0 },
@@ -1342,6 +1344,7 @@ const LAYERS = [
   { id: 'frustum', label: 'dfc frustum', tok: '--v3-frustum' },
   { id: 'payload', label: 'Torpedo / dropper paths', tok: '--v3-payload' },
   { id: 'stowhw', label: 'Stow pins + stops', tok: '--v3-holebar' },
+  { id: 'conn', label: 'Servo plugs (SubConn)', tok: '--v3-frustum' },
 ];
 function buildToggles() {
   const box = qs('#toggles');
@@ -1602,8 +1605,53 @@ function loadConceptData(id) {
   if (!e) return Promise.reject(new Error('unknown concept ' + id));
   if (S.data.has(id)) return Promise.resolve(S.data.get(id));
   return getJSON(DATA + (e.viewer_json || `concepts/${id}/viewer.json`)).then((v) => {
+    expandCompact(v);
     S.data.set(id, v); S.errors.delete(id); return v;
   }, (err) => { S.errors.set(id, err.message); throw err; });
+}
+// schema_version 3 is compact: sweep samples list only the links whose pose differs from links[].T_ref, grasp
+// keyframes point (integer T_links) into the scene's sparse link_poses pool, and Fin Ray piece sub-links `follow`
+// their link. Expanded once here into the v2 form (every link listed; entries share the T_ref / pool arrays, so the
+// cost is one small dict per pose), after which every v2 code path applies unchanged.
+// Rule: pose(name) = entry[name] ?? (link.follows ? pose(link.follows) : link.T_ref).
+function expandCompact(v) {
+  if (!v || v._expanded) return v;
+  v._expanded = true;
+  const links = v.links || [];
+  if (!links.some((L) => L.T_ref || L.follows)) return v;            // v1 / v2: inline form
+  const byName = {};
+  links.forEach((L) => { byName[L.name] = L; });
+  const names = links.map((L) => L.name);
+  const full = (entry) => {
+    if (!entry) entry = {};
+    const out = {};
+    const res = (n, depth) => {
+      if (n in out) return out[n];
+      const L = byName[n];
+      let m = entry[n];
+      if (!m) m = L && L.follows && depth < 8 ? res(L.follows, depth + 1) : (L && L.T_ref);
+      if (m) out[n] = m;
+      return m;
+    };
+    names.forEach((n) => res(n, 0));
+    Object.keys(entry).forEach((n) => { if (!(n in out)) out[n] = entry[n]; });
+    return out;
+  };
+  Object.values(v.sweeps || {}).forEach((sw) => (sw.samples || []).forEach((smp) => { smp.T = full(smp.T); }));
+  (v.grasp_scenes || []).forEach((gs) => {
+    const pool = gs.link_poses;
+    const cache = new Map();
+    const fix = (kf) => {
+      if (typeof kf.T_links === 'number' && pool) {
+        if (!cache.has(kf.T_links)) cache.set(kf.T_links, full(pool[kf.T_links]));
+        kf.T_links = cache.get(kf.T_links);
+      } else if (kf.T_links && typeof kf.T_links === 'object') kf.T_links = full(kf.T_links);
+    };
+    (gs.keyframes || []).forEach(fix);
+    (gs.offcenter || []).forEach((a) => (a.keyframes || []).forEach(fix));
+    (gs.object_yaw_attempts || []).forEach((a) => (a.keyframes || []).forEach(fix));
+  });
+  return v;
 }
 
 // ------------------------------------------------------------------ select concept
@@ -1637,6 +1685,7 @@ async function selectConcept(id) {
   setHitHighlight(null, true);
   S.stowModel = buildStowModel(v);
   buildStowPath(v);
+  buildConnectors(v);
   if (S.playAll.on) { S.playAll.list = playAllList(); S.playAll.i = Math.max(0, S.playAll.list.indexOf(S.grasp.obj)); }
   updateHoleMarkers(v);
   applyLayers();
@@ -1726,11 +1775,33 @@ function buildServoModel(v) {
       M.coupled.push({ link: n, mode, drivers: drivers.map((x) => `${x} ${fix(size[x], 2)}`) });
     }
     M.info[n] = { per, drivers, ref, refInv: ref.clone().invert(), mode, root: !(parent[n] && has.has(parent[n])) };
+    if (mode === 'coupled' && sw.open_close && (sw.open_close.samples || []).length) {
+      // a differential-style drive (e.g. a grip gear concentric with a roll axis) composes as a product of deltas:
+      // keep the order that reproduces the bundle's combined open/close path, else fall back to the last-moved servo
+      const I = M.info[n];
+      const relAtQ = (d, q) => { const sv = servos.find((x) => x.name === d); return interpMats(I.per[d], (q[d] - sv.min) / (sv.max - sv.min)); };
+      const pred = (q, order) => {
+        const r = I.ref.clone();
+        if (order === 'R') I.drivers.forEach((d) => r.multiply(I.refInv.clone().multiply(relAtQ(d, q))));
+        else I.drivers.forEach((d) => r.premultiply(relAtQ(d, q).multiply(I.refInv)));
+        return r;
+      };
+      const errOf = (order) => sw.open_close.samples.reduce((m, smp) => {
+        if (!smp.T[n] || I.drivers.some((d) => !isNum((smp.q || {})[d]))) return m;
+        const e = poseErr(pred(smp.q, order), relOf(smp.T, n));
+        return Math.max(m, e.mm, e.deg);
+      }, 0);
+      const eR = errOf('R'), eL = errOf('L');
+      const best = eR <= eL ? 'R' : 'L', be = Math.min(eR, eL);
+      if (be < 0.3) { I.mode = best === 'R' ? 'delta' : 'deltaL'; }
+      I.validation = be;
+      const c = M.coupled.find((x) => x.link === n); if (c) { c.mode = I.mode; c.pathError = fix(be, 3); }
+    }
   });
   const seen = new Set();
   const visit = (n) => { if (seen.has(n)) return; seen.add(n); const p = parent[n]; if (p && M.info[p]) visit(p); M.order.push(n); };
   names.forEach(visit);
-  if (M.coupled.length) console.info('[claw viewer] ' + (v.concept && v.concept.id) + ': links moved by more than one servo sweep (delta = minor, composed; coupled = last-moved servo wins):', M.coupled);
+  if (M.coupled.length) console.info('[claw viewer] ' + (v.concept && v.concept.id) + ': links moved by more than one servo sweep (delta / deltaL = composed, validated on the open/close path; coupled = last-moved servo wins):', M.coupled);
   return M;
 }
 function composePose(M, q, last) {
@@ -1742,6 +1813,7 @@ function composePose(M, q, last) {
     if (I.mode === 'static') rel = I.ref;
     else if (I.mode === 'single') rel = relAt(I, I.drivers[0]);
     else if (I.mode === 'delta') { rel = I.ref.clone(); I.drivers.forEach((d) => rel.multiply(I.refInv.clone().multiply(relAt(I, d)))); }
+    else if (I.mode === 'deltaL') { rel = I.ref.clone(); I.drivers.forEach((d) => rel.premultiply(relAt(I, d).multiply(I.refInv))); }
     else rel = relAt(I, I.drivers.includes(last) ? last : I.drivers[0]);
     out[n] = !I.root && out[M.parent[n]] ? out[M.parent[n]].clone().multiply(rel) : rel.clone();
   });
@@ -1827,13 +1899,13 @@ function currentSample(v) {
     const s0 = sw.stow.samples[0];
     const cur = deployedSample(v);
     const SMh = S.stowModel;
-    if (SMh && SMh.hinge && cur) {
+    if (SMh && SMh.hinge && cur && SMh.rigid.size === SMh.moving.size) {
       // the current servo state (any slider combination), carried by the hand-stow hinge
       const f = S.stowT;
       const R = SMh.hinge.rot(SMh.hinge.sign * SMh.hinge.tot * SMh.jointFrac(f), new T3.Matrix4());
       const T = {};
       Object.keys(cur.s.T).forEach((n) => {
-        T[n] = SMh.rigid.has(n) ? R.clone().multiply(cur.s.T[n]) : (SMh.moving.has(n) ? SMh.pose(n, f, new T3.Matrix4()) : cur.s.T[n]);
+        T[n] = SMh.rigid.has(n) ? R.clone().multiply(cur.s.T[n]) : cur.s.T[n];
       });
       const { a, b, u } = bracket(sw.stow.samples, f);
       const atStowQ = Object.keys(s0.q || {}).every((k) => Math.abs((cur.s.q || {})[k] - s0.q[k]) < 0.02);
@@ -2051,8 +2123,8 @@ function renderIdleCard() {
 // lift (4.5 s, 5.5 s), or ending in `blocked` at the first-touch height. Off-center and object-yaw attempts follow the
 // same rules. v1 bundles start at approach (t 0); for them the jaw opening, the blocked stop and the slip are derived.
 const PRE_OPEN = 0.9, HOLD = 1.4;
-const OUTCOME_TEXT = { lifted: 'Lifted', stays_on_table: 'Stays on the table', blocked: 'Blocked' };
-const outcomeSt = (o) => (o === 'lifted' ? 'pass' : (o ? 'fail' : null));
+const OUTCOME_TEXT = { lifted: 'Lifted', pivots: 'Lifted, twists in the jaws', stays_on_table: 'Stays on the table', blocked: 'Blocked' };
+const outcomeSt = (o) => (o === 'lifted' ? 'pass' : (o === 'pivots' ? 'warn' : (o ? 'fail' : null)));
 function variantsOf(gs) {
   const out = [{ key: 'nominal', group: 'attempt', label: 'Nominal', outcome: gs && gs.outcome }];
   if (!gs || !gs.outcome) return out;
@@ -2207,7 +2279,9 @@ function captionInfo() {
       const warn = (gs.warnings || row.warnings || [])[0];
       if (A.outcome === 'lifted' && warn) line += ` · ${warn}`;
     }
-    bad = A.outcome !== 'lifted' && failReached(A, S.grasp.t);
+    bad = A.outcome !== 'lifted' && A.outcome !== 'pivots' && failReached(A, S.grasp.t);
+    const pv = (A.variant && A.variant.src && A.variant.src.pivot) || (A.variant && A.variant.key === 'nominal' && gs.pivot);
+    if (A.outcome === 'pivots' && pv) line += ` \u00b7 twists ${fix(deg(pv.angle_rad), 0)}\u00b0 about the ${pv.about || ''} axis`;
   } else {
     const first = (gs.reasons || row.reasons || [])[0] || (gs.warnings || row.warnings || [])[0];
     line = first || 'Clean grasp: no warnings.';
@@ -2601,8 +2675,26 @@ function buildStowPath(v) {
   S.stowInfo = { axis: axis || new T3.Vector3(0, 1, 0), center, box };
   applyStowVis();
 }
+// connector arrows (top-level `connectors`, deployed pose at q_open, origin frame): one arrow per servo plug
+const connGroup = renderer ? new T3.Group() : null;
+if (renderer) robot.add(connGroup);
+function buildConnectors(v) {
+  removeLabels('conn');
+  if (!renderer) return;
+  clearGroup(connGroup);
+  (v.connectors || []).forEach((c) => {
+    if (!c || !c.point || !c.direction) return;
+    const col = tokColor(c.status === 'pass' ? '--pass' : (c.status === 'fail' ? '--fail' : '--warn'));
+    const a = new T3.ArrowHelper(new T3.Vector3(...c.direction).normalize(), new T3.Vector3(...c.point), 0.06, col.getHex(), 0.016, 0.009);
+    a.traverse((o) => { if (o.material) { o.material.depthTest = false; o.material.transparent = true; } o.renderOrder = 10; });
+    connGroup.add(a);
+    const tip = new T3.Vector3(...c.point).addScaledVector(new T3.Vector3(...c.direction).normalize(), 0.066);
+    addLabel(`${String(c.servo || 'servo').replace(/^servo_/, '')} ${isNum(c.angle_from_aft_deg) ? fix(c.angle_from_aft_deg, 0) + '\u00b0 from aft' : ''}`, tip.toArray(), robot, () => connGroup.visible, c.status === 'pass' ? '--pass' : (c.status === 'fail' ? '--fail' : '--warn'), 'conn');
+  });
+}
 function applyStowVis() {
   if (!stowGroup) return;
+  if (connGroup) connGroup.visible = S.layers.conn && S.mode !== 'grasp' && !(S.stowT > 0);
   stowGroup.visible = stowActive();
   stowHw.visible = S.layers.stowhw && S.mode !== 'grasp';
   (S.stowMarkers || []).forEach((m) => { m.visible = S.layers.stowhw && S.mode !== 'grasp'; });
@@ -2625,7 +2717,9 @@ function stowInfoHTML(v) {
     (st.detents || []).map((p, i) => [`D${i + 1}`, p.name, p.state || '']),
     (st.hard_stops || []).map((p, i) => [`S${i + 1}`, p.name, 'hard stop']));
   const steps = proc && (proc.steps || []).length ? `<ol class="steps">${proc.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>` : '<p class="sl-note">No stow procedure in this bundle.</p>';
-  const hinge = st.hinge ? `<p class="sl-note">Hinge${st.hinge.link ? ` on ${esc(st.hinge.link)}` : ''}: rotates ${fix(st.hinge.rotation_deg, 0)}°${st.hinge.fixed_axis === false ? ' (not a single hinge; axis shown at the deployed pose)' : ''}.</p>` : '';
+  const up = st.unpowered;
+  const unp = up && up.status ? `<p class="sl-note">${mark(up.status)} Powered off, servos back-driven while stowed: closest ${fix(up.min_clearance_mm, 1)} mm${up.pair ? ` (${esc(up.pair)})` : ''}.</p>` : '';
+  const hinge = unp + (st.hinge ? `<p class="sl-note">Hinge${st.hinge.link ? ` on ${esc(st.hinge.link)}` : ''}: rotates ${fix(st.hinge.rotation_deg, 0)}°${st.hinge.fixed_axis === false ? ' (not a single hinge; axis shown at the deployed pose)' : ''}.</p>` : '');
   return `<details class="stow-more" open><summary>Stow procedure${proc && (proc.steps || []).length ? ` · ${proc.steps.length} steps` : ''}</summary>
     ${tags.filter(Boolean).length ? `<div class="tagrow">${tags.join('')}</div>` : ''}${steps}${hinge}
     ${hw.length ? `<ul class="hw">${hw.map(([c, n, s]) => `<li><b>${esc(c)}</b><span>${esc(n || '')}${s ? ` <small>${esc(s)}</small>` : ''} <small class="hw-on" data-hw="${esc(c)}">${S.stowOwners && S.stowOwners[c] !== undefined ? (S.stowOwners[c] ? 'on ' + esc(S.stowOwners[c]) : 'on the mount') : ''}</small></span></li>`).join('')}</ul>` : ''}
@@ -2655,9 +2749,20 @@ function renderGraspCard() {
     ['Approach clearance', `${fix(ap.final_object_clearance_mm, 1)} mm <small>table ${ap.table_structure_clearance_mm == null ? 'clear' : fix(ap.table_structure_clearance_mm, 1)}</small>`],
     ['Plan', `${esc(plan.label || '—')}${isNum(row.nominal && row.nominal.robot_yaw_deg) ? ` <small>robot yaw ${fix(row.nominal.robot_yaw_deg, 0)}°</small>` : ''}`],
   ];
+  if (gs.held) rows.splice(1, 0, ['Held by', `${esc(gs.held)}${gs.held === 'cradle' ? ' <small>rests on the jaws</small>' : ''}`]);
+  if (Array.isArray(gs.approach_dir)) {
+    const a = gs.approach_dir, ang = deg(Math.acos(Math.min(1, Math.max(-1, -a[2] / Math.hypot(a[0], a[1], a[2] || 1e-9)))));
+    if (ang > 1) rows.push(['Approach', `${fix(ang, 0)}\u00b0 from vertical <small>[${a.map((x) => fix(x, 2)).join(', ')}]</small>`]);
+  }
+  const mo = gs.moment || row.moment;
+  if (mo) rows.push(['Twist (moment)', `${mo.status ? mark(mo.status) + ' ' : ''}${mo.margin == null ? 'no twist' : `margin ${fix(mo.margin, 1)}\u00d7`} <small>${mo.pivots ? 'pivots' : 'holds'}${isNum(mo.lever_mm) ? ` \u00b7 lever ${fix(mo.lever_mm, 0)} mm` : ''}${mo.caged ? ` \u00b7 caged${mo.caged === true ? '' : ' (' + esc(mo.caged) + ')'}` : ''}</small>`]);
+  const ya = row.yaw_aligned;
+  if (ya && (ya.outcome || ya.status)) rows.push(['Yaw-aligned attempt', `${mark(ya.status || outcomeSt(ya.outcome))} ${esc(OUTCOME_TEXT[ya.outcome] || ya.outcome || ya.status)}${isNum(ya.robot_yaw_deg) ? ` <small>robot yaw ${fix(ya.robot_yaw_deg, 0)}\u00b0</small>` : ''}`]);
+  if (tr && isNum(tr.fraction_ok_best_yaw)) rows.push(['Table reach, best yaw', `${pct(tr.fraction_ok_best_yaw)}${isNum(tr.fraction_ok_full_table) ? ` <small>full table ${pct(tr.fraction_ok_full_table)}</small>` : ''}`]);
+  if (gs.finray && isNum(gs.finray.grip_per_jaw_N)) rows.push(['Fin Ray hold', `${fix(gs.finray.grip_per_jaw_N, 1)} N/jaw <small>overtravel ${fix(gs.finray.hold_overtravel_deg, 0)}\u00b0${gs.finray.overtravel_source ? ' \u00b7 ' + esc(gs.finray.overtravel_source) : ''}</small>`]);
   if (gs.outcome) {
     rows.unshift(['Outcome', `${mark(outcomeSt(gs.outcome))} ${esc(OUTCOME_TEXT[gs.outcome] || gs.outcome)} <small>${esc(gs.outcome_reason || '')}</small>`]);
-    const off = (gs.offcenter || []).map((a) => `${esc(a.label)}: ${esc(OUTCOME_TEXT[a.outcome] || a.outcome)}`).join('<br>');
+    const off = (gs.offcenter || []).map((a) => `${esc(a.label)}: ${esc(OUTCOME_TEXT[a.outcome] || a.outcome)}${isNum(a.moment_margin) ? ` <small>twist margin ${fix(a.moment_margin, 1)}\u00d7</small>` : ''}`).join('<br>');
     if (off) rows.push(['Off-center attempts', off]);
     const ya = gs.object_yaw_attempts || [];
     if (ya.length) {
@@ -2782,13 +2887,22 @@ function metricsOf(v) {
     counts: (M('grasp').counts) || null,
     overall: v.overall,
     outcomes: outcomesOf(v),
-    fscore: bonusOf(v).score, fmin: bonusOf(v).min, fgrade: bonusOf(v).grade,
+    fscore: bonusOf(v).score, fmin: bonusOf(v).min, fgrade: bonusOf(v).grade, fbest: bonusOf(v).best,
+    ...structureOf(v),
   };
+}
+function structureOf(v) {
+  const sc = v.structure || ((v.checks || []).find((c) => c.id === 'structure') || {}).metrics || {};
+  const cases = sc.cases || {};
+  const land = cases.landing_30N_up ? cases.landing_30N_up.pinch_mm : sc.landing_mm;
+  const conns = (v.connectors || []).filter((c) => c);
+  const aft = conns.filter((c) => isNum(c.angle_from_aft_deg) && c.angle_from_aft_deg <= 45).length;
+  return { landing: isNum(land) ? land : null, f1w: isNum(sc.f1_water_hz) ? sc.f1_water_hz : null, connN: conns.length, connAft: aft, connAftAll: conns.length ? aft === conns.length : null };
 }
 function outcomesOf(v) {
   const gs = (v.grasp_scenes || []).filter((g) => g.outcome);
   if (!gs.length) return null;
-  const o = { lifted: 0, stays_on_table: 0, blocked: 0 };
+  const o = { lifted: 0, pivots: 0, stays_on_table: 0, blocked: 0 };
   gs.forEach((g) => { o[g.outcome] = (o[g.outcome] || 0) + 1; });
   return o;
 }
@@ -2801,6 +2915,7 @@ function bonusOf(v) {
     min: isNum(b.forgiveness_min_object_score) ? b.forgiveness_min_object_score : m.min_object_score,
     minObj: b.forgiveness_min_object || m.min_object, grade: b.forgiveness_grade || m.grade,
     per: b.forgiveness_per_object || m.per_object || null, m, check: fc || null,
+    best: isNum(b.forgiveness_score_best_approach) ? b.forgiveness_score_best_approach : null,
   };
 }
 function metricsFromIndex(e) {
@@ -2814,11 +2929,22 @@ function metricsFromIndex(e) {
     mass: k.mass_g, inWater: k.in_water_g, dfc: k.dfc_claw_percent,
     counts: e.objects && isNum(e.objects.total) ? { pass: e.objects.pass || 0, warn: e.objects.warn || 0, fail: e.objects.fail || 0 } : null,
     overall: e.overall, outcomes: e.outcomes && Object.keys(e.outcomes).length ? e.outcomes : null,
-    fscore: k.forgiveness_score, fmin: k.forgiveness_min_object_score, fgrade: k.forgiveness_grade,
+    fscore: k.forgiveness_score, fmin: k.forgiveness_min_object_score, fgrade: k.forgiveness_grade, fbest: k.forgiveness_score_best_approach,
+    landing: isNum(k.structure_landing_mm) ? k.structure_landing_mm : null, f1w: k.structure_f1_water_hz,
+    connAftAll: k.connectors_aft == null ? null : !!k.connectors_aft, reach: isNum(k.table_reach_mean) ? k.table_reach_mean : null,
   };
 }
 function rowMetrics(e) {
-  if (e.key) return metricsFromIndex(e);
+  if (e.key) {
+    const M = metricsFromIndex(e);
+    const v = S.data.get(e.id);
+    if (v && (M.landing == null || M.connAftAll == null)) {
+      const st = structureOf(v);
+      if (M.landing == null) M.landing = st.landing;
+      if (M.connAftAll == null) M.connAftAll = st.connAftAll;
+    }
+    return M;
+  }
   const v = S.data.get(e.id);
   return v ? metricsOf(v) : null;
 }
@@ -2851,7 +2977,7 @@ function bonusHTML(v) {
     return `<li><span class="bn">${esc(o.year || '')} ${esc(nm.base)}${nm.sub ? ` <small>${esc(nm.sub)}</small>` : ''}</span><span class="bb" aria-hidden="true"><i style="width:${Math.max(0, Math.min(1, sc)) * 100}%"></i></span><span class="bv">${fix(sc, 2)}</span></li>`;
   }).join('');
   return `<section class="bonus">${head}
-    <div class="bonus-top"><span class="bonus-score">${fix(b.score, 2)}</span><span class="sl-note">score 0\u20131${b.grade ? ` \u00b7 grade <b>${esc(b.grade)}</b>` : ''}${b.minObj ? ` \u00b7 weakest ${esc(splitName(objMeta(b.minObj) || { name: b.minObj }).base)} ${fix(b.min, 2)}` : ''}</span></div>
+    <div class="bonus-top"><span class="bonus-score">${fix(b.score, 2)}</span>${isNum(b.best) ? `<span class="sl-note">best approach <b>${fix(b.best, 2)}</b> (angled)</span>` : ''}<span class="sl-note">score 0\u20131${b.grade ? ` \u00b7 grade <b>${esc(b.grade)}</b>` : ''}${b.minObj ? ` \u00b7 weakest ${esc(splitName(objMeta(b.minObj) || { name: b.minObj }).base)} ${fix(b.min, 2)}` : ''}</span></div>
     <p class="sl-note">Perception gives only the object center, never its yaw: one fixed heading per object, object yaw and \u00b120 / \u00b140 mm position error varied.${isNum(m.mean_yaw_success) ? ` Yaw success ${pct(m.mean_yaw_success)}, capture \u00b120 ${pct(m.mean_capture_20)}, \u00b140 ${pct(m.mean_capture_40)}.` : ''}${isNum(m.objects_with_center_plan) ? ` ${m.objects_with_center_plan}/${per.length || 11} objects use a center plan.` : ''}</p>
     ${bars ? `<ul class="bars">${bars}</ul>` : ''}</section>`;
 }
@@ -2873,6 +2999,8 @@ function renderPanel(v) {
     kpi('Mass', M.st('mass'), fix(M.mass, 0), 'g', `vs ${fix(M.massRef, 0)} g today &middot; ${fix(M.inWater, 0)} g wet`),
     kpi('DVL clearance', M.st('dvl'), fix(M.dvl, 1), 'mm', 'beams + housing, pass ≥ 5'),
     kpi('Stow clearance', M.st('stow'), M.hasStow === false ? 'none' : fix(M.stow, 1), M.hasStow === false ? '' : 'mm', M.hasStow === false ? 'no hand-stow joint' : `sweep vs body &middot; stowed ${fix(M.stowAbove, 0)} above feet`),
+    ...(v.structure || M.st('structure') ? [kpi('Structure', M.st('structure'), isNum(M.landing) ? fix(M.landing, 1) : '\u2014', isNum(M.landing) ? 'mm' : '', `30 N landing at the pinch${isNum(M.f1w) ? ` \u00b7 f1 ${fix(M.f1w, 0)} Hz in water` : ''}`)] : []),
+    ...(v.connectors || M.st('connector') ? [kpi('Connectors', M.st('connector'), M.connN ? `${M.connAft}<small>of ${M.connN} aft</small>` : '\u2014', '', 'SubConn plugs pointing aft (\u2264 45\u00b0)')] : []),
     kpi('dfc image', M.st('dfc'), fix(M.dfc, 2), '%', 'claw share of the image (info only)'),
     kpi('Objects', M.st('grasp'), M.counts ? `${M.counts.pass || 0}<small>pass</small> ${M.counts.warn || 0}<small>warn</small> ${M.counts.fail || 0}<small>fail</small>` : '—', '', pwfHTML(M.counts, false)),
   ].join('');
@@ -2916,16 +3044,19 @@ const CMP = [
   { key: 'torp', label: 'Torpedo', tgt: '≥ 20', get: (M) => M.torp, fmt: (x) => fix(x, 1), ck: 'torpedo', desc: true },
   { key: 'dvl', label: 'DVL', tgt: '≥ 5', get: (M) => M.dvl, fmt: (x) => fix(x, 1), ck: 'dvl', desc: true },
   { key: 'stow', label: 'Stow', tgt: '≥ 3', get: (M) => M.stow, fmt: (x, M) => (M.hasStow === false ? 'none' : fix(x, 1)), ck: 'stow', desc: true },
+  { key: 'landing', label: 'Structure', tgt: '30 N landing \u2264 3', get: (M) => M.landing, fmt: (x) => (x == null ? '\u2014' : fix(x, 1)), ck: 'structure' },
+  { key: 'conn', label: 'Plugs aft', tgt: 'all aft', get: (M) => (M.connAftAll == null ? null : (M.connAftAll ? 1 : 0)), fmt: (x) => (x == null ? '\u2014' : (x ? 'yes' : 'no')), ck: 'connector', desc: true, nodelta: true },
   { key: 'dfc', label: 'dfc %', tgt: 'info', get: (M) => M.dfc, fmt: (x) => fix(x, 2), ck: 'dfc', dd: 2 },
   { key: 'objects', label: 'Objects P\u00b7W\u00b7F', tgt: 'all pass', get: (M) => (M.counts ? (M.counts.pass || 0) * 100 - (M.counts.fail || 0) * 10 - (M.counts.warn || 0) : null), html: (M) => pwfHTML(M.counts, true), ck: 'grasp', desc: true },
   { key: 'lifted', label: 'Lifted', tgt: 'nominal', get: (M) => (M.outcomes ? M.outcomes.lifted || 0 : null), html: (M) => outcomesHTML(M.outcomes), desc: true },
-  { key: 'fscore', label: 'Forgiveness', tgt: 'bonus 0\u20131', get: (M) => (isNum(M.fscore) ? M.fscore : null), html: (M) => (isNum(M.fscore) ? `<span class="bonus-val">${fix(M.fscore, 2)}</span>${M.fgrade ? ` <small class="muted">${esc(M.fgrade)}</small>` : ''}` : '<span class="muted">not run</span>'), desc: true },
+  { key: 'fscore', label: 'Forgiveness', tgt: 'bonus 0\u20131', get: (M) => (isNum(M.fscore) ? M.fscore : null), html: (M) => (isNum(M.fscore) ? `<span class="bonus-val">${fix(M.fscore, 2)}</span>${isNum(M.fbest) ? ` <small class="muted" title="best (angled) approach">best ${fix(M.fbest, 2)}</small>` : ''}${M.fgrade ? ` <small class="muted">${esc(M.fgrade)}</small>` : ''}` : '<span class="muted">not run</span>'), desc: true },
 ];
 function outcomesHTML(o) {
   if (!o) return '<span class="muted">\u2014</span>';
-  const tot = (o.lifted || 0) + (o.stays_on_table || 0) + (o.blocked || 0);
+  const tot = (o.lifted || 0) + (o.pivots || 0) + (o.stays_on_table || 0) + (o.blocked || 0);
   const bad = [o.blocked ? `${o.blocked} blocked` : '', o.stays_on_table ? `${o.stays_on_table} dropped` : ''].filter(Boolean).join(', ');
-  return `${o.lifted || 0}/${tot}${bad ? ` <small class="bad-note">${esc(bad)}</small>` : ''}`;
+  const tw = o.pivots ? ` <small class="warn-note">${o.pivots} twist</small>` : '';
+  return `${(o.lifted || 0) + (o.pivots || 0)}/${tot}${tw}${bad ? ` <small class="bad-note">${esc(bad)}</small>` : ''}`;
 }
 function renderCompare() {
   const tbl = qs('#cmpTable');
@@ -2955,6 +3086,7 @@ function renderCompare() {
     ${CMP.map((c) => {
       if (!M) return `<td class="na">${S.errors.has(e.id) ? 'not loaded' : '\u2026'}</td>`;
       if (c.key === 'fscore' || c.key === 'lifted') return `<td>${c.html(M, v)}</td>`;
+      if ((c.key === 'landing' || c.key === 'conn') && c.get(M, v) == null && !M.st(c.ck)) return '<td class="na">\u2014</td>';
       const val = c.get(M, v);
       let body = c.html ? c.html(M, v) : esc(c.fmt(val, M));
       if (S.delta && base && !isBaseline(e) && !c.html && !c.nodelta && isNum(val)) {
