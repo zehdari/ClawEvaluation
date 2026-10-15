@@ -787,6 +787,68 @@
    }
   },
   {
+   "id": "m4_static_pitch",
+   "name": "Static mount + elbow pitch + parallel Fin Ray claw (2 servos)",
+   "servo_count": 2,
+   "overall": "warn",
+   "quick": true,
+   "generated": "2026-10-15 17:21:18",
+   "hidden": false,
+   "schema_version": 3,
+   "viewer_json": "concepts/m4_static_pitch/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "warn",
+    "interference": "pass",
+    "mass": "pass",
+    "structure": "warn",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info",
+    "connector": "warn"
+   },
+   "check_counts": {
+    "pass": 8,
+    "warn": 4,
+    "info": 2
+   },
+   "objects": {
+    "pass": 7,
+    "warn": 4,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.105,
+    "pinch_x_max": 0.12694,
+    "pinch_z": -0.483,
+    "front_x": 0.15484,
+    "jaws_below_feet_mm": 152.8,
+    "mass_g": 971.14201,
+    "in_water_g": 384.88064,
+    "dvl_clearance_mm": 16.3,
+    "stow_sweep_clearance_mm": 12.3,
+    "stowed_above_feet_mm": 73.0,
+    "torpedo_first_target_clearance_mm": 118.2,
+    "torpedo_d_min_m": 0.3,
+    "dfc_claw_percent": 0.133,
+    "forgiveness_score": 0.72705,
+    "forgiveness_min_object_score": 0.4125,
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": false,
+    "connector_in_dfc": false
+   }
+  },
+  {
    "id": "m5_static_pitch_rotate",
    "name": "Static mount + elbow pitch + wrist roll + parallel Fin Ray claw (3 servos)",
    "servo_count": 3,

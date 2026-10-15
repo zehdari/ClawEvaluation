@@ -59,6 +59,11 @@
   "parts": 17,
   "zip": "cad/m3_arm.zip"
  },
+ "m4_static_pitch": {
+  "bytes": 1840998,
+  "parts": 16,
+  "zip": "cad/m4_static_pitch.zip"
+ },
  "m5_static_pitch_rotate": {
   "bytes": 3176268,
   "parts": 21,
