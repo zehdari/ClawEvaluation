@@ -209,7 +209,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 .vp-caption { position: absolute; left: 10px; bottom: 10px; max-width: min(560px, calc(100% - 104px)); display: flex; flex-direction: column; gap: 4px; padding: 7px 9px; border: 1px solid var(--line); border-radius: var(--r); background: color-mix(in srgb, var(--surface) 92%, transparent); pointer-events: none; }
 .vp-caption .cap-top { display: flex; align-items: center; gap: 8px; font: 600 13.5px/1.2 var(--font-display); letter-spacing: 0.02em; }
 .vp-caption .cap-n { margin-left: auto; padding-left: 10px; font: 500 11px/1 var(--font-data); color: var(--ink-3); }
-.vp-caption .cap-line { font: 400 12.5px/1.35 var(--font-body); color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.vp-caption .cap-line { font: 400 12.5px/1.35 var(--font-body); color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .vp-caption .cap-line.bad { color: var(--fail); font-weight: 500; }
 .vp-status { position: absolute; right: 10px; top: 10px; font: 500 11px/1.3 var(--font-data); color: var(--ink-2); background: color-mix(in srgb, var(--v3-bg) 85%, transparent); padding: 3px 6px; border-radius: 2px; pointer-events: none; }
 .vp-hint { position: absolute; right: 92px; bottom: 10px; font: 500 11px/1.3 var(--font-body); color: var(--ink-3); pointer-events: none; }
@@ -1606,8 +1606,87 @@ function loadConceptData(id) {
   if (S.data.has(id)) return Promise.resolve(S.data.get(id));
   return getJSON(DATA + (e.viewer_json || `concepts/${id}/viewer.json`)).then((v) => {
     expandCompact(v);
+    try { sanitizeScenes(v); } catch (err) { console.warn('[claw viewer] scene check failed', err); }
     S.data.set(id, v); S.errors.delete(id); return v;
   }, (err) => { S.errors.set(id, err.message); throw err; });
+}
+// Page-side guards for two bundle problems seen in the v6 export (reported to the toolkit):
+// 1. Fin Ray squeeze frames whose piece poses are outside the model's range (pieces rotating > 40 deg against their
+//    own link, tips moving > 40 mm, or finray.converged false): the jaws are held at the contact frame through
+//    squeeze / lift instead of drawing the exploded pieces; the caption says so.
+// 2. `show` keyframes that do not move the robot and only revert the links to the contact frame (Fin Ray concepts):
+//    held at the previous frame with the object carried. A real show pose (robot or links moving to a new pose)
+//    plays as exported, with the object carried by a jaw link.
+function sanitizeScenes(v) {
+  const M4 = (a) => new T3.Matrix4().set(...a);
+  const pe = (a, b) => (a && b ? poseErr(M4(a), M4(b)) : { mm: 0, deg: 0 });
+  const same = (a, b) => { const e = pe(a, b); return e.mm < 0.5 && e.deg < 0.5; };
+  const byName = {};
+  (v.links || []).forEach((L) => { byName[L.name] = L; });
+  const subs = (v.links || []).filter((L) => L.follows).map((L) => L.name);
+  const jawLink = (v.links || []).find((L) => L.jaw_group && !L.follows);
+  // 1. Fin Ray squeeze plausibility, per scene; when most of a concept's squeeze scenes fail, the rest are not
+  //    trusted either (c4 v6: the two scenes under the thresholds still show the fingers crossing each other)
+  const fr = [];
+  (v.grasp_scenes || []).forEach((gs) => {
+    const kf = gs.keyframes || [];
+    const sq = kf.filter((k) => k.label === 'squeeze');
+    if (!sq.length || !subs.length || kf.findIndex((k) => k.label === 'contact') < 0) return;
+    let rot = 0;
+    sq.forEach((k) => subs.forEach((n) => {
+      const a = k.T_links[n], b = k.T_links[byName[n].follows];
+      if (a && b) rot = Math.max(rot, pe(b, a).deg);
+    }));
+    const f = gs.finray || {};
+    const tip = Math.max(0, ...Object.values(f.tip_toward_mm || {}).map((x) => Math.abs(x) || 0));
+    gs._finray = { rot, tip, bad: rot > 40 || tip > 40 || f.converged === false };
+    fr.push(gs);
+  });
+  const nBad = fr.filter((g) => g._finray.bad).length;
+  const conceptBad = fr.length >= 3 && nBad > fr.length / 2;
+  if (fr.length && nBad) console.info(`[claw viewer] ${v.concept && v.concept.id}: Fin Ray squeeze implausible in ${nBad}/${fr.length} scenes${conceptBad ? ' (not drawn for any scene)' : ''}`, fr.map((g) => [g.object, Math.round(g._finray.rot), Math.round(g._finray.tip), g._finray.bad]));
+  (v.grasp_scenes || []).forEach((gs) => {
+    const kf = gs.keyframes || [];
+    const iC = kf.findIndex((k) => k.label === 'contact');
+    if (gs._finray) {
+      const f = gs.finray || {};
+      const { rot, tip } = gs._finray;
+      const bad = gs._finray.bad || conceptBad;
+      gs._finray.shown = !bad;
+      if (bad) {
+        const C = kf[iC];
+        for (let i = iC + 1; i < kf.length; i++) {
+          if (['squeeze', 'lift', 'post', 'show'].includes(kf[i].label)) { kf[i].T_links = C.T_links; kf[i].opening = C.opening; kf[i].jaw_gap = C.jaw_gap; }
+        }
+        gs._notes = (gs._notes || []).concat([gs._finray.bad
+          ? `Fin Ray squeeze not drawn: the exported finger deformation is outside the model's range (${f.converged === false ? 'FE not converged, ' : ''}pieces turn up to ${fix(rot, 0)}\u00b0, tips move ${fix(tip, 0)} mm); jaws held at contact`
+          : `Fin Ray squeeze not drawn: this concept's squeeze data fails the plausibility check in ${nBad} of ${fr.length} scenes; jaws held at contact`]);
+      }
+    }
+    // 2. show frames
+    const iS = kf.findIndex((k) => k.label === 'show');
+    if (iS > 0) {
+      const P = kf[iS - 1];
+      const C = iC >= 0 ? kf[iC] : null;
+      for (let i = iS; i < kf.length; i++) {
+        const k = kf[i];
+        if (k.label !== 'show') continue;
+        const robotSame = same(k.T_table_robot, P.T_table_robot);
+        const changed = Object.keys(k.T_links || {}).filter((n) => !same(k.T_links[n], (P.T_links || {})[n]));
+        const toContact = C && changed.length && changed.every((n) => same(k.T_links[n], (C.T_links || {})[n]));
+        if (robotSame && (!changed.length || toContact)) {
+          if (changed.length) gs._notes = (gs._notes || []).concat(['Show frame held at the lift pose: the exported show frame only reverts the jaws to the contact frame']);
+          k.T_links = P.T_links; k.q = Object.assign({}, P.q); k.opening = P.opening; k.jaw_gap = P.jaw_gap;
+          k.T_table_object = P.T_table_object; k._held = true;
+        } else if (jawLink && P.T_links[jawLink.name] && k.T_links[jawLink.name]) {
+          // carried by a jaw link: object pose relative to that link stays as at the previous frame
+          const rel = M4(P.T_links[jawLink.name]).invert().multiply(M4(P.T_table_robot).invert()).multiply(M4(P.T_table_object));
+          const W = M4(k.T_table_robot).multiply(M4(k.T_links[jawLink.name])).multiply(rel);
+          k.T_table_object = W.transpose().toArray();   // row-major
+        }
+      }
+    }
+  });
 }
 // schema_version 3 is compact: sweep samples list only the links whose pose differs from links[].T_ref, grasp
 // keyframes point (integer T_links) into the scene's sparse link_poses pool, and Fin Ray piece sub-links `follow`
@@ -2306,6 +2385,7 @@ function captionInfo() {
     if (A && A.hit && k && k.label === 'blocked') { line = `Blocked ${fix(A.hit.height_mm, 0)} mm above the grasp pose: ${A.hit.link || 'the claw'} hits ${A.hit.what}.`; bad = true; }
     else if (A && A.slip && k && k.label === 'slips out') { line = `${(gs.reasons || row.reasons || [])[0] || 'Grip below the required force'}: the object stays on the table.`; bad = true; }
   }
+  if (gs._notes && gs._notes.length && (!A || !A.variant || A.variant.key === 'nominal')) line += ' \u00b7 ' + gs._notes.join(' \u00b7 ');
   return { status, chipText, title, line, bad };
 }
 function renderCaption() {
@@ -2796,7 +2876,8 @@ function renderGraspCard() {
     <div class="sc-chips">${chip(gs.status)}<span class="chip neutral"><i></i>${esc(gs.contact || c.kind || 'contact n/a')}</span></div></div>
     ${factsHTML(rows)}
     ${reasons || warns ? `<ul class="notes-list">${reasons}${warns}</ul>` : '<p class="hint">No warnings for this grasp.</p>'}
-    ${plan.note ? `<p class="hint">Plan note: ${esc(plan.note)}</p>` : ''}`;
+    ${plan.note ? `<p class="hint">Plan note: ${esc(plan.note)}</p>` : ''}
+    ${(gs._notes || []).map((n) => `<p class="hint">${mark('info')} ${esc(n)}.</p>`).join('')}`;
 }
 
 // ------------------------------------------------------------------ torpedo scene
@@ -3180,7 +3261,7 @@ window.addEventListener('hashchange', () => {
   const id = decodeURIComponent((location.hash || '').slice(1));
   if (id && id !== S.cur && S.index.some((e) => e.id === id)) selectConcept(id);
 });
-if (/[?&]debug\b/.test(location.search)) window.__dbg = { S, get scene() { return scene; }, get robot() { return robot; }, T3, render: requestRender, applyPose, composePose, renderTabs, renderCompare, selectConcept, loadConceptData, enterGrasp, enterTorpedo, goView };
+if (/[?&]debug\b/.test(location.search)) window.__dbg = { S, get scene() { return scene; }, get robot() { return robot; }, T3, render: requestRender, applyPose, composePose, applyGraspFrame: () => applyGraspFrame(), renderTabs, renderCompare, selectConcept, loadConceptData, enterGrasp, enterTorpedo, goView };
 reduceMQ.addEventListener && reduceMQ.addEventListener('change', () => { if (controls) controls.enableDamping = !reduced(); });
 boot();
 })();

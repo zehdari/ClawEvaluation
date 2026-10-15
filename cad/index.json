@@ -5,7 +5,7 @@
   "zip": "cad/c1_tine_cage.zip"
  },
  "c2_crab_finray": {
-  "bytes": 1284613,
+  "bytes": 1284614,
   "parts": 33,
   "zip": "cad/c2_crab_finray.zip"
  },
@@ -65,8 +65,8 @@
   "zip": "cad/m4_static_pitch.zip"
  },
  "m5_static_pitch_rotate": {
-  "bytes": 3176268,
-  "parts": 21,
+  "bytes": 3248899,
+  "parts": 25,
   "zip": "cad/m5_static_pitch_rotate.zip"
  }
 }
