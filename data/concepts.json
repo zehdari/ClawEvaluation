@@ -318,7 +318,7 @@
    "servo_count": 1,
    "overall": "fail",
    "quick": false,
-   "generated": "2026-10-15 18:13:59",
+   "generated": "2026-10-15 19:04:44",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c4_rack_finray2/viewer.json",
@@ -334,7 +334,7 @@
     "mass": "pass",
     "structure": "warn",
     "assembly": "fail",
-    "grasp": "warn",
+    "grasp": "fail",
     "forgiveness": "info",
     "dfc": "info",
     "dfc_show": "info",
@@ -343,18 +343,19 @@
    },
    "check_counts": {
     "pass": 10,
-    "warn": 3,
-    "fail": 1,
+    "warn": 2,
+    "fail": 2,
     "info": 3
    },
    "objects": {
-    "pass": 4,
-    "warn": 7,
-    "fail": 0,
+    "pass": 0,
+    "warn": 10,
+    "fail": 1,
     "total": 11
    },
    "outcomes": {
-    "lifted": 11
+    "lifted": 10,
+    "stays_on_table": 1
    },
    "key": {
     "pinch_x": 0.065,
@@ -370,22 +371,22 @@
     "torpedo_first_target_clearance_mm": 79.8,
     "torpedo_d_min_m": 0.54038,
     "dfc_claw_percent": 0.958,
-    "forgiveness_score": 0.73518,
-    "forgiveness_min_object_score": 0.3387,
+    "forgiveness_score": 0.69058,
+    "forgiveness_min_object_score": 0.24148,
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": false,
     "connector_in_dfc": false,
-    "table_reach_mean": 0.988774,
-    "table_reach_full_table_mean": 0.830928,
+    "table_reach_mean": 0.987644,
+    "table_reach_full_table_mean": 0.823295,
     "ffc_in_water_max_percent": 0.0,
     "structure_landing_mm": 4.0,
     "structure_f1_water_hz": 11.45234,
     "heading_offset_deg": 0.0,
-    "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.72225,
-    "dfc_show_objects_50": 9,
-    "forgiveness_score_open_tabletop": 0.71098
+    "yaw_aligned_lifted": 10,
+    "dfc_show_mean_visible": 0.69811,
+    "dfc_show_objects_50": 8,
+    "forgiveness_score_open_tabletop": 0.66932
    }
   },
   {
