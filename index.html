@@ -1,0 +1,2759 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+<script>
+(function () {
+  var t = new URLSearchParams(location.search).get('theme');
+  if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+  window.__errs = [];
+  addEventListener('error', function (e) { window.__errs.push(e.message + ' @' + (e.filename || '') + ':' + (e.lineno || '')); });
+  addEventListener('unhandledrejection', function (e) { window.__errs.push('rejection: ' + (e.reason && e.reason.message || e.reason)); });
+})();
+</script>
+</head>
+<body>
+<title>Talos Claw Concepts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: workbench = 3D stage (fluid, viewport + pose dock + grasp scenes) beside a 420 px concept panel;
+   the comparison table spans the full width below; one column under 1080 px. */
+:root {
+  --bg: #e7edef;
+  --surface: #f5f8f9;
+  --surface-2: #dce5e8;
+  --ink: #0f1f29;
+  --ink-2: #445661;
+  --ink-3: #6b7d87;
+  --line: #c3cfd4;
+  --line-2: #d6dfe2;
+  --accent: #006b84;
+  --accent-ink: #ffffff;
+  --accent-soft: #d0e6ec;
+  --dim: rgba(15, 31, 41, 0.45);
+
+  --pass: #17703f; --pass-bg: #d6ede0;
+  --warn: #8a5400; --warn-bg: #f5e3b8;
+  --fail: #b3261e; --fail-bg: #f7d9d5; --fail-ink: #ffffff;
+  --info: #39587a; --info-bg: #dce5ef;
+  --error: #84308d; --error-bg: #f0dbf2;
+
+  /* 3D scene (hex only: read by three.js) */
+  --v3-bg: #dde6e9;
+  --v3-grid: #c9d4d8;
+  --v3-grid-major: #aebdc3;
+  --v3-sky: #ffffff;
+  --v3-ground: #8d9aa0;
+  --v3-holebar: #006b84;
+  --v3-hole: #6b7d87;
+  --v3-hole-blocked: #b0857a;
+  --v3-dvl: #1f9e5a;
+  --v3-frustum: #7a4fd1;
+  --v3-target: #c2306f;
+  --v3-foot: #4b5d68;
+  --v3-ghost: #7d8e97;
+  --v3-pinch: #c2306f;
+  --v3-keepout: #e0358f;
+  --v3-payload: #d04a3a;
+  --v3-ax-x: #c8402f;
+  --v3-ax-y: #2f8f4e;
+  --v3-ax-z: #2f62c8;
+  --v3-body-alpha: 0.2;
+
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  --r: 3px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a1418; --surface: #101c21; --surface-2: #17272e;
+    --ink: #dbe6e9; --ink-2: #9db0b7; --ink-3: #6c828a;
+    --line: #22363d; --line-2: #1a2c33;
+    --accent: #3cc0d4; --accent-ink: #03161b; --accent-soft: #11363f;
+    --dim: rgba(0, 0, 0, 0.5);
+    --pass: #5ccf8c; --pass-bg: #123224;
+    --warn: #f0b94a; --warn-bg: #3a2a0c;
+    --fail: #ff7a6e; --fail-bg: #3d1714; --fail-ink: #2a0805;
+    --info: #93b6df; --info-bg: #1a2a3c;
+    --error: #e09ae8; --error-bg: #351a3a;
+    --v3-bg: #0d191e; --v3-grid: #172930; --v3-grid-major: #23404a;
+    --v3-sky: #cfe3ea; --v3-ground: #26343a;
+    --v3-holebar: #3cc0d4; --v3-hole: #6c828a; --v3-hole-blocked: #a06a5c;
+    --v3-dvl: #39c47a; --v3-frustum: #a786ff; --v3-target: #f25a9b;
+    --v3-foot: #8aa0a8; --v3-ghost: #8fa3ac; --v3-pinch: #f25a9b;
+    --v3-keepout: #f25a9b; --v3-payload: #ff7a6e;
+    --v3-ax-x: #ff7a6e; --v3-ax-y: #5ccf8c; --v3-ax-z: #6ea2ff;
+    --v3-body-alpha: 0.16;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a1418; --surface: #101c21; --surface-2: #17272e;
+  --ink: #dbe6e9; --ink-2: #9db0b7; --ink-3: #6c828a;
+  --line: #22363d; --line-2: #1a2c33;
+  --accent: #3cc0d4; --accent-ink: #03161b; --accent-soft: #11363f;
+  --dim: rgba(0, 0, 0, 0.5);
+  --pass: #5ccf8c; --pass-bg: #123224;
+  --warn: #f0b94a; --warn-bg: #3a2a0c;
+  --fail: #ff7a6e; --fail-bg: #3d1714; --fail-ink: #2a0805;
+  --info: #93b6df; --info-bg: #1a2a3c;
+  --error: #e09ae8; --error-bg: #351a3a;
+  --v3-bg: #0d191e; --v3-grid: #172930; --v3-grid-major: #23404a;
+  --v3-sky: #cfe3ea; --v3-ground: #26343a;
+  --v3-holebar: #3cc0d4; --v3-hole: #6c828a; --v3-hole-blocked: #a06a5c;
+  --v3-dvl: #39c47a; --v3-frustum: #a786ff; --v3-target: #f25a9b;
+  --v3-foot: #8aa0a8; --v3-ghost: #8fa3ac; --v3-pinch: #f25a9b;
+  --v3-keepout: #f25a9b; --v3-payload: #ff7a6e;
+  --v3-ax-x: #ff7a6e; --v3-ax-y: #5ccf8c; --v3-ax-z: #6ea2ff;
+  --v3-body-alpha: 0.16;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 14px/1.45 var(--font-body); -webkit-font-smoothing: antialiased; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, h4 { text-wrap: balance; margin: 0; }
+p { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+.num, .mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.eyebrow { font: 600 11px/1.2 var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.app {
+  max-width: 1720px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px 32px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+/* ---------- header */
+.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.top h1 { font: 700 27px/1.05 var(--font-display); letter-spacing: 0.005em; margin-top: 3px; }
+.frame-note { font: 500 11.5px/1.5 var(--font-data); color: var(--ink-2); display: flex; gap: 4px 14px; flex-wrap: wrap; }
+.frame-note b { color: var(--ink); font-weight: 600; }
+
+/* ---------- concept tabs */
+.concept-nav { overflow-x: auto; scrollbar-width: thin; padding: 2px 2px 6px; margin: 0 -2px; }
+.tab-groups { display: flex; flex-wrap: wrap; gap: 10px 14px; }
+.tab-group { display: flex; flex-direction: column; gap: 5px; }
+.tab-row { display: flex; gap: 6px; }
+.ctab {
+  appearance: none; cursor: pointer; text-align: left; width: 128px; min-height: 80px;
+  border: 1px solid var(--line); border-radius: var(--r); background: var(--surface);
+  padding: 7px 10px 8px; display: flex; flex-direction: column; gap: 3px;
+}
+.ctab:hover { border-color: var(--ink-3); }
+.ctab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.ctab-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; font: 600 12.5px/1.2 var(--font-data); }
+.ctab.is-base { border-style: dashed; }
+.ctab.is-base[aria-selected="true"] { border-style: solid; }
+.ctab-name { font: 500 12.5px/1.25 var(--font-body); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex: 1; }
+.ctab-foot { display: flex; align-items: center; gap: 7px; font: 500 11px/1 var(--font-data); }
+.ctab-foot .pwf-bar { width: 52px; height: 6px; }
+.ctab[aria-selected="true"] .pwf-bar { background: color-mix(in srgb, var(--bg) 30%, transparent); }
+.ctab-foot .counts { opacity: 0.8; }
+.tag-base { font: 700 10px/1 var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 5px; border: 1px dashed currentColor; border-radius: 2px; }
+
+/* ---------- status chips and marks */
+.chip { display: inline-flex; align-items: center; gap: 5px; font: 600 10.5px/1 var(--font-data); letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 6px 4px 5px; border-radius: 2px; background: var(--st-bg, var(--surface-2)); color: var(--st, var(--ink-2)); white-space: nowrap; }
+.chip i, .mark { display: inline-block; width: 8px; height: 8px; flex: none; background: var(--st, var(--ink-3)); }
+.mark { vertical-align: 0; }
+.st-pass { --st: var(--pass); --st-bg: var(--pass-bg); }
+.st-warn { --st: var(--warn); --st-bg: var(--warn-bg); }
+.st-fail { --st: var(--fail); --st-bg: var(--fail-bg); }
+.st-info { --st: var(--info); --st-bg: var(--info-bg); }
+.st-error { --st: var(--error); --st-bg: var(--error-bg); }
+.st-pass > i, .mark.st-pass { border-radius: 50%; }
+.st-warn > i, .mark.st-warn { clip-path: polygon(50% 0, 100% 100%, 0 100%); width: 9px; }
+.st-info > i, .mark.st-info { background: transparent; border: 1.5px solid var(--st); border-radius: 50%; }
+.st-error > i, .mark.st-error { transform: rotate(45deg) scale(0.85); }
+.chip.st-fail { background: var(--fail); color: var(--fail-ink); }
+.chip.st-fail > i { background: var(--fail-ink); }
+.mark.st-none { background: transparent; border: 1px dashed var(--ink-3); }
+
+/* ---------- workbench */
+.bench { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 16px; align-items: start; }
+.stage { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.vp-frame { border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--surface); }
+.vp-bar { display: flex; justify-content: space-between; align-items: center; gap: 6px 12px; flex-wrap: wrap; padding: 6px; border-bottom: 1px solid var(--line); }
+.seg-wrap { display: flex; align-items: center; gap: 8px; }
+.seg-label { font: 600 10.5px/1 var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); padding-left: 4px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--bg); }
+.seg button { appearance: none; border: 0; background: transparent; color: var(--ink-2); cursor: pointer; font: 600 12px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 10px; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button:hover { color: var(--ink); background: var(--surface-2); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.viewport { position: relative; height: clamp(320px, 60vh, 640px); background: var(--v3-bg); overflow: hidden; }
+.viewport canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.vp-msg { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--ink-2); }
+.vp-scene { position: absolute; top: 10px; left: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; max-width: calc(100% - 20px); pointer-events: none; }
+.vp-scene > * { pointer-events: auto; }
+.vp-scene .lbl-scene { font: 600 11px/1.2 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); background: color-mix(in srgb, var(--v3-bg) 82%, transparent); padding: 4px 6px; border-radius: 2px; }
+.btn { appearance: none; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: var(--r); padding: 6px 10px; font: 600 12px/1 var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { border-color: var(--ink-3); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn svg { width: 12px; height: 12px; fill: currentColor; }
+.vp-caption { position: absolute; left: 10px; bottom: 10px; max-width: min(560px, calc(100% - 104px)); display: flex; flex-direction: column; gap: 4px; padding: 7px 9px; border: 1px solid var(--line); border-radius: var(--r); background: color-mix(in srgb, var(--surface) 92%, transparent); pointer-events: none; }
+.vp-caption .cap-top { display: flex; align-items: center; gap: 8px; font: 600 13.5px/1.2 var(--font-display); letter-spacing: 0.02em; }
+.vp-caption .cap-n { margin-left: auto; padding-left: 10px; font: 500 11px/1 var(--font-data); color: var(--ink-3); }
+.vp-caption .cap-line { font: 400 12.5px/1.35 var(--font-body); color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.vp-caption .cap-line.bad { color: var(--fail); font-weight: 500; }
+.vp-status { position: absolute; right: 10px; top: 10px; font: 500 11px/1.3 var(--font-data); color: var(--ink-2); background: color-mix(in srgb, var(--v3-bg) 85%, transparent); padding: 3px 6px; border-radius: 2px; pointer-events: none; }
+.vp-hint { position: absolute; right: 92px; bottom: 10px; font: 500 11px/1.3 var(--font-body); color: var(--ink-3); pointer-events: none; }
+.labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.lbl3 { position: absolute; left: 0; top: 0; font: 600 10.5px/1 var(--font-data); white-space: nowrap; color: var(--c, var(--ink-2)); background: color-mix(in srgb, var(--v3-bg) 78%, transparent); padding: 2px 4px; border-radius: 2px; translate: 6px -50%; }
+.lbl3.ax { background: none; translate: -50% -50%; font-weight: 700; font-size: 11px; padding: 0; }
+.tip { position: absolute; left: 0; top: 0; pointer-events: none; font: 500 11.5px/1.35 var(--font-body); background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r); padding: 5px 7px; max-width: 280px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.tip b { font-family: var(--font-data); font-weight: 600; font-size: 11px; }
+.dfc-frame { position: absolute; border: 1px solid var(--v3-frustum); box-shadow: 0 0 0 4000px var(--dim); pointer-events: none; }
+.dfc-frame span { position: absolute; left: 6px; top: 6px; font: 600 10.5px/1 var(--font-data); color: #fff; background: rgba(0,0,0,0.55); padding: 3px 5px; border-radius: 2px; }
+.readout { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 18px; padding: 7px 10px; border-top: 1px solid var(--line); font: 500 12px/1.3 var(--font-data); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.readout .k { font: 600 10.5px/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); margin-right: 6px; }
+.readout b { color: var(--ink); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 7px 10px; border-top: 1px solid var(--line-2); font: 500 11.5px/1.2 var(--font-body); color: var(--ink-2); }
+.legend .lg { display: inline-flex; align-items: center; gap: 5px; }
+.legend .sw { width: 10px; height: 10px; border-radius: 1px; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15); }
+
+/* ---------- dock: pose sliders + layers */
+.dock { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 14px 22px; padding: 12px 14px 14px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.dock h3, .objects h3, .panel h3, .compare h2 { font: 600 11px/1.2 var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.pose, .layers, .play { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+#poseSliders { display: flex; flex-direction: column; gap: 14px; }
+.sl { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; align-items: baseline; }
+.sl label { font: 600 13px/1.2 var(--font-display); letter-spacing: 0.04em; }
+.sl output { font: 500 12px/1.2 var(--font-data); font-variant-numeric: tabular-nums; color: var(--ink); text-align: right; }
+.sl input[type="range"], .play input[type="range"] { grid-column: 1 / -1; width: 100%; }
+.sl-ends { grid-column: 1 / -1; display: flex; justify-content: space-between; font: 500 10.5px/1 var(--font-data); color: var(--ink-3); }
+.sl.is-off label, .sl.is-off output { color: var(--ink-3); }
+.sl-note { grid-column: 1 / -1; font: 400 12px/1.35 var(--font-body); color: var(--ink-3); }
+input[type="range"] { -webkit-appearance: none; appearance: none; height: 22px; background: transparent; cursor: pointer; margin: 0; }
+input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--line); border-radius: 2px; }
+input[type="range"]::-moz-range-track { height: 4px; background: var(--line); border-radius: 2px; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 18px; margin-top: -7px; border-radius: 2px; background: var(--accent); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--accent); }
+input[type="range"]::-moz-range-thumb { width: 12px; height: 16px; border-radius: 2px; background: var(--accent); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--accent); }
+input[type="range"]:disabled { cursor: not-allowed; opacity: 0.45; }
+.toggles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; }
+.swt { position: relative; display: flex; align-items: center; gap: 8px; cursor: pointer; font: 500 13px/1.2 var(--font-body); min-width: 0; }
+.swt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.swt .trk { flex: none; width: 28px; height: 16px; border-radius: 8px; background: var(--line); position: relative; transition: background 0.15s; }
+.swt .trk::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); transition: transform 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,0.25); }
+.swt input:checked + .trk { background: var(--accent); }
+.swt input:checked + .trk::after { transform: translateX(12px); }
+.swt input:focus-visible + .trk { outline: 2px solid var(--accent); outline-offset: 2px; }
+.swt input:disabled ~ * { opacity: 0.45; }
+.swt .key { flex: none; width: 10px; height: 10px; border-radius: 1px; background: var(--c); }
+.swt .txt { min-width: 0; }
+.dock-note { font: 400 12px/1.4 var(--font-body); color: var(--ink-3); }
+.play-row { display: flex; align-items: center; gap: 10px; }
+.play-row { align-items: flex-start; }
+.play-row > .btn, .play-row > .play-time { margin-top: 2px; }
+.scrub-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.scrub-wrap input[type="range"] { width: 100%; }
+.play-time { font: 500 12px/1 var(--font-data); font-variant-numeric: tabular-nums; min-width: 9ch; text-align: right; }
+.phases { position: relative; height: 28px; }
+.phases span:nth-child(even) { top: 13px; }
+.phases span { position: absolute; top: 0; translate: -50% 0; font: 500 10.5px/1 var(--font-data); color: var(--ink-3); white-space: nowrap; }
+.phases span::before { content: ""; position: absolute; left: 50%; top: -5px; width: 1px; height: 4px; background: var(--ink-3); }
+.phases span.on { color: var(--ink); font-weight: 600; }
+.phase-now { font: 600 12px/1.2 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.phase-now.bad, .phases span.bad { color: var(--fail); }
+.play-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
+.variant-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
+.variant-row .seg-wrap { flex-wrap: wrap; }
+.seg.vseg { flex-wrap: wrap; }
+.seg.vseg button { display: inline-flex; align-items: center; gap: 5px; text-transform: none; letter-spacing: 0.02em; font-size: 12.5px; }
+.seg.vseg button small { font: 600 9.5px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; }
+.seg.vseg button[aria-pressed="true"] .mark { box-shadow: 0 0 0 1.5px var(--accent-ink); }
+.tagchip { display: inline-flex; align-items: center; font: 600 10.5px/1 var(--font-data); letter-spacing: 0.04em; text-transform: uppercase; padding: 4px 6px; border-radius: 2px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.tagchip.is-warn { background: var(--warn-bg); color: var(--warn); }
+.tagrow { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 6px; }
+.stow-more { border-top: 1px solid var(--line-2); padding-top: 8px; }
+.stow-more > summary { cursor: pointer; font: 600 11px/1.2 var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.steps { margin: 4px 0 6px; padding-left: 20px; font: 400 13px/1.45 var(--font-body); color: var(--ink); }
+.steps li { padding: 1px 0; }
+.steps li::marker { font: 600 11.5px var(--font-data); color: var(--accent); }
+.hw { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; font: 400 12.5px/1.35 var(--font-body); color: var(--ink-2); }
+.hw li { display: grid; grid-template-columns: 26px 1fr; gap: 6px; }
+.hw b { font: 600 11.5px/1.35 var(--font-data); color: var(--accent); }
+.hw small { color: var(--ink-3); }
+.bonus-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bonus-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 6px 0 4px; }
+.bonus-score { font: 600 24px/1 var(--font-data); color: var(--ink); }
+.bars { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; }
+.bars li { display: grid; grid-template-columns: minmax(0, 1fr) 90px 36px; gap: 8px; align-items: center; font: 400 12.5px/1.3 var(--font-body); }
+.bars .bn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bars .bn small { color: var(--ink-3); }
+.bars .bb { height: 6px; background: var(--line-2); border-radius: 1px; overflow: hidden; }
+.bars .bb i { display: block; height: 100%; background: var(--accent); }
+.bars .bv { font: 500 11.5px/1 var(--font-data); text-align: right; color: var(--ink-2); }
+.bonus-val { font-weight: 600; }
+.bad-note { color: var(--fail); }
+.stow-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.stow-row .sl-note { flex: 1 1 200px; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.objects-head .btn { flex: none; }
+
+/* ---------- objects + scene card */
+.objects { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 12px; }
+.objects-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; }
+.objects-head p { font: 400 12.5px/1.4 var(--font-body); color: var(--ink-2); flex: 1 1 280px; }
+.obj-groups { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.obj-group { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.obj-group h4 { font: 700 13px/1.2 var(--font-data); color: var(--ink-2); display: flex; gap: 8px; align-items: baseline; }
+.obj-group h4 small { font: 500 11px/1 var(--font-body); color: var(--ink-3); }
+.obj { appearance: none; cursor: pointer; display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); }
+.obj:hover { border-color: var(--ink-3); }
+.obj[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+.obj-name { font: 500 13px/1.2 var(--font-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.obj-sub { font: 500 10.5px/1 var(--font-data); color: var(--ink-3); white-space: nowrap; }
+.scene-card { border-top: 1px solid var(--line-2); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.sc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.sc-head h3.sc-title { font: 600 18px/1.15 var(--font-display); letter-spacing: 0.01em; color: var(--ink); text-transform: none; }
+.sc-chips { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.chip.neutral { --st: var(--ink-2); --st-bg: var(--surface-2); }
+.chip.neutral > i { display: none; }
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 16px; margin: 0; }
+.facts div { min-width: 0; }
+.facts dt { font: 600 10.5px/1.2 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+.facts dd { margin: 2px 0 0; font: 500 13px/1.3 var(--font-data); font-variant-numeric: tabular-nums; color: var(--ink); }
+.facts dd small { font-size: 11px; color: var(--ink-2); }
+.notes-list li { display: grid; grid-template-columns: 12px 1fr; gap: 8px; align-items: baseline; font: 400 13px/1.4 var(--font-body); padding: 2px 0; }
+.notes-list li .mark { translate: 0 1px; }
+.muted { color: var(--ink-3); }
+.hint { font: 400 13px/1.45 var(--font-body); color: var(--ink-2); max-width: 70ch; }
+select { border: 1px solid var(--line); background: var(--bg); border-radius: var(--r); padding: 5px 8px; font: 500 12.5px/1.2 var(--font-data); }
+
+/* ---------- concept panel */
+.panel { min-width: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+@media (min-width: 1081px) {
+  .panel { position: sticky; top: max(8px, env(safe-area-inset-top, 0px)); max-height: calc(100vh - 16px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+}
+.panel > section { padding: 14px 16px; }
+.panel > section + section { border-top: 1px solid var(--line-2); }
+.p-head { display: flex; flex-direction: column; gap: 6px; }
+.p-code { display: flex; align-items: center; gap: 10px; font: 600 12.5px/1 var(--font-data); color: var(--ink-2); }
+.p-code .servo { font: 600 11px/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; }
+.p-head h2 { font: 700 23px/1.1 var(--font-display); letter-spacing: 0.005em; }
+.p-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font: 500 11.5px/1.3 var(--font-data); color: var(--ink-2); }
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line-2); border: 1px solid var(--line-2); }
+.kpi { background: var(--surface); padding: 8px 10px 9px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.kpi-label { font: 600 10.5px/1.2 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+.kpi-st { display: inline-flex; align-items: center; gap: 4px; font: 600 9.5px/1 var(--font-data); letter-spacing: 0.06em; text-transform: uppercase; color: var(--st, var(--ink-3)); }
+.kpi-val { font: 600 20px/1.1 var(--font-data); font-variant-numeric: tabular-nums; color: var(--ink); letter-spacing: -0.01em; }
+.kpi-val small { font: 500 11px/1 var(--font-data); color: var(--ink-3); margin-left: 3px; letter-spacing: 0; }
+.kpi-sub { font: 500 11px/1.3 var(--font-data); color: var(--ink-2); }
+.pwf { display: inline-flex; align-items: center; gap: 8px; }
+.pwf-bar { display: inline-flex; width: 64px; height: 8px; gap: 1px; background: var(--line-2); }
+.pwf-bar i { display: block; height: 100%; }
+.pwf-bar .p { background: var(--pass); } .pwf-bar .w { background: var(--warn); } .pwf-bar .f { background: var(--fail); } .pwf-bar .e { background: var(--error); }
+.summary-text { font: 400 14px/1.5 var(--font-body); color: var(--ink); max-width: 68ch; }
+.sw-lists { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.sw-lists h3 { margin-bottom: 6px; }
+.pm li { display: grid; grid-template-columns: 14px 1fr; gap: 6px; font: 400 13.5px/1.4 var(--font-body); padding: 3px 0; }
+.pm li::before { font: 700 13px/1.4 var(--font-data); }
+.pm.plus li::before { content: "+"; color: var(--pass); }
+.pm.minus li::before { content: "\2212"; color: var(--fail); }
+.pm.ques li::before { content: "?"; color: var(--info); }
+.checks { display: flex; flex-direction: column; margin-top: 6px; }
+.ck { border-top: 1px solid var(--line-2); }
+.ck:first-child { border-top: 0; }
+.ck summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 64px minmax(0, 1fr) 12px; gap: 10px; padding: 8px 0; align-items: start; }
+.ck summary::-webkit-details-marker { display: none; }
+.ck summary::after { content: "+"; font: 600 13px/1 var(--font-data); color: var(--ink-3); padding-top: 3px; }
+.ck[open] summary::after { content: "\2212"; }
+.ck .ck-title { font: 600 13.5px/1.25 var(--font-display); letter-spacing: 0.02em; }
+.ck .ck-sum { font: 400 12.5px/1.4 var(--font-body); color: var(--ink-2); margin-top: 1px; }
+.ck .chip { justify-self: start; margin-top: 1px; }
+.ck-body { padding: 0 0 12px 74px; display: flex; flex-direction: column; gap: 8px; }
+.ck-crit { font: 400 12px/1.45 var(--font-body); color: var(--ink-2); }
+.kv { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; font: 500 11.5px/1.35 var(--font-data); font-variant-numeric: tabular-nums; }
+.kv dt { color: var(--ink-3); overflow-wrap: anywhere; }
+.kv dd { margin: 0; text-align: right; color: var(--ink); overflow-wrap: anywhere; max-width: 22ch; }
+.notes dt { font: 600 10.5px/1.2 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); margin-top: 8px; }
+.notes dd { margin: 2px 0 0; font: 400 13px/1.45 var(--font-body); color: var(--ink-2); }
+details.more > summary { cursor: pointer; font: 600 11px/1.2 var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.panel-msg { padding: 24px 16px; color: var(--ink-2); }
+
+/* ---------- comparison */
+.compare { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.compare-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 16px; padding: 12px 14px 8px; }
+.compare-head p { font: 400 12.5px/1.4 var(--font-body); color: var(--ink-2); flex: 1 1 320px; }
+.table-wrap { overflow-x: auto; }
+table.cmp { border-collapse: collapse; width: 100%; font: 500 12.5px/1.3 var(--font-data); font-variant-numeric: tabular-nums; }
+.cmp th { text-align: right; padding: 0; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: bottom; }
+.cmp th button { appearance: none; border: 0; background: none; cursor: pointer; width: 100%; text-align: inherit; padding: 8px 10px 3px; font: 600 11px/1.2 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.cmp th button:hover { color: var(--ink); }
+.cmp th[aria-sort="ascending"] button::after { content: " \2191"; color: var(--accent); }
+.cmp th[aria-sort="descending"] button::after { content: " \2193"; color: var(--accent); }
+.cmp th .tgt { display: block; padding: 0 10px 7px; font: 500 10.5px/1.2 var(--font-data); color: var(--ink-3); letter-spacing: 0; text-transform: none; }
+.cmp th:first-child, .cmp td:first-child { text-align: left; }
+.cmp td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+.cmp td .mark { margin-left: 6px; }
+.cmp tbody tr { cursor: pointer; }
+.cmp tbody tr:hover td { background: var(--surface-2); }
+.cmp tr.is-cur td { background: var(--accent-soft); }
+.cmp tr.is-cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.cmp .cname { display: flex; align-items: center; gap: 8px; }
+.cmp .cname button { appearance: none; border: 0; background: none; padding: 0; cursor: pointer; font: 600 12.5px/1.2 var(--font-data); color: var(--ink); text-align: left; }
+.cmp .cname span { font: 400 12.5px/1.2 var(--font-body); color: var(--ink-2); max-width: 26ch; overflow: hidden; text-overflow: ellipsis; }
+.cmp td.na { color: var(--ink-3); }
+.foot { font: 400 12px/1.5 var(--font-body); color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.foot code { font: 500 11.5px/1 var(--font-data); }
+
+@media (max-width: 1280px) { .obj-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1080px) {
+  .bench { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .sw-lists { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .tab-groups { flex-wrap: nowrap; width: max-content; }
+  .dock { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sw-lists { grid-template-columns: minmax(0, 1fr); }
+  .viewport { height: clamp(280px, 78vw, 440px); }
+  .vp-hint { display: none; }
+  .top h1 { font-size: 23px; }
+}
+@media (max-width: 480px) {
+  .play-row { flex-wrap: wrap; justify-content: space-between; }
+  .play-row .scrub-wrap { order: 3; flex-basis: 100%; }
+  .obj-groups { grid-template-columns: minmax(0, 1fr); }
+  .toggles { grid-template-columns: minmax(0, 1fr); }
+  .ck summary { grid-template-columns: 58px minmax(0, 1fr) 12px; }
+  .ck-body { padding-left: 0; }
+  .seg button { padding: 7px 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .swt .trk, .swt .trk::after { transition: none; }
+}
+</style>
+
+<div class="app" id="app">
+  <header class="top">
+    <div>
+      <div class="eyebrow">OSU Underwater Robotics &middot; Talos AUV &middot; claw redesign review</div>
+      <h1>Talos Claw Concepts</h1>
+    </div>
+    <div class="frame-note" aria-label="Coordinate convention">
+      <span><b>origin</b> frame (CAD datum)</span><span>x fwd &middot; y port &middot; z up</span><span>lengths in mm</span>
+    </div>
+  </header>
+
+  <nav class="concept-nav" aria-label="Concepts">
+    <div class="tab-groups" id="conceptTabs" role="tablist" aria-label="Claw concepts">
+      <span class="muted">Loading concepts&hellip;</span>
+    </div>
+  </nav>
+
+  <main class="bench">
+    <div class="stage">
+      <section class="vp-frame" aria-label="3D view of the claw on Talos">
+        <div class="vp-bar">
+          <div class="seg-wrap"><span class="seg-label" id="viewLbl">View</span>
+            <div class="seg" id="viewSeg" role="group" aria-labelledby="viewLbl">
+              <button type="button" id="v-iso" data-view="iso" aria-pressed="true">Iso</button>
+              <button type="button" id="v-side" data-view="side" aria-pressed="false" title="From starboard, forward to the right">Side</button>
+              <button type="button" id="v-front" data-view="front" aria-pressed="false" title="From ahead of the robot">Front</button>
+              <button type="button" id="v-bottom" data-view="bottom" aria-pressed="false" title="From below, forward up">Bottom</button>
+              <button type="button" id="v-dfc" data-view="dfc" aria-pressed="false" title="Through the downward ZED X Mini (dfc)">dfc</button>
+            </div>
+          </div>
+          <div class="seg-wrap"><span class="seg-label" id="bodyLbl">Body</span>
+            <div class="seg" id="bodySeg" role="group" aria-labelledby="bodyLbl">
+              <button type="button" id="b-clear" data-body="clear" aria-pressed="true">Clear</button>
+              <button type="button" id="b-solid" data-body="solid" aria-pressed="false">Solid</button>
+              <button type="button" id="b-off" data-body="off" aria-pressed="false">Off</button>
+            </div>
+          </div>
+        </div>
+        <div class="viewport" id="viewport">
+          <canvas id="c3d" aria-label="Interactive 3D view: drag to orbit, scroll to zoom, right-drag to pan"></canvas>
+          <div class="labels" id="labels"></div>
+          <div class="dfc-frame" id="dfcFrame" hidden><span>dfc image 1920 &times; 1200</span></div>
+          <div class="vp-scene" id="vpScene"></div>
+          <div class="vp-status" id="vpStatus" hidden></div>
+          <div class="vp-caption" id="vpCaption" hidden aria-live="polite"></div>
+          <div class="vp-hint" id="vpHint">Drag to orbit &middot; scroll to zoom &middot; right-drag to pan</div>
+          <div class="tip" id="tip" hidden></div>
+          <div class="vp-msg" id="vpMsg" hidden></div>
+        </div>
+        <div class="readout" id="readout"></div>
+        <div class="legend" id="legend"></div>
+      </section>
+
+      <section class="dock" aria-label="Pose and layers">
+        <div class="pose" id="posePanel">
+          <h3>Pose</h3>
+          <div id="poseSliders"></div>
+        </div>
+        <div class="play" id="playPanel" hidden>
+          <h3>Pickup attempt</h3>
+          <div class="play-row">
+            <button type="button" class="btn primary" id="playBtn"></button>
+            <div class="scrub-wrap">
+              <label class="sr" for="scrub">Grasp time</label>
+              <input type="range" id="scrub" min="0" max="1000" step="1" value="0">
+              <div class="phases" id="phases"></div>
+            </div>
+            <span class="play-time" id="playTime">0.00 s</span>
+          </div>
+          <div class="variant-row" id="variantRow" hidden></div>
+          <div class="play-opts">
+            <div class="seg-wrap"><span class="seg-label" id="speedLbl">Speed</span>
+              <div class="seg" id="speedSeg" role="group" aria-labelledby="speedLbl">
+                <button type="button" data-speed="0.25" aria-pressed="false">0.25&times;</button>
+                <button type="button" data-speed="0.5" aria-pressed="false">0.5&times;</button>
+                <button type="button" data-speed="1" aria-pressed="true">1&times;</button>
+                <button type="button" data-speed="2" aria-pressed="false">2&times;</button>
+              </div>
+            </div>
+            <label class="swt" for="tg-loop"><input type="checkbox" role="switch" id="tg-loop"><span class="trk" aria-hidden="true"></span><span class="txt">Loop</span></label>
+          </div>
+          <div class="dock-note"><span class="phase-now" id="phaseNow"></span> <span id="playNote"></span></div>
+        </div>
+        <div class="layers">
+          <h3>Layers</h3>
+          <div class="toggles" id="toggles"></div>
+        </div>
+      </section>
+
+      <section class="objects" aria-label="Grasp scenes">
+        <div class="objects-head">
+          <h3>Objects and tasks</h3>
+          <p>Marks show this concept&rsquo;s grasp result. Pick one to play the pickup attempt on its table, or play them all in order.</p>
+          <button type="button" class="btn primary" id="playAllBtn" aria-pressed="false"></button>
+        </div>
+        <div class="obj-groups" id="objGroups"></div>
+        <div class="scene-card" id="sceneCard"></div>
+      </section>
+    </div>
+
+    <aside class="panel" id="panel" aria-label="Concept details" aria-live="polite">
+      <div class="panel-msg">Loading concept&hellip;</div>
+    </aside>
+  </main>
+
+  <section class="compare" aria-label="Comparison of all concepts">
+    <div class="compare-head">
+      <h2>Compare concepts</h2>
+      <p>Click a column to sort, a row to show that concept. Marks are the check results; targets under each heading. The baseline row stays on top.</p>
+      <label class="swt" for="tg-delta"><input type="checkbox" role="switch" id="tg-delta"><span class="trk" aria-hidden="true"></span><span class="txt">Show change vs C0</span></label>
+      <label class="swt" for="tg-hidden" id="hiddenWrap" hidden><input type="checkbox" role="switch" id="tg-hidden"><span class="trk" aria-hidden="true"></span><span class="txt" id="hiddenTxt">Show hidden</span></label>
+    </div>
+    <div class="table-wrap"><table class="cmp" id="cmpTable"></table></div>
+  </section>
+
+  <footer class="foot">
+    <span>Checks and geometry from <code>clawlab</code>; each concept shows the date its bundle was generated.</span>
+    <span>Servo sliders follow the exported sweeps: per-servo sliders hold the other servos open, and the stow sweep holds the servos at their stow pose.</span>
+  </footer>
+</div>
+
+<script>window.CLAW_PACKED = true;</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function () {
+'use strict';
+
+const DATA = 'data/';
+const qs = (s, r) => (r || document).querySelector(s);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const isNum = (x) => typeof x === 'number' && isFinite(x);
+const fix = (x, d) => (isNum(x) ? x.toFixed(d).replace(/^-(?=\d*\.?0*[1-9])/, '−').replace(/^-/, '') : '—');
+const mm = (m) => (isNum(m) ? m * 1000 : null);
+const pct = (f, d = 0) => (isNum(f) ? (f * 100).toFixed(d) + ' %' : '—');
+const deg = (r) => (isNum(r) ? r * 180 / Math.PI : null);
+const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+const reduced = () => reduceMQ.matches;
+const ST_LABEL = { pass: 'Pass', warn: 'Warn', fail: 'Fail', info: 'Info', error: 'Error' };
+const ST_RANK = { pass: 0, info: 1, warn: 2, fail: 3, error: 4 };
+const chip = (st, txt) => `<span class="chip st-${esc(st || 'none')}"><i aria-hidden="true"></i>${esc(txt || ST_LABEL[st] || st || 'n/a')}</span>`;
+const mark = (st, title) => `<span class="mark st-${esc(st || 'none')}" role="img" aria-label="${esc(ST_LABEL[st] || 'no result')}"${title ? ` title="${esc(title)}"` : ''}></span>`;
+const CHECK_ORDER = ['forward_reach', 'torpedo', 'low_reach', 'dvl', 'payload_paths', 'tension_cable', 'stow', 'interference', 'mass', 'grasp', 'forgiveness', 'dfc'];
+
+// ------------------------------------------------------------------ state
+const S = {
+  index: [], data: new Map(), errors: new Map(), talos: null,
+  cur: null, selTok: 0,
+  mode: 'robot',            // robot | grasp | torpedo
+  activeSweep: 'open_close', sweepT: {}, stowT: 0,
+  view: 'iso', body: 'clear',
+  layers: { holebar: true, dvl: true, ghost: true, foot: true, targets: false, frustum: false, payload: false, stowhw: true },
+  showHidden: false, ghost: null,
+  grasp: { obj: null, scene: null, row: null, A: null, t: 0, start: 0, end: 4.5, playing: false, last: 0, hold: 0, speed: 1, loop: false, variant: 'nominal' },
+  playAll: { on: false, list: [], i: 0 },
+  stowAnim: { on: false, tv: 0, last: 0 },
+  stowInfo: null,
+  torpedo: { year: '2026', pose: null },
+  sort: { key: null, dir: 1 }, delta: false,
+  clawGroup: null,
+};
+
+// ------------------------------------------------------------------ fetch helpers
+// Packed mode (make_publish.py sets window.CLAW_PACKED): every .glb and every JSON except concepts.json is published
+// as <path>.gz.txt = base64(gzip(bytes)), because the artifact host does not serve .glb files.
+const PACKED = !!window.CLAW_PACKED;
+const PACK_ERR = 'This browser cannot unpack the 3D data (no DecompressionStream). Use a current Chrome, Edge, Firefox (113+) or Safari (16.4+).';
+function b64ToBytes(s) {
+  if (/\s/.test(s.slice(0, 200)) || /\s/.test(s.slice(-200))) s = s.replace(/\s+/g, '');
+  const pad = s.endsWith('==') ? 2 : (s.endsWith('=') ? 1 : 0);
+  const out = new Uint8Array((s.length / 4) * 3 - pad);
+  const CH = 1 << 20;                                   // 1 Mi chars per atob call (a multiple of 4)
+  let o = 0;
+  for (let i = 0; i < s.length; i += CH) {
+    const bin = atob(s.slice(i, i + CH));
+    for (let j = 0; j < bin.length; j++) out[o++] = bin.charCodeAt(j);
+  }
+  return out;
+}
+async function fetchAsset(url, opts) {                  // -> ArrayBuffer
+  if (!PACKED) {
+    const r = await fetch(url, opts);
+    if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
+    return r.arrayBuffer();
+  }
+  if (typeof DecompressionStream === 'undefined') throw new Error(PACK_ERR);
+  const r = await fetch(url + '.gz.txt', opts);
+  if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}.gz.txt`);
+  const bytes = b64ToBytes(await r.text());
+  return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+}
+const jsonCache = new Map();
+function getJSON(url, opts, plain) {
+  if (!jsonCache.has(url)) {
+    const p = plain
+      ? fetch(url, opts).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`); return r.json(); })
+      : fetchAsset(url, opts).then((buf) => JSON.parse(new TextDecoder().decode(buf)));
+    jsonCache.set(url, p);
+    p.catch(() => jsonCache.delete(url));
+  }
+  return jsonCache.get(url);
+}
+
+// ------------------------------------------------------------------ three.js setup
+const viewportEl = qs('#viewport');
+const canvas = qs('#c3d');
+const labelsEl = qs('#labels');
+let renderer = null;
+const hasThree = typeof THREE !== 'undefined' && THREE.GLTFLoader && THREE.OrbitControls;
+try {
+  if (!hasThree) throw new Error('three.js did not load');
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'low-power' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+} catch (err) {
+  const m = qs('#vpMsg');
+  m.hidden = false;
+  m.textContent = 'The 3D view needs WebGL and the three.js scripts from cdn.jsdelivr.net (' + err.message + '). The concept data below still works.';
+}
+const T3 = hasThree ? THREE : null;
+
+let scene, camera, controls, world, robot, tableHolder, objectHolder, torpedoHolder, clawHolder, bodyHolder, ghostHolder,
+  beamsHolder, payloadHolder, frustumGroup, footGroup, targetsGroup, holeGroup, pinchMarker, grid, hemi, headlight,
+  gScene, gCam, gAxes = [];
+const MATS = {};
+if (renderer) {
+  scene = new T3.Scene();
+  camera = new T3.PerspectiveCamera(30, 1, 0.005, 30);
+  camera.up.set(0, 0, 1);
+  camera.position.set(1.0, 0.8, 0.2);
+  controls = new T3.OrbitControls(camera, canvas);
+  controls.enableDamping = !reduced();
+  controls.dampingFactor = 0.14;
+  controls.target.set(0.07, 0.0, -0.31);
+  controls.minDistance = 0.08;
+  controls.maxDistance = 6;
+  controls.addEventListener('change', requestRender);
+  controls.addEventListener('start', () => { if (S.view !== 'dfc') { S.view = 'free'; syncViewSeg(); } tween = null; });
+
+  hemi = new T3.HemisphereLight(0xffffff, 0x888888, 0.72);
+  hemi.position.set(0, 0, 1);
+  scene.add(hemi);
+  headlight = new T3.DirectionalLight(0xffffff, 0.62);
+  headlight.position.set(0.4, 0.7, 0.2);
+  const hlTarget = new T3.Object3D(); hlTarget.position.set(0, 0, -1);
+  camera.add(headlight); camera.add(hlTarget); headlight.target = hlTarget;
+  scene.add(camera);
+
+  world = new T3.Group(); scene.add(world);
+  tableHolder = new T3.Group(); world.add(tableHolder);
+  objectHolder = new T3.Group(); objectHolder.matrixAutoUpdate = false; world.add(objectHolder);
+  torpedoHolder = new T3.Group(); world.add(torpedoHolder);
+  robot = new T3.Group(); robot.matrixAutoUpdate = false; world.add(robot);
+  bodyHolder = new T3.Group(); robot.add(bodyHolder);
+  ghostHolder = new T3.Group(); robot.add(ghostHolder);
+  beamsHolder = new T3.Group(); robot.add(beamsHolder);
+  payloadHolder = new T3.Group(); robot.add(payloadHolder);
+  frustumGroup = new T3.Group(); robot.add(frustumGroup);
+  footGroup = new T3.Group(); robot.add(footGroup);
+  targetsGroup = new T3.Group(); robot.add(targetsGroup);
+  holeGroup = new T3.Group(); robot.add(holeGroup);
+  clawHolder = new T3.Group(); robot.add(clawHolder);
+
+  grid = makeGrid(0.05, 5);
+  scene.add(grid);
+
+  // axis gizmo (drawn in the bottom-right corner)
+  gScene = new T3.Scene();
+  gCam = new T3.OrthographicCamera(-1.7, 1.7, 1.7, -1.7, 0.1, 10);
+  [[1, 0, 0], [0, 1, 0], [0, 0, 1]].forEach((d, i) => {
+    const mat = new T3.LineBasicMaterial({ color: 0xff0000 });
+    const g = new T3.BufferGeometry().setAttribute('position', new T3.Float32BufferAttribute([0, 0, 0, ...d], 3));
+    const line = new T3.Line(g, mat);
+    const dot = new T3.Mesh(new T3.SphereGeometry(0.09, 10, 8), new T3.MeshBasicMaterial({ color: 0xff0000 }));
+    dot.position.set(...d);
+    gScene.add(line); gScene.add(dot);
+    gAxes.push({ line, dot, dir: new T3.Vector3(...d), el: addLabelEl(['x', 'y', 'z'][i], 'ax') });
+  });
+}
+
+function addLabelEl(text, cls) {
+  const e = document.createElement('div');
+  e.className = 'lbl3' + (cls ? ' ' + cls : '');
+  e.textContent = text;
+  e.hidden = true;
+  labelsEl.appendChild(e);
+  return e;
+}
+
+// Grid as a shaded plane (anti-aliased lines from fwidth, faded with distance); 5 cm cells, 25 cm majors.
+function makeGrid(step, majorN) {
+  const mat = new T3.ShaderMaterial({
+    uniforms: { cMinor: { value: new T3.Color(0xcccccc) }, cMajor: { value: new T3.Color(0xaaaaaa) }, stepM: { value: step }, majorN: { value: majorN }, center: { value: new T3.Vector2() }, radius: { value: 0.9 } },
+    vertexShader: 'varying vec3 vW; void main() { vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
+    fragmentShader: [
+      'uniform vec3 cMinor; uniform vec3 cMajor; uniform float stepM; uniform float majorN; uniform vec2 center; uniform float radius; varying vec3 vW;',
+      'float gl1(vec2 p) { vec2 f = abs(fract(p - 0.5) - 0.5) / max(fwidth(p), vec2(1e-5)); return 1.0 - min(min(f.x, f.y), 1.0); }',
+      'void main() { vec2 p = vW.xy / stepM; float a1 = gl1(p); float a2 = gl1(p / majorN);',
+      '  float fade = 1.0 - smoothstep(radius * 0.4, radius, length(vW.xy - center));',
+      '  float a = max(a1 * 0.7, a2) * fade; if (a < 0.02) discard; gl_FragColor = vec4(mix(cMinor, cMajor, a2), a); }',
+    ].join('\n'),
+    transparent: true, depthWrite: false, side: T3.DoubleSide, extensions: { derivatives: true },
+  });
+  const g = new T3.Mesh(new T3.PlaneGeometry(2, 2), mat);
+  g.renderOrder = -1;
+  MATS.grid = mat;
+  return g;
+}
+function setGrid(x, y, z, r) {
+  grid.position.set(x, y, z);
+  grid.scale.setScalar(r * 1.02);
+  MATS.grid.uniforms.center.value.set(x, y);
+  MATS.grid.uniforms.radius.value = r;
+}
+
+// ------------------------------------------------------------------ theme tokens -> 3D
+const tok = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const tokColor = (name, fallback) => { const v = tok(name); try { return new T3.Color(v || fallback || '#888888'); } catch (e) { return new T3.Color(fallback || '#888888'); } };
+const themeHooks = [];
+function applyTheme() {
+  if (!renderer) return;
+  renderer.setClearColor(tokColor('--v3-bg'), 1);
+  MATS.grid.uniforms.cMinor.value.copy(tokColor('--v3-grid'));
+  MATS.grid.uniforms.cMajor.value.copy(tokColor('--v3-grid-major'));
+  hemi.color.copy(tokColor('--v3-sky'));
+  hemi.groundColor.copy(tokColor('--v3-ground'));
+  ['--v3-ax-x', '--v3-ax-y', '--v3-ax-z'].forEach((t, i) => {
+    const c = tokColor(t);
+    gAxes[i].line.material.color.copy(c); gAxes[i].dot.material.color.copy(c);
+    gAxes[i].el.style.setProperty('--c', '#' + c.getHexString());
+  });
+  themeHooks.forEach((f) => f());
+  styleBody();
+  requestRender();
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
+
+// ------------------------------------------------------------------ geometry prep (GLBs ship without normals)
+function creased(geom, angleDeg) {
+  const pos = geom.getAttribute('position');
+  const nV = pos.count;
+  const V = new Float32Array(nV * 3);
+  for (let i = 0; i < nV; i++) { V[3 * i] = pos.getX(i); V[3 * i + 1] = pos.getY(i); V[3 * i + 2] = pos.getZ(i); }
+  const idx = geom.index;
+  const nT = Math.floor((idx ? idx.count : nV) / 3);
+  const I = new Uint32Array(nT * 3);
+  for (let k = 0; k < nT * 3; k++) I[k] = idx ? idx.getX(k) : k;
+  const FN = new Float32Array(nT * 3), FU = new Float32Array(nT * 3);
+  for (let t = 0; t < nT; t++) {
+    const a = I[3 * t] * 3, b = I[3 * t + 1] * 3, c = I[3 * t + 2] * 3;
+    const ux = V[b] - V[a], uy = V[b + 1] - V[a + 1], uz = V[b + 2] - V[a + 2];
+    const vx = V[c] - V[a], vy = V[c + 1] - V[a + 1], vz = V[c + 2] - V[a + 2];
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    FN[3 * t] = nx; FN[3 * t + 1] = ny; FN[3 * t + 2] = nz;
+    const l = Math.hypot(nx, ny, nz) || 1;
+    FU[3 * t] = nx / l; FU[3 * t + 1] = ny / l; FU[3 * t + 2] = nz / l;
+  }
+  const start = new Uint32Array(nV + 1);
+  for (let k = 0; k < nT * 3; k++) start[I[k] + 1]++;
+  for (let i = 0; i < nV; i++) start[i + 1] += start[i];
+  const fill = start.slice(0, nV);
+  const list = new Uint32Array(nT * 3);
+  for (let k = 0; k < nT * 3; k++) list[fill[I[k]]++] = (k / 3) | 0;
+  const cd = Math.cos(angleDeg * Math.PI / 180);
+  const OP = new Float32Array(nT * 9), ON = new Float32Array(nT * 9);
+  for (let t = 0; t < nT; t++) {
+    const fx = FU[3 * t], fy = FU[3 * t + 1], fz = FU[3 * t + 2];
+    for (let j = 0; j < 3; j++) {
+      const v = I[3 * t + j];
+      let sx = 0, sy = 0, sz = 0;
+      for (let q = start[v]; q < start[v + 1]; q++) {
+        const f = list[q];
+        if (FU[3 * f] * fx + FU[3 * f + 1] * fy + FU[3 * f + 2] * fz >= cd) { sx += FN[3 * f]; sy += FN[3 * f + 1]; sz += FN[3 * f + 2]; }
+      }
+      let l = Math.hypot(sx, sy, sz);
+      if (!(l > 0)) { sx = fx; sy = fy; sz = fz; l = 1; }
+      const o = 9 * t + 3 * j;
+      OP[o] = V[3 * v]; OP[o + 1] = V[3 * v + 1]; OP[o + 2] = V[3 * v + 2];
+      ON[o] = sx / l; ON[o + 1] = sy / l; ON[o + 2] = sz / l;
+    }
+  }
+  const g = new T3.BufferGeometry();
+  g.setAttribute('position', new T3.BufferAttribute(OP, 3));
+  g.setAttribute('normal', new T3.BufferAttribute(ON, 3));
+  const col = geom.getAttribute('color');
+  if (col) {
+    const n = col.itemSize;
+    const C = new Float32Array(nT * 3 * n);
+    for (let k = 0; k < nT * 3; k++) {
+      const s = I[k];
+      C[k * n] = col.getX(s); C[k * n + 1] = col.getY(s); C[k * n + 2] = col.getZ(s);
+      if (n === 4) C[k * n + 3] = col.getW(s);
+    }
+    g.setAttribute('color', new T3.BufferAttribute(C, n));
+  }
+  g.computeBoundingSphere();
+  g.computeBoundingBox();
+  return g;
+}
+
+const glbCache = new Map();
+let gltfLoader = null;
+function loadGLB(url) {
+  if (!renderer) return Promise.reject(new Error('no WebGL'));
+  if (!gltfLoader) gltfLoader = new T3.GLTFLoader();
+  if (!glbCache.has(url)) {
+    const p = fetchAsset(url).then((buf) => new Promise((res, rej) => gltfLoader.parse(buf, '', (g) => {
+      const root = g.scene;
+      root.traverse((o) => {
+        if (!o.isMesh) return;
+        const old = o.geometry;
+        if (!old.getAttribute('normal')) { o.geometry = creased(old, 36); old.dispose(); }
+        const m = o.material || {};
+        o.userData.srcColor = m.color ? m.color.clone() : new T3.Color(0.7, 0.7, 0.7);
+        o.userData.srcOpacity = m.opacity != null ? m.opacity : 1;
+        o.userData.srcTransparent = !!m.transparent;
+        o.userData.srcMatName = m.name || '';
+        o.userData.vertexColors = !!o.geometry.getAttribute('color');
+      });
+      res(root);
+    }, (e) => rej(new Error('Could not read ' + url + (e && e.message ? ': ' + e.message : ''))))));
+    glbCache.set(url, p);
+    p.catch(() => glbCache.delete(url));
+  }
+  return glbCache.get(url);
+}
+
+function plainMaterial(o, opts) {
+  const m = new T3.MeshStandardMaterial(Object.assign({
+    color: o.userData.vertexColors ? 0xffffff : o.userData.srcColor,
+    vertexColors: o.userData.vertexColors, roughness: 0.78, metalness: 0.0,
+  }, opts || {}));
+  return m;
+}
+
+// ------------------------------------------------------------------ render loop
+let rafPending = false, tween = null;
+function requestRender() { if (renderer && !rafPending) { rafPending = true; requestAnimationFrame(frame); } }
+function frame(now) {
+  rafPending = false;
+  let more = false;
+  if (tween) more = stepTween(now) || more;
+  if (S.mode === 'grasp' && S.grasp.playing) {
+    const dt = Math.min(0.1, (now - (S.grasp.last || now)) / 1000);
+    S.grasp.last = now;
+    if (S.grasp.t < S.grasp.end - 1e-9) { S.grasp.t = Math.min(S.grasp.end, S.grasp.t + dt * S.grasp.speed); S.grasp.hold = HOLD; }
+    else if (S.playAll.on || S.grasp.loop) { S.grasp.hold -= dt; if (S.grasp.hold <= 0) attemptEnded(); }
+    else S.grasp.playing = false;
+    if (S.mode === 'grasp' && S.grasp.A) { applyGraspFrame(); syncPlayUI(); }
+    more = more || S.grasp.playing;
+  }
+  if (S.stowAnim.on) more = stepStowAnim(now) || more;
+  if (controls.enabled && controls.update()) more = true;
+  draw();
+  if (more) requestRender();
+}
+
+const _v = renderer ? new T3.Vector3() : null;
+function draw() {
+  const w = viewportEl.clientWidth, h = viewportEl.clientHeight;
+  if (!w || !h) return;
+  if (S.view === 'dfc') placeDfcCamera();
+  renderer.setScissorTest(false);
+  renderer.setViewport(0, 0, w, h);
+  renderer.render(scene, camera);
+  // gizmo
+  const size = 76, pad = 8;
+  gCam.position.set(0, 0, 4).applyQuaternion(camera.quaternion);
+  gCam.quaternion.copy(camera.quaternion);
+  gCam.updateMatrixWorld();
+  renderer.autoClear = false;
+  renderer.setScissorTest(true);
+  renderer.setScissor(w - size - pad, pad, size, size);
+  renderer.setViewport(w - size - pad, pad, size, size);
+  renderer.clearDepth();
+  renderer.render(gScene, gCam);
+  renderer.setScissorTest(false);
+  renderer.setViewport(0, 0, w, h);
+  renderer.autoClear = true;
+  gAxes.forEach((a) => {
+    _v.copy(a.dir).multiplyScalar(1.38).project(gCam);
+    const x = w - size - pad + (_v.x + 1) / 2 * size, y = h - pad - (_v.y + 1) / 2 * size;
+    a.el.hidden = false;
+    a.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+  });
+  updateLabels(w, h);
+}
+
+function resize() {
+  if (!renderer) return;
+  const w = viewportEl.clientWidth, h = viewportEl.clientHeight;
+  if (!w || !h) return;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  if (S.view === 'dfc') placeDfcCamera();
+  requestRender();
+}
+if (renderer) new ResizeObserver(resize).observe(viewportEl);
+
+// ------------------------------------------------------------------ 3D labels (HTML, projected)
+const labels3 = [];
+function addLabel(text, pos, parent, on, color, tag) {
+  if (!renderer) return;
+  const el = addLabelEl(text);
+  if (color) { el.dataset.tok = color; el.style.setProperty('--c', '#' + tokColor(color).getHexString()); }
+  const L = { el, pos: new T3.Vector3(...pos), parent, on, tag };
+  labels3.push(L);
+  return L;
+}
+function removeLabels(tag) {
+  for (let i = labels3.length - 1; i >= 0; i--) if (labels3[i].tag === tag) { labels3[i].el.remove(); labels3.splice(i, 1); }
+}
+themeHooks.push(() => labels3.forEach((L) => { if (L.el.dataset.tok) L.el.style.setProperty('--c', '#' + tokColor(L.el.dataset.tok).getHexString()); }));
+function updateLabels(w, h) {
+  for (const L of labels3) {
+    let vis = L.on();
+    if (vis) {
+      _v.copy(L.pos).applyMatrix4(L.parent.matrixWorld).project(camera);
+      vis = _v.z > -1 && _v.z < 1 && Math.abs(_v.x) < 0.98 && Math.abs(_v.y) < 0.98;
+    }
+    L.el.hidden = !vis;
+    if (vis) L.el.style.transform = `translate(${((_v.x + 1) / 2 * w).toFixed(1)}px, ${((1 - _v.y) / 2 * h).toFixed(1)}px)`;
+  }
+}
+
+// ------------------------------------------------------------------ matrices and sweeps
+const _dec = new WeakMap();
+function dec(arr) {
+  let d = _dec.get(arr);
+  if (!d) {
+    const m = new T3.Matrix4().set(...arr);
+    d = { p: new T3.Vector3(), q: new T3.Quaternion(), s: new T3.Vector3() };
+    m.decompose(d.p, d.q, d.s);
+    _dec.set(arr, d);
+  }
+  return d;
+}
+const _p = renderer ? new T3.Vector3() : null, _q = renderer ? new T3.Quaternion() : null, _s = renderer ? new T3.Vector3() : null;
+function lerpM(a, b, u, out) {
+  if (!a) return out.identity();
+  if (!b || u <= 0) return out.copy(new T3.Matrix4().set(...a));
+  const A = dec(a), B = dec(b);
+  _p.lerpVectors(A.p, B.p, u); _q.slerpQuaternions(A.q, B.q, u); _s.lerpVectors(A.s, B.s, u);
+  return out.compose(_p, _q, _s);
+}
+const lerp = (a, b, u) => (isNum(a) && isNum(b) ? a + (b - a) * u : (isNum(a) ? a : b));
+function bracket(samples, t) {
+  const n = samples.length;
+  if (n < 2) return { a: samples[0], b: samples[0], u: 0 };
+  const f = Math.min(Math.max(t, 0), 1) * (n - 1);
+  const i = Math.min(Math.floor(f), n - 2);
+  return { a: samples[i], b: samples[i + 1], u: f - i };
+}
+function interpSample(samples, t) {
+  const { a, b, u } = bracket(samples, t);
+  const out = { T: {}, q: {}, stow: lerp(a.stow, b.stow, u), pinch: null };
+  for (const k of Object.keys(a.T || {})) out.T[k] = lerpM(a.T[k], (b.T || {})[k], u, new T3.Matrix4());
+  for (const k of Object.keys(a.q || {})) out.q[k] = lerp(a.q[k], (b.q || {})[k], u);
+  if (a.pinch) {
+    const pa = a.pinch, pb = b.pinch || a.pinch;
+    out.pinch = { point: pa.point.map((x, i) => lerp(x, pb.point[i], u)), opening: lerp(pa.opening, pb.opening, u) };
+  }
+  return out;
+}
+
+// ------------------------------------------------------------------ Talos body + common layers
+let bodyRoot = null;
+function styleBody() {
+  if (!bodyRoot) return;
+  const alpha = parseFloat(tok('--v3-body-alpha')) || 0.2;
+  bodyRoot.traverse((o) => {
+    if (!o.isMesh) return;
+    const u = o.userData;
+    if (!u.mats) {
+      u.mats = {
+        solid: plainMaterial(o, { roughness: 0.7 }),
+        clear: plainMaterial(o, { transparent: true, opacity: alpha, depthWrite: false, roughness: 0.9 }),
+      };
+    }
+    u.mats.clear.opacity = alpha;
+    if (o.name === 'dvl_keepout_cone') {
+      if (!u.mats.cone) u.mats.cone = new T3.MeshBasicMaterial({ transparent: true, opacity: 0.1, depthWrite: false, side: T3.DoubleSide });
+      u.mats.cone.color.copy(tokColor('--v3-dvl'));
+      o.material = u.mats.cone;
+      o.visible = S.layers.dvl;
+      o.renderOrder = 3;
+      return;
+    }
+    if (o.name === 'hole_bar' && S.layers.holebar) {
+      if (!u.mats.hi) u.mats.hi = new T3.MeshStandardMaterial({ roughness: 0.45, metalness: 0.1 });
+      u.mats.hi.color.copy(tokColor('--v3-holebar'));
+      o.material = u.mats.hi;
+      o.visible = true;
+      o.renderOrder = 0;
+      return;
+    }
+    o.visible = S.body !== 'off' && !(o.name === 'cameras' && S.view === 'dfc');
+    o.material = S.body === 'solid' ? u.mats.solid : u.mats.clear;
+    o.renderOrder = S.body === 'solid' ? 0 : 1;
+  });
+}
+
+function buildCommonLayers(talos) {
+  if (!renderer) return;
+  const foot = talos.feet || {};
+  const fz = isNum(foot.foot_plane_z) ? foot.foot_plane_z : -0.336;
+  const ref = talos.reference || {};
+  // foot plane + pads
+  const fm = new T3.MeshBasicMaterial({ transparent: true, opacity: 0.1, depthWrite: false, side: T3.DoubleSide });
+  const fl = new T3.LineBasicMaterial({ transparent: true, opacity: 0.6 });
+  const pm = new T3.MeshBasicMaterial({ transparent: true, opacity: 0.55, side: T3.DoubleSide, depthWrite: false });
+  const x0 = -0.38, x1 = 0.30, y0 = -0.26, y1 = 0.33;
+  const plane = new T3.Mesh(new T3.PlaneGeometry(x1 - x0, y1 - y0), fm);
+  plane.position.set((x0 + x1) / 2, (y0 + y1) / 2, fz);
+  footGroup.add(plane);
+  footGroup.add(rectLine(x0, y0, x1, y1, fz, fl));
+  (foot.pads || []).forEach((p) => {
+    const g = new T3.Mesh(new T3.PlaneGeometry(p.x[1] - p.x[0], p.y[1] - p.y[0]), pm);
+    g.position.set((p.x[0] + p.x[1]) / 2, (p.y[0] + p.y[1]) / 2, (p.z_bottom || fz) - 0.0005);
+    footGroup.add(g);
+  });
+  addLabel(`foot plane z ${fix(fz * 1000, 0)}`, [x1, y0, fz], robot, () => S.layers.foot && S.mode === 'robot', '--v3-foot');
+  themeHooks.push(() => { const c = tokColor('--v3-foot'); fm.color.copy(c); fl.color.copy(c); pm.color.copy(c); });
+
+  // targets: pinch x plane, jaw depth band, today's pinch
+  const tm = new T3.MeshBasicMaterial({ transparent: true, opacity: 0.1, depthWrite: false, side: T3.DoubleSide });
+  const tl = new T3.LineBasicMaterial({ transparent: true, opacity: 0.85 });
+  const px = isNum(ref.target_pinch_x_max) ? ref.target_pinch_x_max : 0.135;
+  const drop = ref.target_drop_below_feet || [0.105, 0.11];
+  const zt0 = fz - drop[0], zt1 = fz - drop[1];
+  const ty0 = -0.16, ty1 = 0.2;
+  const xplane = new T3.Mesh(new T3.PlaneGeometry(ty1 - ty0, fz + 0.15 - (zt1 - 0.02)), tm);
+  xplane.rotation.set(Math.PI / 2, Math.PI / 2, 0);
+  xplane.position.set(px, (ty0 + ty1) / 2, ((fz + 0.15) + (zt1 - 0.02)) / 2);
+  targetsGroup.add(xplane);
+  const band = new T3.Mesh(new T3.PlaneGeometry(0.34, ty1 - ty0), tm);
+  band.position.set(0.0, (ty0 + ty1) / 2, (zt0 + zt1) / 2);
+  targetsGroup.add(band);
+  targetsGroup.add(rectLine(-0.17, ty0, 0.17, ty1, zt0, tl));
+  targetsGroup.add(rectLine(-0.17, ty0, 0.17, ty1, zt1, tl));
+  addLabel(`pinch x ≤ ${fix(px * 1000, 0)}`, [px, ty1, fz + 0.15], robot, () => S.layers.targets, '--v3-target');
+  addLabel(`jaws ${fix(drop[0] * 1000, 0)}–${fix(drop[1] * 1000, 0)} below feet`, [0.17, ty0, zt1], robot, () => S.layers.targets, '--v3-target');
+  const cp = ref.current_pinch;
+  let todayDot = null;
+  if (cp) {
+    todayDot = new T3.Mesh(new T3.OctahedronGeometry(0.006), new T3.MeshBasicMaterial({ wireframe: true, depthTest: false, transparent: true }));
+    todayDot.position.set(...cp); todayDot.renderOrder = 10;
+    targetsGroup.add(todayDot);
+    addLabel("today's pinch", cp, robot, () => S.layers.targets && S.mode !== 'grasp', '--v3-ghost');
+  }
+  themeHooks.push(() => { const c = tokColor('--v3-target'); tm.color.copy(c); tl.color.copy(c); if (todayDot) todayDot.material.color.copy(tokColor('--v3-ghost')); });
+
+  // pinch marker (follows the current sample)
+  const pmMat = new T3.LineBasicMaterial({ depthTest: false, transparent: true });
+  const s = 0.012;
+  pinchMarker = new T3.Group();
+  const cross = new T3.LineSegments(new T3.BufferGeometry().setAttribute('position', new T3.Float32BufferAttribute([-s, 0, 0, s, 0, 0, 0, -s, 0, 0, s, 0, 0, 0, -s, 0, 0, s], 3)), pmMat);
+  cross.renderOrder = 11;
+  const ball = new T3.Mesh(new T3.SphereGeometry(0.0035, 12, 8), new T3.MeshBasicMaterial({ depthTest: false, transparent: true }));
+  ball.renderOrder = 11;
+  pinchMarker.add(cross, ball);
+  targetsGroup.add(pinchMarker);
+  themeHooks.push(() => { const c = tokColor('--v3-pinch'); pmMat.color.copy(c); ball.material.color.copy(c); });
+
+  // dfc frustum
+  const cam = (talos.cameras || {}).dfc;
+  if (cam && cam.T_origin_optical) {
+    const T = new T3.Matrix4().set(...cam.T_origin_optical);
+    const K = cam.K || [[1857.5, 0, 960], [0, 1857.5, 600], [0, 0, 1]];
+    const D = 0.5, W = cam.width || 1920, H = cam.height || 1200;
+    const fx = K[0][0], fy = K[1][1], cx = K[0][2], cy = K[1][2];
+    const c = [[0, 0], [W, 0], [W, H], [0, H]].map(([u, v]) => new T3.Vector3((u - cx) / fx * D, (v - cy) / fy * D, D).applyMatrix4(T));
+    const o = new T3.Vector3().applyMatrix4(T);
+    const lm = new T3.LineBasicMaterial({ transparent: true, opacity: 0.9 });
+    const pts = [];
+    c.forEach((p, i) => { pts.push(o.x, o.y, o.z, p.x, p.y, p.z); const q = c[(i + 1) % 4]; pts.push(p.x, p.y, p.z, q.x, q.y, q.z); });
+    frustumGroup.add(new T3.LineSegments(new T3.BufferGeometry().setAttribute('position', new T3.Float32BufferAttribute(pts, 3)), lm));
+    const tri = [];
+    c.forEach((p, i) => { const q = c[(i + 1) % 4]; tri.push(o.x, o.y, o.z, p.x, p.y, p.z, q.x, q.y, q.z); });
+    const fmm = new T3.MeshBasicMaterial({ transparent: true, opacity: 0.07, depthWrite: false, side: T3.DoubleSide });
+    frustumGroup.add(new T3.Mesh(new T3.BufferGeometry().setAttribute('position', new T3.Float32BufferAttribute(tri, 3)), fmm));
+    addLabel('dfc', [o.x, o.y, o.z], robot, () => S.layers.frustum && S.view !== 'dfc', '--v3-frustum');
+    themeHooks.push(() => { const k = tokColor('--v3-frustum'); lm.color.copy(k); fmm.color.copy(k); });
+  }
+
+  // hole markers
+  const hb = talos.hole_bar || {};
+  const nrm = new T3.Vector3(...(hb.top_normal || [0, 0, 1])).normalize();
+  const qn = new T3.Quaternion().setFromUnitVectors(new T3.Vector3(0, 0, 1), nrm);
+  const free = new Set((hb.free_k || []).map(Number));
+  const ringGeo = new T3.TorusGeometry(0.0042, 0.0011, 6, 18);
+  const ringBig = new T3.TorusGeometry(0.0062, 0.0017, 6, 22);
+  const hm = { used: new T3.MeshBasicMaterial({ depthTest: false, transparent: true }), free: new T3.MeshBasicMaterial({ depthTest: false, transparent: true, opacity: 0.85 }), blocked: new T3.MeshBasicMaterial({ depthTest: false, transparent: true, opacity: 0.85 }) };
+  Object.entries(hb.holes || {}).forEach(([k, p]) => {
+    const kn = Number(k);
+    const mesh = new T3.Mesh(ringGeo, free.has(kn) ? hm.free : hm.blocked);
+    mesh.position.set(p[0], p[1], p[2] + 0.0008); mesh.quaternion.copy(qn); mesh.renderOrder = 9;
+    mesh.userData.k = kn; mesh.userData.free = free.has(kn);
+    holeGroup.add(mesh);
+  });
+  holeGroup.userData.mats = hm; holeGroup.userData.geo = { ringGeo, ringBig };
+  const h0 = (hb.holes || {})['-7'];
+  if (h0) addLabel('hole bar k −7 … +7', [h0[0], h0[1] - 0.012, h0[2]], robot, () => S.layers.holebar && S.mode === 'robot', '--v3-holebar');
+  themeHooks.push(() => { hm.used.color.copy(tokColor('--v3-holebar')); hm.free.color.copy(tokColor('--v3-hole')); hm.blocked.color.copy(tokColor('--v3-hole-blocked')); });
+
+  // DVL label
+  const dvl = talos.dvl || {};
+  if (dvl.axis_xy) addLabel('DVL beams', [dvl.axis_xy[0] - 0.09, dvl.axis_xy[1], (dvl.bottom_z || -0.25) - 0.24], robot, () => S.layers.dvl && S.mode === 'robot', '--v3-dvl');
+}
+
+function rectLine(x0, y0, x1, y1, z, mat) {
+  return new T3.LineLoop(new T3.BufferGeometry().setAttribute('position', new T3.Float32BufferAttribute([x0, y0, z, x1, y0, z, x1, y1, z, x0, y1, z], 3)), mat);
+}
+
+function updateHoleMarkers(v) {
+  if (!renderer) return;
+  const used = new Set(((v && v.concept && v.concept.hole_k) || []).map(Number));
+  const { used: mu, free: mf, blocked: mb } = holeGroup.userData.mats || {};
+  const { ringGeo, ringBig } = holeGroup.userData.geo || {};
+  holeGroup.children.forEach((m) => {
+    const u = used.has(m.userData.k);
+    m.material = u ? mu : (m.userData.free ? mf : mb);
+    m.geometry = u ? ringBig : ringGeo;
+  });
+}
+
+function loadCommon(talos) {
+  if (!renderer) return Promise.resolve();
+  const files = talos.files || {};
+  const base = DATA + 'common/';
+  const jobs = [];
+  jobs.push(loadGLB(base + (files.talos_body || 'talos_body.glb')).then((root) => {
+    bodyRoot = root; bodyHolder.add(root); styleBody(); requestRender();
+  }).catch((e) => setStatus(e.message)));
+  jobs.push(loadGLB(base + (files.keepouts || 'keepouts.glb')).then((root) => {
+    const beamMat = new T3.MeshBasicMaterial({ transparent: true, opacity: 0.2, depthWrite: false, side: T3.DoubleSide });
+    const payMat = new T3.MeshBasicMaterial({ transparent: true, opacity: 0.16, depthWrite: false, side: T3.DoubleSide });
+    const beams = [], pays = [];
+    root.traverse((o) => { if (o.isMesh) (/^beam/.test(o.name) ? beams : pays).push(o); });
+    beams.forEach((o) => { o.material = beamMat; o.renderOrder = 3; beamsHolder.add(o); });
+    pays.forEach((o) => { o.material = payMat; o.renderOrder = 3; payloadHolder.add(o); });
+    themeHooks.push(() => { beamMat.color.copy(tokColor('--v3-dvl')); payMat.color.copy(tokColor('--v3-payload')); });
+    applyTheme(); applyLayers();
+  }).catch((e) => setStatus(e.message)));
+  return Promise.all(jobs);
+}
+
+// C0 ghost: the baseline's own link meshes, posed from its open/close sweep at the same slider position (faint fill +
+// crease edges). Falls back to the static current_claw.glb when the c0 bundle is not available.
+const ghostMats = renderer ? { fill: new T3.MeshBasicMaterial({ transparent: true, opacity: 0.1, depthWrite: false }), line: new T3.LineBasicMaterial({ transparent: true, opacity: 0.55, depthWrite: false }) } : null;
+themeHooks.push(() => { if (ghostMats) { const c = tokColor('--v3-ghost'); ghostMats.fill.color.copy(c); ghostMats.line.color.copy(c); } });
+function ghostify(src) {
+  const root = src.clone(true);
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    o.material = ghostMats.fill; o.renderOrder = 2;
+    const g = o.geometry;
+    if (!g.userData.edges) g.userData.edges = new T3.EdgesGeometry(g, 35);
+    const e = new T3.LineSegments(g.userData.edges, ghostMats.line);
+    e.renderOrder = 2;
+    o.add(e);
+  });
+  return root;
+}
+let ghostPromise = null;
+function ensureGhost() {
+  if (!renderer || ghostPromise) return ghostPromise;
+  ghostPromise = (async () => {
+    const e0 = S.index.find((e) => e.id === 'c0_current');
+    if (e0) {
+      try {
+        const v0 = await loadConceptData('c0_current');
+        const links = {};
+        await Promise.all((v0.links || []).map(async (L) => {
+          const holder = new T3.Group(); holder.matrixAutoUpdate = false;
+          holder.add(ghostify(await loadGLB(`${DATA}concepts/c0_current/${L.glb}`)));
+          links[L.name] = holder;
+        }));
+        Object.values(links).forEach((h) => ghostHolder.add(h));
+        S.ghost = { v: v0, links };
+        poseGhost(); requestRender();
+        return;
+      } catch (err) { ghostHolder.clear(); }
+    }
+    const files = (S.talos && S.talos.files) || {};
+    const root = await loadGLB(DATA + 'common/' + (files.current_claw || 'current_claw.glb'));
+    ghostHolder.add(ghostify(root));
+    S.ghost = { v: null, links: null };
+    requestRender();
+  })().catch((e) => setStatus(e.message));
+  return ghostPromise;
+}
+function poseGhost() {
+  const g = S.ghost;
+  if (!renderer || !g || !g.links || !g.v) return;
+  const sw = sweepsOf(g.v).open_close;
+  if (!sw || !(sw.samples || []).length) return;
+  const s = interpSample(sw.samples, S.sweepT.open_close != null ? S.sweepT.open_close : 0.5);
+  Object.entries(g.links).forEach(([name, h]) => { const M = s.T[name]; if (M) h.matrix.copy(M); else h.matrix.identity(); h.matrixWorldNeedsUpdate = true; });
+}
+
+// ------------------------------------------------------------------ concept claws
+const METAL = new Set(['aluminum', 'stainless', 'hardware', 'brass']);
+const keepoutMats = [];
+themeHooks.push(() => keepoutMats.forEach((m) => m.color.copy(tokColor('--v3-keepout'))));
+const clawCache = new Map();
+function getClawGroup(id, v, progress) {
+  if (clawCache.has(id)) return clawCache.get(id);
+  const p = (async () => {
+    const g = new T3.Group();
+    g.name = 'claw_' + id;
+    g.userData.links = {};
+    g.userData.missing = [];
+    const n = (v.links || []).length;
+    let done = 0;
+    await Promise.all((v.links || []).map(async (L) => {
+      try {
+        const root = await loadGLB(`${DATA}concepts/${id}/${L.glb}`);
+        const holder = new T3.Group();
+        holder.matrixAutoUpdate = false;
+        holder.name = L.name;
+        holder.add(root);
+        styleLink(root, L, v);
+        g.add(holder);
+        g.userData.links[L.name] = holder;
+      } catch (e) {
+        g.userData.missing.push(L.name);
+      }
+      if (progress) progress(++done, n);
+    }));
+    return g;
+  })();
+  clawCache.set(id, p);
+  return p;
+}
+function styleLink(root, L, v) {
+  const san = (s) => (T3.PropertyBinding && T3.PropertyBinding.sanitizeNodeName ? T3.PropertyBinding.sanitizeNodeName(s) : s);
+  const parts = new Map();
+  (L.parts || []).forEach((p) => { parts.set(san(String(p.name).replace(/\//g, '_')), p); parts.set(String(p.name).replace(/\//g, '_'), p); });
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    const p = parts.get(o.name) || {};
+    const key = p.material || o.userData.srcMatName || '';
+    const isKeep = !!p.keepout || key === 'keepout';
+    let mat;
+    if (isKeep) {
+      mat = new T3.MeshStandardMaterial({ transparent: true, opacity: 0.25, depthWrite: false, roughness: 1 });
+      keepoutMats.push(mat);
+      mat.color.copy(tokColor('--v3-keepout'));
+      o.renderOrder = 2;
+    } else {
+      const col = p.color ? new T3.Color(p.color) : o.userData.srcColor;
+      mat = new T3.MeshStandardMaterial({ color: col, roughness: METAL.has(key) ? 0.4 : 0.6, metalness: METAL.has(key) ? 0.25 : 0.0 });
+    }
+    o.material = mat;
+    const label = ((v.materials || {})[key] || {}).label || key || 'unspecified';
+    const nm = p.name ? String(p.name).split('/').slice(1).join('/') || p.name : o.name;
+    o.userData.part = { link: L.label ? `${L.name} (${L.label})` : L.name, role: L.role, name: nm, material: label, keepout: isKeep };
+  });
+}
+
+// ------------------------------------------------------------------ layers
+const LAYERS = [
+  { id: 'holebar', label: 'Hole bar + holes', tok: '--v3-holebar' },
+  { id: 'dvl', label: 'DVL beam keep-outs', tok: '--v3-dvl' },
+  { id: 'ghost', label: 'C0 ghost (current claw)', tok: '--v3-ghost' },
+  { id: 'foot', label: 'Foot plane', tok: '--v3-foot' },
+  { id: 'targets', label: 'Targets + pinch', tok: '--v3-target' },
+  { id: 'frustum', label: 'dfc frustum', tok: '--v3-frustum' },
+  { id: 'payload', label: 'Torpedo / dropper paths', tok: '--v3-payload' },
+  { id: 'stowhw', label: 'Stow pins + stops', tok: '--v3-holebar' },
+];
+function buildToggles() {
+  const box = qs('#toggles');
+  box.innerHTML = LAYERS.map((L) => `<label class="swt" for="tg-${L.id}"><input type="checkbox" role="switch" id="tg-${L.id}" ${S.layers[L.id] ? 'checked' : ''}><span class="trk" aria-hidden="true"></span><span class="key" style="--c: var(${L.tok})" aria-hidden="true"></span><span class="txt">${esc(L.label)}</span></label>`).join('');
+  LAYERS.forEach((L) => {
+    qs('#tg-' + L.id).addEventListener('change', (e) => { S.layers[L.id] = e.target.checked; applyLayers(); });
+  });
+}
+function applyLayers() {
+  const isC0 = S.cur === 'c0_current';
+  const gt = qs('#tg-ghost');
+  if (gt) { gt.disabled = isC0; gt.parentElement.title = isC0 ? 'The baseline is the current claw' : ''; }
+  if (!renderer) return;
+  ghostHolder.visible = S.layers.ghost && !isC0 && S.mode !== 'grasp';
+  if (ghostHolder.visible) ensureGhost();
+  applyStowVis();
+  if (blkGroup && S.mode !== 'grasp') blkGroup.visible = false;
+  beamsHolder.visible = S.layers.dvl;
+  payloadHolder.visible = S.layers.payload;
+  frustumGroup.visible = S.layers.frustum && S.view !== 'dfc';
+  footGroup.visible = S.layers.foot;
+  targetsGroup.visible = S.layers.targets;
+  holeGroup.visible = S.layers.holebar;
+  pinchMarker.visible = S.layers.targets && S.mode !== 'grasp';
+  styleBody();
+  renderLegend();
+  requestRender();
+}
+
+// ------------------------------------------------------------------ camera presets
+const PRESET_DIRS = { iso: [0.80, 0.62, 0.45], side: [0, -1, 0.0], front: [1, 0, 0.0], bottom: [0.002, 0, -1] };
+function focusAndDist(name) {
+  const aspect = camera.aspect || 1.6;
+  const fit = (half) => half / (Math.tan(T3.MathUtils.degToRad(camera.fov / 2)) * Math.min(aspect, 1.6));
+  if (S.mode === 'grasp' && S.grasp.scene) {
+    const kf = S.grasp.scene.keyframes || [];
+    const k = kf.find((f) => f.label === 'contact') || kf[Math.floor(kf.length / 2)] || kf[0];
+    const kl = kf[kf.length - 1] || k;
+    const om = objMeta(S.grasp.obj) || {};
+    const f = new T3.Vector3();
+    if (k && k.T_table_object) f.copy(dec(k.T_table_object).p);
+    if (kl && kl.T_table_object) f.lerp(dec(kl.T_table_object).p, 0.5);
+    f.z += Math.max(0.03, (om.height || 0.06) * 0.5) + 0.04;
+    return { focus: f, dist: Math.max(name === 'iso' ? 1.2 : 1.05, fit(0.36)) };
+  }
+  if (S.mode === 'torpedo') {
+    const p = new T3.Vector3(0.12, 0.03, -0.25).applyMatrix4(robot.matrixWorld);
+    return { focus: new T3.Vector3(p.x * 0.55, p.y, p.z), dist: Math.max(1.5, fit(0.55)) };
+  }
+  return { focus: new T3.Vector3(0.07, 0.0, -0.31), dist: Math.max(name === 'iso' ? 1.02 : 0.95, fit(0.3)) };
+}
+function presetPose(name, frame) {
+  const { focus, dist } = frame || focusAndDist(name);
+  const d = new T3.Vector3(...PRESET_DIRS[name]).normalize();
+  const yaw = Math.atan2(robot.matrixWorld.elements[1], robot.matrixWorld.elements[0]);
+  d.applyAxisAngle(new T3.Vector3(0, 0, 1), yaw);
+  return { pos: focus.clone().addScaledVector(d, dist), target: focus };
+}
+function goView(name, instant, frame) {
+  if (!renderer) { S.view = name; syncViewSeg(); return; }
+  if (name === 'dfc') { enterDfc(); return; }
+  if (S.view === 'dfc') leaveDfc();
+  S.view = name;
+  syncViewSeg();
+  robot.updateMatrixWorld(true);
+  const { pos, target } = presetPose(name, frame);
+  if (instant || reduced()) {
+    tween = null;
+    camera.position.copy(pos); controls.target.copy(target); controls.update(); requestRender();
+    return;
+  }
+  tween = { t0: performance.now(), dur: 480, p0: camera.position.clone(), c0: controls.target.clone(), p1: pos, c1: target };
+  requestRender();
+}
+function stepTween(now) {
+  const k = Math.min(1, (now - tween.t0) / tween.dur);
+  const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+  const c = tween.c0.clone().lerp(tween.c1, e);
+  const o0 = tween.p0.clone().sub(tween.c0), o1 = tween.p1.clone().sub(tween.c1);
+  const r = o0.length() + (o1.length() - o0.length()) * e;
+  const dir = o0.normalize().lerp(o1.normalize(), e);
+  if (dir.lengthSq() < 1e-6) dir.copy(o1);
+  dir.normalize();
+  controls.target.copy(c);
+  camera.position.copy(c).addScaledVector(dir, r);
+  controls.update();
+  if (k >= 1) { tween = null; return false; }
+  return true;
+}
+function enterDfc() {
+  tween = null;
+  S.view = 'dfc';
+  controls.enabled = false;
+  qs('#dfcFrame').hidden = false;
+  syncViewSeg(); applyLayers();
+  placeDfcCamera();
+  requestRender();
+}
+function leaveDfc() {
+  const dir = new T3.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+  camera.up.set(0, 0, 1);
+  camera.fov = 30;
+  camera.updateProjectionMatrix();
+  controls.target.copy(camera.position).addScaledVector(dir, 0.4).add(new T3.Vector3(0.002, 0, 0));
+  controls.enabled = true;
+  qs('#dfcFrame').hidden = true;
+  S.view = 'free';
+  syncViewSeg(); applyLayers();
+}
+function placeDfcCamera() {
+  const cam = S.talos && S.talos.cameras && S.talos.cameras.dfc;
+  if (!cam) return;
+  robot.updateMatrixWorld(true);
+  const M = robot.matrixWorld.clone().multiply(new T3.Matrix4().set(...cam.T_origin_optical));
+  const e = M.elements;
+  const pos = new T3.Vector3(e[12], e[13], e[14]);
+  const yAx = new T3.Vector3(e[4], e[5], e[6]), zAx = new T3.Vector3(e[8], e[9], e[10]);
+  const w = viewportEl.clientWidth, h = viewportEl.clientHeight;
+  const W = cam.width || 1920, H = cam.height || 1200;
+  const A = w / h, IA = W / H;
+  const K = cam.K || [[1857.5, 0, W / 2], [0, 1857.5, H / 2], [0, 0, 1]];
+  const fx = K[0][0], fy = K[1][1], cx = K[0][2], cy = K[1][2];
+  // letterbox the 1920 x 1200 image in the viewport; the frustum follows K exactly (principal point off-center)
+  let rw, rh, u0, u1, v0, v1;
+  if (A >= IA) { rh = h; rw = h * IA; const sc = H / h; u0 = W / 2 - (w * sc) / 2; u1 = W / 2 + (w * sc) / 2; v0 = 0; v1 = H; }
+  else { rw = w; rh = w / IA; const sc = W / w; u0 = 0; u1 = W; v0 = H / 2 - (h * sc) / 2; v1 = H / 2 + (h * sc) / 2; }
+  const n = 0.01;
+  camera.near = n; camera.aspect = A;
+  camera.position.copy(pos);
+  camera.up.copy(yAx).negate();
+  camera.lookAt(pos.clone().add(zAx));
+  camera.projectionMatrix.makePerspective((u0 - cx) / fx * n, (u1 - cx) / fx * n, (cy - v0) / fy * n, (cy - v1) / fy * n, n, camera.far);
+  camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+  const f = qs('#dfcFrame');
+  f.style.left = ((w - rw) / 2) + 'px'; f.style.top = ((h - rh) / 2) + 'px';
+  f.style.width = rw + 'px'; f.style.height = rh + 'px';
+}
+function syncViewSeg() {
+  document.querySelectorAll('#viewSeg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === S.view)));
+}
+qs('#viewSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) goView(b.dataset.view); });
+qs('#bodySeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  S.body = b.dataset.body;
+  document.querySelectorAll('#bodySeg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  styleBody(); requestRender();
+});
+canvas.addEventListener('pointerdown', () => { if (S.view === 'dfc' && renderer) { leaveDfc(); requestRender(); } });
+
+// ------------------------------------------------------------------ hover: part names
+const tipEl = qs('#tip');
+let hoverEv = null, hoverPending = false;
+const ray = renderer ? new T3.Raycaster() : null;
+canvas.addEventListener('pointermove', (e) => {
+  if (!renderer || e.pointerType !== 'mouse' || e.buttons) { tipEl.hidden = true; return; }
+  hoverEv = e;
+  if (!hoverPending) { hoverPending = true; requestAnimationFrame(doHover); }
+});
+canvas.addEventListener('pointerleave', () => { tipEl.hidden = true; hoverEv = null; });
+function doHover() {
+  hoverPending = false;
+  if (!hoverEv || !S.clawGroup) { tipEl.hidden = true; return; }
+  const r = canvas.getBoundingClientRect();
+  const nd = new T3.Vector2((hoverEv.clientX - r.left) / r.width * 2 - 1, -((hoverEv.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(nd, camera);
+  const hit = ray.intersectObject(S.clawGroup, true).find((x) => x.object.userData.part);
+  if (!hit) { tipEl.hidden = true; return; }
+  const p = hit.object.userData.part;
+  tipEl.innerHTML = `<b>${esc(p.link)}</b> &middot; ${esc(p.name)}<br><span class="muted">${esc(p.material)}${p.keepout ? ' (keep-out volume)' : ''}</span>`;
+  const x = Math.min(hoverEv.clientX - r.left + 14, r.width - 200), y = hoverEv.clientY - r.top + 14;
+  tipEl.style.transform = `translate(${x}px, ${y}px)`;
+  tipEl.hidden = false;
+}
+
+// ------------------------------------------------------------------ status / scene label
+function setStatus(msg) { const el = qs('#vpStatus'); el.textContent = msg || ''; el.hidden = !msg; }
+function renderSceneLabel() {
+  const box = qs('#vpScene');
+  let label = '';
+  if (S.mode === 'grasp') {
+    const om = objMeta(S.grasp.obj) || {};
+    const ty = S.grasp.scene && S.grasp.scene.table ? S.grasp.scene.table.year : om.year;
+    label = `Grasp &middot; ${esc(om.name || S.grasp.obj)} &middot; ${esc(ty)} table`;
+  } else if (S.mode === 'torpedo') {
+    label = `Torpedo task &middot; ${esc(S.torpedo.year)} stand &middot; ${esc((S.torpedo.pose || '').replace('/', ' '))}`;
+  } else {
+    const v = S.data.get(S.cur);
+    label = v ? `On Talos &middot; ${esc(codeOf(S.cur))}` : '';
+  }
+  box.innerHTML = (label ? `<span class="lbl-scene">${label}</span>` : '') +
+    (S.mode !== 'robot' ? '<button type="button" class="btn" id="backBtn">Back to Talos</button>' : '');
+  const bb = qs('#backBtn');
+  if (bb) bb.addEventListener('click', () => exitScene());
+}
+
+// ------------------------------------------------------------------ index / tabs
+function codeOf(id) {
+  const m = /^([a-z]+\d+)/i.exec(id || '');
+  return m ? m[1].toUpperCase() : String(id || '').replace(/^_+/, '').slice(0, 4).toUpperCase();
+}
+const isBaseline = (e) => e.id === 'c0_current' || /baseline/i.test(e.name || '');
+function servoCount(e) {
+  if (isNum(e.servo_count)) return e.servo_count;
+  const v = S.data.get(e.id);
+  if (v && v.concept && isNum(v.concept.servo_count)) return v.concept.servo_count;
+  return /^m\d/i.test(e.id) ? 2 : (/^c\d/i.test(e.id) ? 1 : null);
+}
+function groupOf(e) { if (isBaseline(e)) return 'base'; const n = servoCount(e); return n >= 3 ? 'three' : (n === 2 ? 'two' : 'single'); }
+const GROUP_LABEL = { base: 'Baseline', single: 'Single servo', two: 'Two servos', three: 'Three servos' };
+function groupLabel(key) { return GROUP_LABEL[key] || key; }
+const isHidden = (e) => !!e.hidden;
+function visibleIndex() { return S.index.filter((e) => S.showHidden || !isHidden(e) || e.id === S.cur); }
+function orderedIndex() {
+  const g = { base: [], single: [], two: [], three: [] };
+  visibleIndex().forEach((e) => g[groupOf(e)].push(e));
+  const by = (a, b) => (a.id.startsWith('_') - b.id.startsWith('_')) || a.id.localeCompare(b.id, undefined, { numeric: true });
+  return ['base', 'single', 'two', 'three'].map((k) => ({ key: k, items: g[k].sort(by) })).filter((x) => x.items.length);
+}
+function overallOf(e) { const v = S.data.get(e.id); return (v && v.overall) || e.overall || null; }
+function countsOf(v) {
+  const c = v && (v.checks || []).find((x) => x.id === 'grasp');
+  return c && c.metrics && c.metrics.counts ? c.metrics.counts : null;
+}
+function entryCounts(e) {
+  if (e.objects && isNum(e.objects.total)) return { pass: e.objects.pass || 0, warn: e.objects.warn || 0, fail: e.objects.fail || 0 };
+  return countsOf(S.data.get(e.id));
+}
+function renderTabs() {
+  const box = qs('#conceptTabs');
+  if (!S.index.length) { box.innerHTML = '<span class="muted">No concept bundles yet.</span>'; return; }
+  box.innerHTML = orderedIndex().map((grp) => `<div class="tab-group"><div class="eyebrow">${esc(groupLabel(grp.key))}</div><div class="tab-row">${grp.items.map((e) => {
+    const v = S.data.get(e.id);
+    const n = servoCount(e);
+    const cn = entryCounts(e);
+    const err = S.errors.get(e.id);
+    return `<button type="button" class="ctab${isBaseline(e) ? ' is-base' : ''}" role="tab" id="tab-${esc(e.id)}" data-id="${esc(e.id)}" aria-selected="${e.id === S.cur}" tabindex="${e.id === S.cur ? 0 : -1}" title="${esc(e.name || e.id)}${n ? ` (${n} servo${n > 1 ? 's' : ''})` : ''}">
+      <span class="ctab-top"><span>${esc(codeOf(e.id))}</span>${err ? chip('error', 'not loaded') : chip(overallOf(e))}</span>
+      <span class="ctab-name">${esc(e.name || e.id)}</span>
+      <span class="ctab-foot">${cn ? `${pwfHTML(cn, false)}<span class="counts" title="objects pass / warn / fail">${cn.pass || 0}&middot;${cn.warn || 0}&middot;${cn.fail || 0}</span>` : (v || e.key ? '' : '<span class="counts">loading&hellip;</span>')}${e.quick ? '<span class="counts" title="quick run: coarse sampling">quick</span>' : ''}${isHidden(e) ? '<span class="counts">hidden</span>' : ''}</span>
+    </button>`;
+  }).join('')}</div></div>`).join('');
+}
+qs('#conceptTabs').addEventListener('click', (e) => { const b = e.target.closest('.ctab'); if (b && b.dataset.id !== S.cur) selectConcept(b.dataset.id); });
+qs('#conceptTabs').addEventListener('keydown', (e) => {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+  const tabs = [...document.querySelectorAll('.ctab')];
+  const i = tabs.findIndex((t) => t.dataset.id === S.cur);
+  let j = i;
+  if (e.key === 'ArrowLeft') j = Math.max(0, i - 1);
+  if (e.key === 'ArrowRight') j = Math.min(tabs.length - 1, i + 1);
+  if (e.key === 'Home') j = 0;
+  if (e.key === 'End') j = tabs.length - 1;
+  if (j !== i && tabs[j]) { e.preventDefault(); selectConcept(tabs[j].dataset.id).then(() => { const t = qs('#tab-' + CSS.escape(tabs[j].dataset.id)); if (t) t.focus(); }); }
+});
+
+function loadConceptData(id) {
+  const e = S.index.find((x) => x.id === id);
+  if (!e) return Promise.reject(new Error('unknown concept ' + id));
+  if (S.data.has(id)) return Promise.resolve(S.data.get(id));
+  return getJSON(DATA + (e.viewer_json || `concepts/${id}/viewer.json`)).then((v) => {
+    S.data.set(id, v); S.errors.delete(id); return v;
+  }, (err) => { S.errors.set(id, err.message); throw err; });
+}
+
+// ------------------------------------------------------------------ select concept
+async function selectConcept(id) {
+  S.cur = id;
+  const tok = ++S.selTok;
+  renderTabs(); renderCompare(); applyLayers();
+  setStatus(`Loading ${codeOf(id)}…`);
+  if (S.stowAnim.on) stopStowAnim();
+  let v;
+  try { v = await loadConceptData(id); } catch (err) {
+    if (tok !== S.selTok) return;
+    qs('#panel').innerHTML = `<div class="panel-msg"><h2 class="sc-title">${esc(codeOf(id))} did not load</h2><p class="hint">${esc(err.message)}. The bundle may still be syncing; reload the page in a minute.</p></div>`;
+    setStatus('Bundle not loaded'); renderTabs(); return;
+  }
+  if (tok !== S.selTok) return;
+  initPose(v);
+  renderPoseControls(v);
+  renderPanel(v);
+  renderObjects();
+  renderTabs();
+  renderCompare();
+  try { history.replaceState(null, '', '#' + id); } catch (e) { /* sandboxed */ }
+  if (!renderer) { applyPose(); setStatus(''); return; }
+  const grp = await getClawGroup(id, v, (k, n) => { if (tok === S.selTok) setStatus(`Loading ${codeOf(id)} meshes ${k}/${n}`); });
+  if (tok !== S.selTok) return;
+  clawHolder.children.slice().forEach((c) => clawHolder.remove(c));
+  clawHolder.add(grp);
+  S.clawGroup = grp;
+  setHitHighlight(null, true);
+  buildStowPath(v);
+  if (S.playAll.on) { S.playAll.list = playAllList(); S.playAll.i = Math.max(0, S.playAll.list.indexOf(S.grasp.obj)); }
+  updateHoleMarkers(v);
+  applyLayers();
+  renderLegend();
+  if (S.mode === 'grasp') await enterGrasp(S.grasp.obj, { keepTime: true });
+  else if (S.mode === 'torpedo') { applyPose(); renderTorpedoCard(); }
+  else applyPose();
+  setStatus(grp.userData.missing.length ? `Missing meshes: ${grp.userData.missing.join(', ')}` : '');
+  renderSceneLabel();
+  requestRender();
+}
+
+// ------------------------------------------------------------------ pose (robot / torpedo modes)
+function sweepsOf(v) { return (v && v.sweeps) || {}; }
+function initPose(v) {
+  const sw = sweepsOf(v);
+  const ds = v.default_state || {};
+  S.sweepT = {};
+  Object.entries(sw).forEach(([k, s]) => {
+    if (k === 'stow') return;
+    const n = (s.samples || []).length;
+    S.sweepT[k] = k === (ds.sweep || 'open_close') && n > 1 && isNum(ds.index) ? ds.index / (n - 1) : 0.5;
+    if (k.startsWith('servo:')) {
+      const name = k.slice(6);
+      const sv = (v.servos || []).find((x) => x.name === name);
+      if (sv && isNum(sv.open) && sv.max !== sv.min) S.sweepT[k] = (sv.open - sv.min) / (sv.max - sv.min);
+    }
+  });
+  S.activeSweep = sw[ds.sweep] ? ds.sweep : (sw.open_close ? 'open_close' : Object.keys(S.sweepT)[0]);
+  const st = sw.stow;
+  S.stowT = st && (st.samples || []).length > 1 && isNum(ds.stow_index) ? ds.stow_index / (st.samples.length - 1) : 0;
+}
+function currentSample(v) {
+  const sw = sweepsOf(v);
+  if (S.stowT > 0 && sw.stow && (sw.stow.samples || []).length) return { s: interpSample(sw.stow.samples, S.stowT), src: 'stow' };
+  const key = sw[S.activeSweep] ? S.activeSweep : 'open_close';
+  const s = sw[key];
+  if (!s || !(s.samples || []).length) return null;
+  return { s: interpSample(s.samples, S.sweepT[key] != null ? S.sweepT[key] : 0.5), src: key };
+}
+let lastSample = null;
+function applyPose() {
+  const v = S.data.get(S.cur);
+  if (!v) return;
+  const cs = currentSample(v);
+  lastSample = cs;
+  if (renderer && S.clawGroup && cs) {
+    Object.entries(S.clawGroup.userData.links).forEach(([name, holder]) => {
+      const M = cs.s.T[name];
+      if (M) holder.matrix.copy(M); else holder.matrix.identity();
+      holder.matrixWorldNeedsUpdate = true;
+    });
+    if (cs.s.pinch) { pinchMarker.position.set(...cs.s.pinch.point); pinchMarker.visible = S.layers.targets && cs.src !== 'stow'; }
+  }
+  applyStowVis();
+  poseGhost();
+  renderReadout();
+  requestRender();
+}
+function sliderHTML(id, label, ends, value, disabled, note) {
+  return `<div class="sl${disabled ? ' is-off' : ''}"><label for="${id}">${esc(label)}</label><output id="${id}-out" for="${id}"></output>
+    <input type="range" id="${id}" min="0" max="1000" step="1" value="${Math.round(value * 1000)}" ${disabled ? 'disabled' : ''}>
+    <div class="sl-ends"><span>${esc(ends[0])}</span><span>${esc(ends[1])}</span></div>${note ? `<div class="sl-note">${esc(note)}</div>` : ''}</div>`;
+}
+function renderPoseControls(v) {
+  const sw = sweepsOf(v);
+  const box = qs('#poseSliders');
+  const multi = (v.concept && v.concept.servo_count > 1) || (v.servos || []).length > 1;
+  let html = '';
+  if (sw.open_close) {
+    html += sliderHTML('sl-main', multi ? 'Sequence (all servos)' : 'Jaws', ['open', 'closed'], S.sweepT.open_close, false,
+      multi ? 'Follows the concept’s open-to-closed servo path.' : '');
+  }
+  if (multi) {
+    (v.servos || []).forEach((sv) => {
+      const k = 'servo:' + sv.name;
+      if (!sw[k]) return;
+      html += sliderHTML('sl-sv-' + sv.name.replace(/[^\w-]/g, '_'), `Servo “${sv.name}”`, [`${fix(deg(sv.min), 0)}°`, `${fix(deg(sv.max), 0)}°`], S.sweepT[k], false, '');
+    });
+  }
+  const st = v.stow || {};
+  const hasStow = !!(st.has_stow && sw.stow);
+  const sm = ((v.checks || []).find((c) => c.id === 'stow') || {});
+  const m = sm.metrics || {};
+  const stowNote = hasStow ? [isNum(m.stowed_above_feet_mm) ? `stowed ${fix(m.stowed_above_feet_mm, 0)} mm above the feet` : '', isNum(m.stowed_sticks_out_mm) ? `sticks out ${fix(m.stowed_sticks_out_mm, 0)} mm past the body front` : '', isNum(m.sweep_body_clearance_mm) ? `closest ${fix(m.sweep_body_clearance_mm, 1)} mm to the body${isNum(m.sweep_body_at_deg) ? ` at ${fix(m.sweep_body_at_deg, 0)}\u00b0` : ''}` : ''].filter(Boolean).join(' \u00b7 ') : 'This concept has no hand-stow joint.';
+  html += sliderHTML('sl-stow', 'Hand stow', ['deployed', 'stowed'], S.stowT, !hasStow, '');
+  html += `<div class="stow-row"><button type="button" class="btn" id="stowPlay" ${hasStow ? '' : 'disabled'}></button>${sm.status ? chip(sm.status, 'stow ' + (ST_LABEL[sm.status] || sm.status)) : ''}<span class="sl-note">${esc(stowNote)}</span></div>${hasStow ? stowInfoHTML(v) : ''}`;
+  box.innerHTML = html;
+  syncStowBtn();
+  const sp = qs('#stowPlay');
+  if (sp) sp.addEventListener('click', () => { if (S.stowAnim.on) stopStowAnim(); else startStowAnim(); });
+  const bind = (id, key) => {
+    const el = qs('#' + id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      if (S.stowAnim.on) stopStowAnim();
+      if (key === 'stow') S.stowT = el.value / 1000;
+      else { S.sweepT[key] = el.value / 1000; S.activeSweep = key; if (S.stowT > 0) { S.stowT = 0; const ss = qs('#sl-stow'); if (ss) ss.value = 0; } }
+      applyPose();
+    });
+  };
+  bind('sl-main', 'open_close');
+  if (multi) (v.servos || []).forEach((sv) => bind('sl-sv-' + sv.name.replace(/[^\w-]/g, '_'), 'servo:' + sv.name));
+  bind('sl-stow', 'stow');
+}
+function renderReadout() {
+  const v = S.data.get(S.cur);
+  const box = qs('#readout');
+  if (!v) { box.innerHTML = ''; return; }
+  if (S.mode === 'grasp') {
+    const k = graspFrame();
+    const q = k ? Object.entries(k.q || {}).map(([n, r]) => `${esc(n)} <b>${fix(deg(r), 0)}°</b>`).join(' ') : '';
+    const extra = k && isNum(k.opening) ? `<span><span class="k">Opening</span><b>${fix(mm(k.opening), 1)}</b> mm</span>${isNum(k.jawGap) ? `<span><span class="k">Jaw gap</span><b>${fix(mm(k.jawGap), 1)}</b> mm</span>` : ''}${isNum(k.height) ? `<span><span class="k">Above grasp</span><b>${fix(mm(k.height), 0)}</b> mm</span>` : ''}` : '';
+    box.innerHTML = `<span><span class="k">Time</span><b>${fix(S.grasp.t, 2)} s</b></span><span><span class="k">Phase</span><b>${esc(k ? k.label : '')}</b></span>${extra}${q ? `<span><span class="k">Servo</span>${q}</span>` : ''}`;
+    return;
+  }
+  const cs = lastSample;
+  if (!cs) { box.innerHTML = '<span class="muted">No sweep data in this bundle.</span>'; return; }
+  const s = cs.s;
+  const p = s.pinch;
+  const parts = [];
+  if (p) {
+    parts.push(`<span><span class="k">${cs.src === 'stow' ? 'Pinch (deployed)' : 'Pinch'}</span>x <b>${fix(mm(p.point[0]), 1)}</b> y <b>${fix(mm(p.point[1]), 1)}</b> z <b>${fix(mm(p.point[2]), 1)}</b></span>`);
+    parts.push(`<span><span class="k">Opening</span><b>${fix(mm(p.opening), 1)}</b> mm</span>`);
+  }
+  const q = Object.entries(s.q || {}).map(([n, r]) => `${esc(n)} <b>${fix(deg(r), 0)}°</b>`).join(' &middot; ');
+  if (q) parts.push(`<span><span class="k">Servo</span>${q}</span>`);
+  if (isNum(s.stow) && (v.stow || {}).has_stow) parts.push(`<span><span class="k">Stow</span><b>${fix(deg(s.stow), 0)}°</b></span>`);
+  if (cs.src === 'stow') parts.push('<span class="muted">stow sweep: servos at their stow pose</span>');
+  else if (cs.src && cs.src.startsWith('servo:')) parts.push('<span class="muted">other servos held open</span>');
+  box.innerHTML = parts.join('');
+  // slider outputs
+  const om = qs('#sl-main-out');
+  if (om) om.textContent = p ? `${fix(mm(p.opening), 1)} mm open` : '';
+  Object.keys(S.sweepT).forEach((k) => {
+    if (!k.startsWith('servo:')) return;
+    const o = qs('#sl-sv-' + k.slice(6).replace(/[^\w-]/g, '_') + '-out');
+    const sv = (v.servos || []).find((x) => x.name === k.slice(6));
+    if (o && sv) o.textContent = `${fix(deg(sv.min + (sv.max - sv.min) * S.sweepT[k]), 0)}°`;
+  });
+  const so = qs('#sl-stow-out');
+  if (so) so.textContent = (v.stow || {}).has_stow ? `${fix(deg((v.stow.deployed || 0) + ((v.stow.stowed || 0) - (v.stow.deployed || 0)) * S.stowT), 0)}°` : 'none';
+}
+function renderLegend() {
+  const v = S.data.get(S.cur);
+  const box = qs('#legend');
+  if (!v) { box.innerHTML = ''; return; }
+  const used = new Map();
+  (v.links || []).forEach((L) => (L.parts || []).forEach((p) => {
+    if (p.keepout) { used.set('keepout', { c: 'var(--v3-keepout)', label: 'keep-out volume' }); return; }
+    const m = (v.materials || {})[p.material] || {};
+    if (!used.has(p.material)) used.set(p.material, { c: p.color || m.color || '#999', label: m.label || p.material });
+  }));
+  box.innerHTML = '<span class="k eyebrow">Claw materials</span>' + [...used.values()].map((x) => `<span class="lg"><span class="sw" style="--c:${esc(x.c)}"></span>${esc(x.label)}</span>`).join('');
+}
+
+// ------------------------------------------------------------------ objects strip + grasp scenes
+function objMeta(id) { return ((S.talos && S.talos.objects) || []).find((o) => o.id === id); }
+function graspRow(v, id) {
+  const c = v && (v.checks || []).find((x) => x.id === 'grasp');
+  return c && c.details && (c.details.objects || []).find((o) => o.object === id);
+}
+function sceneOf(v, id) { return v && (v.grasp_scenes || []).find((g) => g.object === id); }
+function splitName(o) {
+  const m = /^(.*?)\s*\((.*)\)\s*$/.exec(o.name || o.id);
+  let base = m ? m[1] : (o.name || o.id), sub = m ? m[2] : '';
+  if (o.alt_pose_of) { const mm2 = /pose:\s*(.*)$/.exec(sub); sub = mm2 ? mm2[1] : 'alternate pose'; }
+  if (sub === 'Search & Rescue') sub = 'rescue';
+  if (sub === 'Survey & Repair') sub = 'repair';
+  return { base: base.charAt(0).toUpperCase() + base.slice(1).toLowerCase().replace(/\bpvc\b/, 'PVC'), sub };
+}
+function renderObjects() {
+  const v = S.data.get(S.cur);
+  const objs = (S.talos && S.talos.objects) || [];
+  const years = [...new Set(objs.map((o) => o.year))].sort();
+  let html = years.map((y) => {
+    const list = objs.filter((o) => o.year === y);
+    return `<div class="obj-group"><h4>${esc(y)} <small>${list.length} object${list.length > 1 ? 's' : ''}</small></h4><div class="obj-chips">${list.map((o) => {
+      const gs = sceneOf(v, o.id);
+      const st = gs ? gs.status : (graspRow(v, o.id) || {}).status;
+      const nm = splitName(o);
+      return `<button type="button" class="obj" data-obj="${esc(o.id)}" aria-pressed="${S.mode === 'grasp' && S.grasp.obj === o.id}" title="${esc(o.name)}: ${esc(ST_LABEL[st] || 'no grasp scene')}">${mark(st)}<span class="obj-name">${esc(nm.base)}</span><span class="obj-sub">${esc(nm.sub)}</span></button>`;
+    }).join('')}</div></div>`;
+  }).join('');
+  const tp = (S.talos && S.talos.torpedo) || {};
+  const tYears = Object.keys(tp).sort().reverse();
+  if (tYears.length) {
+    const tck = v && (v.checks || []).find((c) => c.id === 'torpedo');
+    html += `<div class="obj-group"><h4>Torpedo <small>arm clearance</small></h4><div class="obj-chips">${tYears.map((y) => {
+      const st = y === '2026' ? (tck && tck.status) : 'info';
+      const ftY = (S.talos.torpedo_first_target || {}).year;
+      const conf = tp[y].first_target || String(ftY) === y ? 'first target' : (tp[y].confidence && tp[y].confidence !== 'high' ? `${tp[y].confidence} conf.` : '');
+      return `<button type="button" class="obj" data-torp="${esc(y)}" aria-pressed="${S.mode === 'torpedo' && S.torpedo.year === y}" title="Robot at the firing pose, d = 0.60 m">${mark(st)}<span class="obj-name">${esc(y)} stand</span><span class="obj-sub">${esc(conf)}</span></button>`;
+    }).join('')}</div></div>`;
+  }
+  qs('#objGroups').innerHTML = html;
+  if (S.mode === 'grasp') renderGraspCard();
+  else if (S.mode === 'torpedo') renderTorpedoCard();
+  else renderIdleCard();
+}
+qs('#objGroups').addEventListener('click', (e) => {
+  const b = e.target.closest('.obj'); if (!b) return;
+  if (b.dataset.obj) enterGrasp(b.dataset.obj, {});
+  else if (b.dataset.torp) enterTorpedo(b.dataset.torp);
+});
+function renderIdleCard() {
+  const v = S.data.get(S.cur);
+  const cn = countsOf(v);
+  qs('#sceneCard').innerHTML = `<p class="hint">${cn ? `This concept: <b>${cn.pass || 0}</b> pass, <b>${cn.warn || 0}</b> warn, <b>${cn.fail || 0}</b> fail of ${(cn.pass || 0) + (cn.warn || 0) + (cn.fail || 0) + (cn.error || 0)} objects and poses. ` : ''}Each attempt puts Talos over the object's table: jaws open, a 150 mm descent, close to contact, then a 150 mm lift. Failed attempts stop where the approach is blocked, or leave the object on the table when the grip is too weak. The torpedo stands show the claw at the firing pose.</p>`;
+}
+
+// Pickup attempt timeline.
+// v2 bundles (scene.outcome present) are played exactly as exported: transit (t 0, 150 mm above the grasp pose, jaws at
+// transit_q) -> opening -> approach (1.0 s) -> descent -> pregrasp (2.5 s) -> closing -> contact or missed (4.0 s) ->
+// lift (4.5 s, 5.5 s), or ending in `blocked` at the first-touch height. Off-center and object-yaw attempts follow the
+// same rules. v1 bundles start at approach (t 0); for them the jaw opening, the blocked stop and the slip are derived.
+const PRE_OPEN = 0.9, HOLD = 1.4;
+const OUTCOME_TEXT = { lifted: 'Lifted', stays_on_table: 'Stays on the table', blocked: 'Blocked' };
+const outcomeSt = (o) => (o === 'lifted' ? 'pass' : (o ? 'fail' : null));
+function variantsOf(gs) {
+  const out = [{ key: 'nominal', group: 'attempt', label: 'Nominal', outcome: gs && gs.outcome }];
+  if (!gs || !gs.outcome) return out;
+  (gs.offcenter || []).forEach((a, i) => out.push({ key: 'off:' + i, group: 'attempt', label: a.label || `off-center ${i + 1}`, outcome: a.outcome, src: a, kind: 'offcenter' }));
+  (gs.object_yaw_attempts || []).forEach((a, i) => out.push({ key: 'yaw:' + i, group: 'yaw', label: `${fix(a.object_yaw_deg, 0)}°`, worst: !!a.worst, outcome: a.outcome, src: a, kind: 'yaw' }));
+  return out;
+}
+function buildAttempt(v, gs, row, variant) {
+  if (gs && gs.outcome) {
+    const vv = variantsOf(gs).find((x) => x.key === variant) || variantsOf(gs)[0];
+    const src = vv.src || gs;
+    const kf = src.keyframes || [];
+    const A = { v2: true, kf, closed: null, hit: null, tHit: null, slip: false, variant: vv, outcome: src.outcome, reason: src.outcome_reason || '', blocked: src.blocked || null };
+    A.start = kf.length ? kf[0].t : 0;
+    A.end = kf.length ? kf[kf.length - 1].t : 0;
+    A.kc = kf.find((k) => k.label === 'contact' || k.label === 'missed') || null;
+    A.kb = A.outcome === 'blocked' ? (kf.find((k) => k.label === 'blocked') || kf[kf.length - 1]) : null;
+    A.kLift = kf.find((k) => k.label === 'lift') || null;
+    return A;
+  }
+  // v1: derive the opening pre-roll, the blocked stop and the slip from the check rows
+  const kf = (gs && gs.keyframes) || [];
+  const oc = sweepsOf(v).open_close;
+  const closed = oc && (oc.samples || []).length ? oc.samples[oc.samples.length - 1] : null;
+  const k0 = kf[0];
+  const A = { v2: false, kf, closed: closed && k0 && k0.T_links ? closed : null, hit: null, tHit: null, slip: false, kc: kf.find((k) => k.label === 'contact') || null, variant: null };
+  A.start = A.closed ? k0.t - PRE_OPEN : (k0 ? k0.t : 0);
+  const ap = (row && row.approach) || {};
+  if (k0 && (ap.hit_object || ap.hit_table)) {
+    A.hit = Object.assign({ what: ap.hit_object ? 'the object' : 'the table structure' }, ap.hit_object || ap.hit_table);
+    const kp = kf.find((k) => k.label === 'pregrasp') || kf[1] || k0;
+    const dz = k0.T_table_robot[11] - kp.T_table_robot[11];
+    const u = dz > 1e-6 ? Math.min(1, Math.max(0, 1 - ((A.hit.height_mm || 0) / 1000) / dz)) : 1;
+    A.tHit = k0.t + (kp.t - k0.t) * u;
+  }
+  const f = (row && row.force) || {}, c = (row && row.contact) || {};
+  A.slip = !A.hit && !!A.kc && f.ok === false && !(c.cage && c.cage.caged);
+  A.end = A.tHit != null ? A.tHit : (kf.length ? kf[kf.length - 1].t : 0);
+  return A;
+}
+function resultT(A) {
+  if (A.v2) return A.kb ? A.kb.t : (A.kc ? A.kc.t : A.end);
+  return A.tHit != null ? A.tHit : (A.kc ? A.kc.t : A.end);
+}
+function failReached(A, t) {
+  if (!A) return false;
+  if (A.v2) {
+    if (A.outcome === 'blocked') return !!A.kb && t >= A.kb.t - 1e-6;
+    if (A.outcome === 'stays_on_table') return !!A.kLift && t >= A.kLift.t - 1e-6;
+    return false;
+  }
+  return (A.tHit != null && t >= A.tHit - 1e-9) || (A.slip && A.kc && t > A.kc.t);
+}
+function attemptFrame(A, t) {
+  const kf = A && A.kf;
+  if (!kf || !kf.length) return null;
+  t = Math.min(Math.max(t, A.start), A.end);
+  const k0 = kf[0];
+  const out = { q: {}, L: {} };
+  if (A.closed && t < k0.t) {
+    const u = (t - A.start) / (k0.t - A.start);
+    Object.assign(out, { label: 'open', rA: k0.T_table_robot, rB: k0.T_table_robot, oA: k0.T_table_object, oB: k0.T_table_object, u: 0, lu: u });
+    Object.keys(k0.T_links || {}).forEach((n) => { out.L[n] = [(A.closed.T || {})[n] || k0.T_links[n], k0.T_links[n]]; });
+    Object.keys(k0.q || {}).forEach((n) => { out.q[n] = lerp((A.closed.q || {})[n], k0.q[n], u); });
+    return out;
+  }
+  let i = 0;
+  while (i < kf.length - 1 && kf[i + 1].t <= t) i++;
+  const a = kf[i], b = kf[Math.min(i + 1, kf.length - 1)];
+  const u = b.t > a.t ? Math.min(1, Math.max(0, (t - a.t) / (b.t - a.t))) : 0;
+  Object.assign(out, { label: a.label, rA: a.T_table_robot, rB: b.T_table_robot, oA: a.T_table_object, oB: b.T_table_object, u, lu: u });
+  Object.keys(a.T_links || {}).forEach((n) => { out.L[n] = [a.T_links[n], (b.T_links || {})[n]]; });
+  Object.keys(a.q || {}).forEach((n) => { out.q[n] = lerp(a.q[n], (b.q || {})[n], u); });
+  if (A.v2) {
+    if (b.label === 'blocked' && u >= 1 - 1e-9) out.label = 'blocked';
+    out.opening = lerp(a.opening, b.opening, u);
+    out.jawGap = isNum(a.jaw_gap) && isNum(b.jaw_gap) ? lerp(a.jaw_gap, b.jaw_gap, u) : (isNum(a.jaw_gap) ? a.jaw_gap : null);
+    out.height = lerp(a.height_above_grasp, b.height_above_grasp, u);
+    return out;
+  }
+  if (A.tHit != null && t >= A.tHit - 1e-9) out.label = 'blocked';
+  if (A.slip && t > A.kc.t) { out.oA = out.oB = A.kc.T_table_object; if (a.label === 'lift') out.label = 'slips out'; }
+  return out;
+}
+function graspFrame() { return S.grasp.A ? attemptFrame(S.grasp.A, S.grasp.t) : null; }
+let hitLit = null;
+function setHitHighlight(name, force) {
+  if ((hitLit === name && !force) || !S.clawGroup) return;
+  hitLit = name;
+  const red = tokColor('--fail');
+  Object.entries(S.clawGroup.userData.links).forEach(([n, holder]) => holder.traverse((o) => {
+    if (!o.isMesh || !o.material || !o.material.emissive) return;
+    if (n === name) { o.material.emissive.copy(red); o.material.emissiveIntensity = 0.8; } else o.material.emissive.setRGB(0, 0, 0);
+  }));
+}
+// marker for the first touch of a blocked attempt (table frame; the table sits at the world origin)
+let blkGroup = null, blkLabel = null;
+if (renderer) {
+  blkGroup = new T3.Group();
+  const bm = new T3.MeshBasicMaterial({ depthTest: false, transparent: true });
+  const bh = new T3.MeshBasicMaterial({ depthTest: false, transparent: true, opacity: 0.22 });
+  const core = new T3.Mesh(new T3.SphereGeometry(0.0055, 14, 10), bm);
+  const halo = new T3.Mesh(new T3.SphereGeometry(0.017, 18, 12), bh);
+  core.renderOrder = 12; halo.renderOrder = 11;
+  blkGroup.add(halo, core);
+  blkGroup.visible = false;
+  world.add(blkGroup);
+  themeHooks.push(() => { const c = tokColor('--fail'); bm.color.copy(c); bh.color.copy(c); });
+  blkLabel = addLabel('first touch', [0, 0, 0.02], blkGroup, () => blkGroup.visible, '--fail', 'blk');
+}
+function applyGraspFrame() {
+  const A = S.grasp.A;
+  const k = graspFrame();
+  if (k && renderer) {
+    lerpM(k.rA, k.rB, k.u, robot.matrix); robot.matrixWorldNeedsUpdate = true;
+    lerpM(k.oA, k.oB, k.u, objectHolder.matrix); objectHolder.matrixWorldNeedsUpdate = true;
+    if (S.clawGroup) {
+      Object.entries(S.clawGroup.userData.links).forEach(([name, holder]) => {
+        const pr = k.L[name];
+        if (pr && pr[0]) { lerpM(pr[0], pr[1], k.lu, holder.matrix); holder.matrixWorldNeedsUpdate = true; }
+      });
+    }
+    const reached = failReached(A, S.grasp.t);
+    let lit = null;
+    if (A && A.v2 && A.blocked && reached) lit = A.blocked.link;
+    else if (A && !A.v2 && A.hit && reached) lit = A.hit.link;
+    setHitHighlight(lit);
+    const showBlk = !!(A && A.v2 && A.blocked && A.blocked.point && reached);
+    blkGroup.visible = showBlk && S.mode === 'grasp';
+    if (showBlk) blkGroup.position.set(...A.blocked.point);
+  }
+  renderReadout();
+  renderCaption();
+}
+function captionInfo() {
+  const A = S.grasp.A, gs = S.grasp.scene, row = S.grasp.row || {};
+  if (!gs) return null;
+  const k = graspFrame();
+  const om = objMeta(S.grasp.obj) || {};
+  const nm = splitName(om.id ? om : { name: gs.name, id: S.grasp.obj }).base;
+  let title = `${om.year || gs.year || ''} ${nm}`.trim();
+  let status = gs.status, line, bad = false, chipText = null;
+  if (A && A.v2) {
+    const vv = A.variant || {};
+    line = `${OUTCOME_TEXT[A.outcome] || A.outcome || 'Attempt'}${A.reason ? ': ' + A.reason : ''}`;
+    if (vv.kind === 'offcenter') { title += ` · ${vv.label}`; status = outcomeSt(A.outcome); chipText = OUTCOME_TEXT[A.outcome]; if (isNum(vv.src.push_mm)) line += ` · pushed ${fix(vv.src.push_mm, 1)} mm`; }
+    else if (vv.kind === 'yaw') {
+      title += ` · object yaw ${vv.label}${vv.worst ? ' (worst)' : ''}`; status = outcomeSt(A.outcome); chipText = OUTCOME_TEXT[A.outcome];
+      if (isNum(vv.src.capture_20)) line += ` · capture ±20 mm ${pct(vv.src.capture_20)}`;
+      line += ' · center plan, open tabletop';
+    } else {
+      const warn = (gs.warnings || row.warnings || [])[0];
+      if (A.outcome === 'lifted' && warn) line += ` · ${warn}`;
+    }
+    bad = A.outcome !== 'lifted' && failReached(A, S.grasp.t);
+  } else {
+    const first = (gs.reasons || row.reasons || [])[0] || (gs.warnings || row.warnings || [])[0];
+    line = first || 'Clean grasp: no warnings.';
+    if (A && A.hit && k && k.label === 'blocked') { line = `Blocked ${fix(A.hit.height_mm, 0)} mm above the grasp pose: ${A.hit.link || 'the claw'} hits ${A.hit.what}.`; bad = true; }
+    else if (A && A.slip && k && k.label === 'slips out') { line = `${(gs.reasons || row.reasons || [])[0] || 'Grip below the required force'}: the object stays on the table.`; bad = true; }
+  }
+  return { status, chipText, title, line, bad };
+}
+function renderCaption() {
+  const el = qs('#vpCaption');
+  const c = S.mode === 'grasp' ? captionInfo() : null;
+  qs('#vpHint').hidden = !!c;
+  if (!c) { el.hidden = true; return; }
+  const n = S.playAll.on ? `<span class="cap-n">${S.playAll.i + 1} / ${S.playAll.list.length}</span>` : '';
+  const html = `<div class="cap-top">${chip(c.status, c.chipText)}<b>${esc(c.title)}</b>${n}</div><div class="cap-line${c.bad ? ' bad' : ''}">${esc(c.line)}</div>`;
+  if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; }
+  el.hidden = false;
+}
+function renderVariants() {
+  const box = qs('#variantRow');
+  const gs = S.grasp.scene;
+  const vs = gs && gs.outcome ? variantsOf(gs) : [];
+  if (vs.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
+  const btn = (x) => `<button type="button" data-variant="${esc(x.key)}" aria-pressed="${x.key === S.grasp.variant}" title="${esc((OUTCOME_TEXT[x.outcome] || x.outcome || '') + (x.src && x.src.outcome_reason ? ': ' + x.src.outcome_reason : ''))}">${mark(outcomeSt(x.outcome))}${esc(x.label)}${x.worst ? '<small>worst</small>' : ''}</button>`;
+  const att = vs.filter((x) => x.group === 'attempt'), yaw = vs.filter((x) => x.group === 'yaw');
+  box.innerHTML = `<div class="seg-wrap"><span class="seg-label" id="attLbl">Attempt</span><div class="seg vseg" role="group" aria-labelledby="attLbl">${att.map(btn).join('')}</div></div>` +
+    (yaw.length ? `<div class="seg-wrap"><span class="seg-label" id="yawLbl" title="Center plan, object rotated about its center (forgiveness check)">Object yaw</span><div class="seg vseg" role="group" aria-labelledby="yawLbl">${yaw.map(btn).join('')}</div></div>` : '');
+  box.hidden = false;
+}
+qs('#variantRow').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-variant]');
+  if (!b || b.dataset.variant === S.grasp.variant) return;
+  stopPlayAll();
+  enterGrasp(S.grasp.obj, { variant: b.dataset.variant, noReframe: true });
+});
+
+async function enterGrasp(objId, opts) {
+  opts = opts || {};
+  const v = S.data.get(S.cur);
+  const gs = sceneOf(v, objId);
+  const om = objMeta(objId) || {};
+  if (!opts.fromPlayAll && !opts.keepTime && !opts.variant) stopPlayAll();
+  if (S.stowAnim.on) stopStowAnim();
+  const wasPlaying = S.grasp.playing;
+  S.grasp.playing = false;
+  const sameObj = S.grasp.obj === objId;
+  S.grasp.obj = objId;
+  if (!gs) {
+    S.grasp.scene = null; S.grasp.A = null;
+    if (S.mode === 'grasp') exitScene(true);
+    renderObjects();
+    qs('#sceneCard').innerHTML = `<div class="sc-head"><div><div class="eyebrow">${esc(om.year || '')} &middot; no grasp scene</div><h3 class="sc-title">${esc(om.name || objId)}</h3></div></div><p class="hint">${esc(codeOf(S.cur))} did not export a grasp scene for this object.</p>`;
+    return;
+  }
+  const wasMode = S.mode;
+  S.mode = 'grasp';
+  S.grasp.scene = gs;
+  S.grasp.row = graspRow(v, objId) || {};
+  const keys = variantsOf(gs).map((x) => x.key);
+  S.grasp.variant = opts.variant && keys.includes(opts.variant) ? opts.variant : (opts.keepTime && keys.includes(S.grasp.variant) ? S.grasp.variant : 'nominal');
+  const A = S.grasp.A = buildAttempt(v, gs, S.grasp.row, S.grasp.variant);
+  S.grasp.start = A.start; S.grasp.end = A.end;
+  const autoplay = opts.keepTime ? wasPlaying : (opts.autoplay != null ? opts.autoplay : !reduced());
+  if (opts.keepTime) S.grasp.t = Math.min(Math.max(S.grasp.t, A.start), A.end);
+  else S.grasp.t = autoplay ? A.start : resultT(A);
+  S.grasp.hold = HOLD; S.grasp.last = 0;
+  qs('#posePanel').hidden = true; qs('#playPanel').hidden = false;
+  renderVariants(); renderPhases(); syncPlayUI(); renderObjects(); renderSceneLabel(); applyLayers();
+  if (renderer) {
+    torpedoHolder.clear();
+    const tok = S.selTok;
+    if (!(sameObj && wasMode === 'grasp' && tableHolder.children.length)) {
+      setStatus('Loading table and object…');
+      try {
+        const [table, obj] = await Promise.all([
+          loadGLB(DATA + 'common/' + ((gs.table || {}).glb || `tables/${om.year}_table.glb`)),
+          loadGLB(DATA + 'common/' + (gs.object_glb || om.glb)),
+        ]);
+        if (tok !== S.selTok || S.grasp.obj !== objId || S.mode !== 'grasp') return;
+        prepScenery(table, 0.82); prepScenery(obj, 0.55);
+        tableHolder.clear(); tableHolder.add(table);
+        objectHolder.clear(); objectHolder.add(obj);
+        const bb = new T3.Box3().setFromObject(table);
+        setGrid(0, 0, (isFinite(bb.min.z) ? bb.min.z : -0.1) - 0.004, 1.0);
+        setStatus('');
+      } catch (e) { setStatus(e.message); }
+    }
+    applyGraspFrame();
+    if (!opts.noReframe && (wasMode !== 'grasp' || !opts.keepTime)) goView(S.view === 'dfc' ? 'dfc' : (S.view === 'free' ? 'iso' : S.view), wasMode === 'grasp' && !opts.fromPlayAll);
+  } else applyGraspFrame();
+  if (S.grasp.obj === objId && S.mode === 'grasp') { S.grasp.playing = autoplay; S.grasp.last = 0; syncPlayUI(); }
+  requestRender();
+}
+function prepScenery(root, rough) {
+  root.traverse((o) => {
+    if (!o.isMesh || o.userData.prepped) return;
+    o.material = plainMaterial(o, { roughness: rough });
+    o.userData.prepped = true;
+  });
+}
+function renderPhases() {
+  const A = S.grasp.A;
+  const box = qs('#phases');
+  if (!A || !A.kf.length) { box.innerHTML = ''; return; }
+  const span = (A.end - A.start) || 1;
+  const marks = [];
+  if (A.closed) marks.push([A.start, 'open']);
+  const seen = new Set();
+  A.kf.forEach((k) => {
+    if (k.label === 'closing' || k.label === 'transit' || seen.has(k.label) || k.t > A.end + 1e-9) return;
+    if (A.tHit != null && Math.abs(k.t - A.tHit) < 0.15) return;
+    seen.add(k.label);
+    marks.push([k.t, A.slip && k.label === 'lift' ? 'lift (slips)' : k.label]);
+  });
+  if (A.tHit != null) marks.push([A.tHit, 'blocked']);
+  const badL = new Set(['blocked', 'lift (slips)', 'missed']);
+  box.innerHTML = marks.map(([t, l]) => `<span data-l="${esc(l.split(' ')[0])}" class="${badL.has(l) ? 'bad' : ''}" style="left: calc(${((t - A.start) / span) * 100}% * (1 - 14 / var(--w, 300)) + 7px)">${esc(l)}</span>`).join('');
+  box.style.setProperty('--w', String(qs('#scrub').clientWidth || 300));
+}
+const ICON_PLAY = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1.5" width="3" height="9"/><rect x="7" y="1.5" width="3" height="9"/></svg>';
+const ICON_STOP = '<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="2" width="8" height="8"/></svg>';
+function syncPlayUI() {
+  const btn = qs('#playBtn');
+  const atEnd = S.grasp.t >= S.grasp.end - 1e-6;
+  btn.innerHTML = S.grasp.playing ? ICON_PAUSE + 'Pause' : ICON_PLAY + (atEnd ? 'Replay' : 'Play');
+  const span = (S.grasp.end - S.grasp.start) || 1;
+  qs('#scrub').value = String(Math.round(((S.grasp.t - S.grasp.start) / span) * 1000));
+  qs('#playTime').textContent = `${fix(S.grasp.t, 2)} / ${fix(S.grasp.end, 1)} s`;
+  const k = graspFrame();
+  const pn = qs('#phaseNow');
+  pn.textContent = k ? k.label : '';
+  pn.classList.toggle('bad', !!k && (k.label === 'blocked' || k.label === 'slips out' || k.label === 'missed'));
+  qs('#playNote').textContent = k && k.label === 'open' ? 'Jaw opening before the approach is derived from the closed sweep state (v1 bundle).'
+    : (reduced() && !S.grasp.playing && !S.playAll.on ? 'Reduced motion: no autoplay. Press Play to run the attempt.' : '');
+  qs('#phases').style.setProperty('--w', String(qs('#scrub').clientWidth || 300));
+  const key = k ? k.label.split(' ')[0] : '';
+  document.querySelectorAll('#phases span').forEach((s) => s.classList.toggle('on', s.dataset.l === key || (key === 'slips' && s.dataset.l === 'lift')));
+  document.querySelectorAll('#speedSeg button').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.speed === S.grasp.speed)));
+  qs('#tg-loop').checked = S.grasp.loop;
+}
+qs('#playBtn').addEventListener('click', () => {
+  if (S.grasp.playing) { S.grasp.playing = false; stopPlayAll(); }
+  else { if (S.grasp.t >= S.grasp.end - 1e-6) S.grasp.t = S.grasp.start; S.grasp.playing = true; S.grasp.last = 0; S.grasp.hold = HOLD; }
+  syncPlayUI(); renderCaption(); requestRender();
+});
+qs('#scrub').addEventListener('input', (e) => {
+  S.grasp.playing = false; stopPlayAll();
+  S.grasp.t = S.grasp.start + (e.target.value / 1000) * (S.grasp.end - S.grasp.start);
+  applyGraspFrame(); syncPlayUI(); requestRender();
+});
+qs('#speedSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; S.grasp.speed = +b.dataset.speed; syncPlayUI(); });
+qs('#tg-loop').addEventListener('change', (e) => { S.grasp.loop = e.target.checked; });
+function attemptEnded() {
+  if (S.playAll.on) { nextPlayAll(); return; }
+  if (S.grasp.loop) { S.grasp.t = S.grasp.start; S.grasp.hold = HOLD; return; }
+  S.grasp.playing = false;
+}
+
+// play every object's attempt in strip order (2024, 2025, 2026), holding each result for a moment
+function playAllList() {
+  const v = S.data.get(S.cur);
+  const objs = (S.talos && S.talos.objects) || [];
+  const years = [...new Set(objs.map((o) => o.year))].sort();
+  return years.flatMap((y) => objs.filter((o) => o.year === y)).map((o) => o.id).filter((id) => sceneOf(v, id));
+}
+function syncPlayAllBtn() {
+  const b = qs('#playAllBtn');
+  b.innerHTML = S.playAll.on ? ICON_STOP + 'Stop play-all' : ICON_PLAY + 'Play all objects';
+  b.setAttribute('aria-pressed', String(S.playAll.on));
+}
+function startPlayAll() {
+  const list = playAllList();
+  if (!list.length) return;
+  S.playAll = { on: true, list, i: 0 };
+  syncPlayAllBtn();
+  enterGrasp(list[0], { autoplay: true, fromPlayAll: true });
+}
+function stopPlayAll() { if (!S.playAll.on) return; S.playAll.on = false; syncPlayAllBtn(); renderCaption(); }
+function nextPlayAll() {
+  S.grasp.playing = false;
+  let i = S.playAll.i + 1;
+  if (i >= S.playAll.list.length) {
+    if (!S.grasp.loop) { stopPlayAll(); syncPlayUI(); return; }
+    i = 0;
+  }
+  S.playAll.i = i;
+  enterGrasp(S.playAll.list[i], { autoplay: true, fromPlayAll: true });
+}
+qs('#playAllBtn').addEventListener('click', () => { if (S.playAll.on) { stopPlayAll(); S.grasp.playing = false; syncPlayUI(); } else startPlayAll(); });
+
+// ------------------------------------------------------------------ stow animation (deployed -> stowed -> deployed)
+const STOW_UP = 2.6, STOW_HOLD = 1.0, STOW_DOWN = 2.6;
+const smooth = (u) => u * u * (3 - 2 * u);
+function stowAt(tv) {
+  if (tv < STOW_UP) return { t: smooth(tv / STOW_UP) };
+  if (tv < STOW_UP + STOW_HOLD) return { t: 1 };
+  if (tv < STOW_UP + STOW_HOLD + STOW_DOWN) return { t: 1 - smooth((tv - STOW_UP - STOW_HOLD) / STOW_DOWN) };
+  return { t: 0, done: true };
+}
+function syncStowBtn() {
+  const b = qs('#stowPlay');
+  if (b) b.innerHTML = S.stowAnim.on ? ICON_STOP + 'Stop' : ICON_PLAY + 'Play stow';
+}
+function startStowAnim() {
+  const v = S.data.get(S.cur);
+  if (!v || !(v.stow || {}).has_stow || !sweepsOf(v).stow) return;
+  if (S.mode === 'grasp') exitScene(true);
+  if (S.body === 'off') qs('#b-clear').click();
+  if (S.view !== 'dfc' && S.stowInfo && S.stowInfo.box && !S.stowInfo.box.isEmpty()) {
+    // frame the whole fold: the deployed claw and the stowed claw both stay in view
+    const view = S.view === 'iso' || S.view === 'free' ? (Math.abs(S.stowInfo.axis.x) > Math.abs(S.stowInfo.axis.y) ? 'front' : 'side') : S.view;
+    robot.updateMatrixWorld(true);
+    const b = S.stowInfo.box, c = b.getCenter(new T3.Vector3()).applyMatrix4(robot.matrixWorld), sz = b.getSize(new T3.Vector3());
+    const half = Math.max(sz.x, sz.y, sz.z) / 2 + 0.08;
+    const dist = half / (Math.tan(T3.MathUtils.degToRad(camera.fov / 2)) * Math.min(camera.aspect || 1.6, 1));
+    goView(view, false, { focus: c, dist: Math.max(0.8, dist) });
+  }
+  S.stowAnim = { on: true, tv: 0, last: 0 };
+  syncStowBtn();
+  requestRender();
+}
+function stopStowAnim() { S.stowAnim.on = false; syncStowBtn(); }
+function stepStowAnim(now) {
+  const dt = Math.min(0.1, (now - (S.stowAnim.last || now)) / 1000);
+  S.stowAnim.last = now;
+  S.stowAnim.tv += dt;
+  const r = stowAt(S.stowAnim.tv);
+  S.stowT = r.t;
+  const sl = qs('#sl-stow');
+  if (sl) sl.value = String(Math.round(r.t * 1000));
+  applyPose();
+  if (r.done) stopStowAnim();
+  return S.stowAnim.on;
+}
+// Stow geometry. v2 bundles give stow.hinge {point, axis, fixed_axis, derived}, stow.pinch_path and the hand
+// hardware (pins, detents, hard_stops: points in the robot frame at the deployed pose, on the fixed mount).
+// v1 bundles: the hinge is computed from the stow link's sweep (circle through the pinch path).
+const stowGroup = renderer ? new T3.Group() : null;   // pinch path, hinge axis (shown while stowing)
+const stowHw = renderer ? new T3.Group() : null;      // pins / detents / hard stops (layer "Stow hinge + pins")
+if (renderer) { robot.add(stowGroup); robot.add(stowHw); }
+const stowMats = renderer ? {
+  path: new T3.LineDashedMaterial({ dashSize: 0.008, gapSize: 0.005, transparent: true, opacity: 0.9, depthTest: false }),
+  axis: new T3.LineBasicMaterial({ transparent: true, depthTest: false }),
+  hw: new T3.MeshBasicMaterial({ transparent: true, opacity: 0.92, depthTest: false }),
+} : null;
+themeHooks.push(() => { if (stowMats) { const c = tokColor('--v3-holebar'); stowMats.path.color.copy(c); stowMats.axis.color.copy(c); stowMats.hw.color.copy(c); } });
+const stowActive = () => (S.stowAnim.on || S.stowT > 0) && S.mode !== 'grasp';
+function clearGroup(g) { g.children.slice().forEach((c) => { g.remove(c); c.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); }); }
+function buildStowPath(v) {
+  S.stowInfo = null;
+  removeLabels('stow');
+  if (!renderer) return;
+  clearGroup(stowGroup); clearGroup(stowHw);
+  const st = (v && v.stow) || {};
+  const sw = sweepsOf(v).stow;
+  if (!st.has_stow) return;
+  let pts = null, center = null, axis = null, hingeNote = 'hinge axis';
+  if ((st.pinch_path || []).length >= 2) {
+    const raw = st.pinch_path.map((p) => new T3.Vector3(...p));
+    pts = raw.length > 2 ? new T3.CatmullRomCurve3(raw).getPoints(48) : raw;
+  }
+  if (st.hinge && st.hinge.point && st.hinge.axis) {
+    center = new T3.Vector3(...st.hinge.point);
+    axis = new T3.Vector3(...st.hinge.axis).normalize();
+    hingeNote = st.hinge.fixed_axis === false ? 'hinge (instantaneous axis)' : (st.hinge.derived ? 'hinge axis (computed)' : 'hinge axis');
+  }
+  if ((!pts || !center) && sw && (sw.samples || []).length) {
+    const s0 = sw.samples[0];
+    const L = (v.links || []).find((l) => l.role === 'stow' && s0.T[l.name]) || (v.links || []).find((l) => l.role !== 'static' && s0.T[l.name]);
+    if (L) {
+      const T0inv = new T3.Matrix4().set(...s0.T[L.name]).invert();
+      const P = new T3.Vector3(...(((v.pinch || {}).open || {}).point || (s0.pinch || {}).point || [0, 0, 0]));
+      const M = new T3.Matrix4();
+      const dp = [];
+      for (let i = 0; i <= 40; i++) {
+        const { a, b, u } = bracket(sw.samples, i / 40);
+        lerpM(a.T[L.name], (b.T || {})[L.name], u, M);
+        dp.push(P.clone().applyMatrix4(M.clone().multiply(T0inv)));
+      }
+      if (!pts) pts = dp;
+      if (!center) {
+        const a = dp[0], b = dp[20], c = dp[40];
+        const ab = b.clone().sub(a), ac = c.clone().sub(a), n = ab.clone().cross(ac);
+        if (n.lengthSq() > 1e-12) {
+          center = a.clone().add(n.clone().cross(ab).multiplyScalar(ac.lengthSq()).add(ac.clone().cross(n).multiplyScalar(ab.lengthSq())).divideScalar(2 * n.lengthSq()));
+          axis = n.clone().normalize();
+          hingeNote = 'hinge axis (derived in the viewer)';
+        }
+      }
+    }
+  }
+  const dd = (r) => fix(r, 0) + '°';
+  const angle = isNum(st.angle_deg) ? st.angle_deg : (isNum(st.stowed) ? deg(st.stowed - (st.deployed || 0)) : null);
+  if (pts && pts.length > 1) {
+    const line = new T3.Line(new T3.BufferGeometry().setFromPoints(pts), stowMats.path);
+    line.computeLineDistances(); line.renderOrder = 8;
+    stowGroup.add(line);
+    addLabel('deployed 0°', pts[0].toArray(), robot, stowActive, '--v3-holebar', 'stow');
+    addLabel(`stowed ${angle != null ? dd(angle) : ''}`, pts[pts.length - 1].toArray(), robot, stowActive, '--v3-holebar', 'stow');
+  }
+  if (center && axis) {
+    const ax = new T3.Line(new T3.BufferGeometry().setFromPoints([center.clone().addScaledVector(axis, -0.06), center.clone().addScaledVector(axis, 0.06)]), stowMats.axis);
+    ax.renderOrder = 8;
+    stowGroup.add(ax);
+    addLabel(hingeNote, center.clone().addScaledVector(axis, 0.06).toArray(), robot, stowActive, '--v3-holebar', 'stow');
+  }
+  // hand hardware
+  const hwOn = () => S.layers.stowhw && stowActive();
+  const up = new T3.Vector3(0, 1, 0);
+  (st.pins || []).forEach((p, i) => {
+    if (!p.point) return;
+    const r = Math.max(0.0022, (p.diameter || 0.005) / 2);
+    const m = new T3.Mesh(new T3.CylinderGeometry(r, r, 0.026, 14), stowMats.hw);
+    m.position.set(...p.point);
+    if (p.axis) m.quaternion.setFromUnitVectors(up, new T3.Vector3(...p.axis).normalize());
+    m.renderOrder = 9;
+    stowHw.add(m);
+    addLabel(`P${i + 1}`, p.point, robot, hwOn, '--v3-holebar', 'stow');
+  });
+  (st.detents || []).forEach((p, i) => {
+    if (!p.point) return;
+    const m = new T3.Mesh(new T3.SphereGeometry(0.0038, 12, 8), stowMats.hw);
+    m.position.set(...p.point); m.renderOrder = 9;
+    stowHw.add(m);
+    addLabel(`D${i + 1}`, p.point, robot, hwOn, '--v3-holebar', 'stow');
+  });
+  (st.hard_stops || []).forEach((p, i) => {
+    if (!p.point) return;
+    const m = new T3.Mesh(new T3.BoxGeometry(0.007, 0.007, 0.007), stowMats.hw);
+    m.position.set(...p.point); m.renderOrder = 9;
+    stowHw.add(m);
+    addLabel(`S${i + 1}`, p.point, robot, hwOn, '--v3-holebar', 'stow');
+  });
+  const box = pts && pts.length ? new T3.Box3().setFromPoints(center ? pts.concat([center]) : pts) : null;
+  S.stowInfo = { axis: axis || new T3.Vector3(0, 1, 0), center, box };
+  applyStowVis();
+}
+function applyStowVis() {
+  if (!stowGroup) return;
+  stowGroup.visible = stowActive();
+  stowHw.visible = S.layers.stowhw && S.mode !== 'grasp';
+}
+function stowInfoHTML(v) {
+  const st = (v && v.stow) || {};
+  if (!st.has_stow) return '';
+  const proc = st.procedure || null;
+  const tag = (txt, cls) => `<span class="tagchip${cls ? ' ' + cls : ''}">${esc(txt)}</span>`;
+  const tags = [];
+  if (proc) {
+    tags.push(proc.tool_free === false ? tag('tools needed', 'is-warn') : (proc.tool_free ? tag('no tools') : ''));
+    if (proc.one_hand) tags.push(tag('one hand'));
+    if (isNum(proc.est_seconds)) tags.push(tag(`~${fix(proc.est_seconds, 0)} s`));
+    const lp = (proc.loose_parts || []).length;
+    tags.push(lp ? tag(`${lp} loose part${lp > 1 ? 's' : ''}`, 'is-warn') : tag('no loose parts'));
+  }
+  const hw = [].concat(
+    (st.pins || []).map((p, i) => [`P${i + 1}`, p.name, [p.state, isNum(p.diameter) ? `Ø ${fix(p.diameter * 1000, 1)} mm` : ''].filter(Boolean).join(' · ')]),
+    (st.detents || []).map((p, i) => [`D${i + 1}`, p.name, p.state || '']),
+    (st.hard_stops || []).map((p, i) => [`S${i + 1}`, p.name, 'hard stop']));
+  const steps = proc && (proc.steps || []).length ? `<ol class="steps">${proc.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>` : '<p class="sl-note">No stow procedure in this bundle.</p>';
+  const hinge = st.hinge ? `<p class="sl-note">Hinge${st.hinge.link ? ` on ${esc(st.hinge.link)}` : ''}: rotates ${fix(st.hinge.rotation_deg, 0)}°${st.hinge.fixed_axis === false ? ' (not a single hinge; axis shown at the deployed pose)' : ''}.</p>` : '';
+  return `<details class="stow-more" open><summary>Stow procedure${proc && (proc.steps || []).length ? ` · ${proc.steps.length} steps` : ''}</summary>
+    ${tags.filter(Boolean).length ? `<div class="tagrow">${tags.join('')}</div>` : ''}${steps}${hinge}
+    ${hw.length ? `<ul class="hw">${hw.map(([c, n, s]) => `<li><b>${esc(c)}</b><span>${esc(n || '')}${s ? ` <small>${esc(s)}</small>` : ''}</span></li>`).join('')}</ul>` : ''}
+  </details>`;
+}
+
+function factsHTML(rows) {
+  return `<dl class="facts">${rows.filter(Boolean).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
+}
+function renderGraspCard() {
+  const v = S.data.get(S.cur);
+  const gs = S.grasp.scene;
+  if (!gs) return;
+  const om = objMeta(S.grasp.obj) || {};
+  const row = graspRow(v, S.grasp.obj) || {};
+  const c = row.contact || {}, tol = row.tolerance || {}, tr = row.table_reach || {}, f = row.force || {}, an = c.antipodal || {}, ap = row.approach || {}, plan = row.plan || {};
+  const sides = Object.entries(c.contacts || {}).map(([g, x]) => `${esc(g)} ${esc(x.side || '')} <small>(${fix(x.z_rel_equator_mm, 0)} mm)</small>`).join('<br>');
+  const rows = [
+    ['Contact', `${esc(c.kind || gs.contact || '—')}${c.squeezed === false ? ' <small>not squeezed</small>' : ''}`],
+    ['Opening at contact', `${fix(c.opening_at_contact_mm, 1)} <small>of ${fix(c.opening_open_mm, 1)} mm</small>`],
+    ['Capture ±20 mm', `${pct(tol.captured_fraction_20)} <small>±40: ${pct(tol.captured_fraction_40)}</small>`],
+    ['Table reach', `${pct(tr.fraction_ok)} <small>edge ${pct(tr.fraction_ok_edge)}</small>`],
+    ['Grip margin', isNum(f.ratio) ? `${fix(f.ratio, 1)}× <small>${fix(f.grip_per_jaw_N, 1)} / ${fix(f.required_per_jaw_N, 2)} N</small>` : '—'],
+    ['Antipodal', an.ok == null ? '—' : `${an.ok ? 'yes' : 'no'} <small>${fix(an.worst_deg, 1)}° vs ${fix(an.friction_cone_deg, 1)}° cone</small>`],
+    ['Contact height', sides || '—'],
+    ['Pushed', `${fix(c.push_mm, 1)} mm`],
+    ['Approach clearance', `${fix(ap.final_object_clearance_mm, 1)} mm <small>table ${ap.table_structure_clearance_mm == null ? 'clear' : fix(ap.table_structure_clearance_mm, 1)}</small>`],
+    ['Plan', `${esc(plan.label || '—')}${isNum(row.nominal && row.nominal.robot_yaw_deg) ? ` <small>robot yaw ${fix(row.nominal.robot_yaw_deg, 0)}°</small>` : ''}`],
+  ];
+  if (gs.outcome) {
+    rows.unshift(['Outcome', `${mark(outcomeSt(gs.outcome))} ${esc(OUTCOME_TEXT[gs.outcome] || gs.outcome)} <small>${esc(gs.outcome_reason || '')}</small>`]);
+    const off = (gs.offcenter || []).map((a) => `${esc(a.label)}: ${esc(OUTCOME_TEXT[a.outcome] || a.outcome)}`).join('<br>');
+    if (off) rows.push(['Off-center attempts', off]);
+    const ya = gs.object_yaw_attempts || [];
+    if (ya.length) {
+      const ok = ya.filter((a) => a.outcome === 'lifted').length;
+      const w = ya.find((a) => a.worst);
+      rows.push(['Object yaw (center plan)', `${ok}/${ya.length} lifted${w ? ` <small>worst ${fix(w.object_yaw_deg, 0)}°: ${esc(OUTCOME_TEXT[w.outcome] || w.outcome)}${isNum(w.capture_20) ? `, capture ±20 ${pct(w.capture_20)}` : ''}</small>` : ''}`]);
+    }
+    if (gs.center_plan) rows.push(['Center plan', `${esc(gs.center_plan.label || gs.center_plan.source || '')} <small>pinch ${fix(mm(gs.center_plan.pinch_height_m), 0)} mm above the table</small>`]);
+  }
+  const reasons = (gs.reasons || row.reasons || []).map((r) => `<li>${mark('fail')}<span>${esc(r)}</span></li>`).join('');
+  const warns = (gs.warnings || row.warnings || []).map((r) => `<li>${mark('warn')}<span>${esc(r)}</span></li>`).join('');
+  qs('#sceneCard').innerHTML = `<div class="sc-head"><div><div class="eyebrow">${esc(om.year || gs.year)} object &middot; ${esc((gs.table || {}).year || '')} table &middot; ${esc(codeOf(S.cur))}</div><h3 class="sc-title">${esc(gs.name || om.name)}</h3></div>
+    <div class="sc-chips">${chip(gs.status)}<span class="chip neutral"><i></i>${esc(gs.contact || c.kind || 'contact n/a')}</span></div></div>
+    ${factsHTML(rows)}
+    ${reasons || warns ? `<ul class="notes-list">${reasons}${warns}</ul>` : '<p class="hint">No warnings for this grasp.</p>'}
+    ${plan.note ? `<p class="hint">Plan note: ${esc(plan.note)}</p>` : ''}`;
+}
+
+// ------------------------------------------------------------------ torpedo scene
+async function enterTorpedo(year) {
+  const tp = ((S.talos || {}).torpedo || {})[year];
+  if (!tp) return;
+  const wasMode = S.mode;
+  S.mode = 'torpedo';
+  S.torpedo.year = year;
+  const poses = Object.keys(tp.firing_poses || {});
+  if (!poses.includes(S.torpedo.pose)) {
+    const ft = (tp.first_target && tp.first_target.key) || (((S.talos || {}).torpedo_first_target || {}).year == year && S.talos.torpedo_first_target.key) || 'blood_large/slot0';
+    S.torpedo.pose = poses.includes(ft) ? ft : poses[0];
+  }
+  S.grasp.playing = false;
+  qs('#posePanel').hidden = false; qs('#playPanel').hidden = true;
+  renderObjects(); renderSceneLabel(); applyLayers();
+  if (renderer) {
+    tableHolder.clear(); objectHolder.clear();
+    setStatus('Loading torpedo stand…');
+    try {
+      const root = await loadGLB(DATA + 'common/' + tp.glb);
+      if (S.mode !== 'torpedo' || S.torpedo.year !== year) return;
+      prepScenery(root, 0.8);
+      torpedoHolder.clear(); torpedoHolder.add(root);
+      const bb = new T3.Box3().setFromObject(root);
+      setGrid(0.3, 0, (isFinite(bb.min.z) ? bb.min.z : -0.9) - 0.004, 1.3);
+      setStatus('');
+    } catch (e) { setStatus(e.message); }
+    setTorpedoPose();
+    goView(wasMode === 'torpedo' ? (S.view === 'free' ? 'side' : S.view) : 'side', wasMode === 'torpedo');
+  }
+  applyPose();
+}
+function setTorpedoPose() {
+  const tp = ((S.talos || {}).torpedo || {})[S.torpedo.year];
+  const T = tp && tp.firing_poses && tp.firing_poses[S.torpedo.pose];
+  if (renderer && T) { robot.matrix.set(...T); robot.matrixWorldNeedsUpdate = true; robot.updateMatrixWorld(true); }
+  renderSceneLabel();
+  requestRender();
+}
+function renderTorpedoCard() {
+  const v = S.data.get(S.cur);
+  const tp = ((S.talos || {}).torpedo || {})[S.torpedo.year] || {};
+  const tck = v && (v.checks || []).find((c) => c.id === 'torpedo');
+  const rows = (tck && tck.details && tck.details.rows) || [];
+  const [op, slot] = String(S.torpedo.pose || '').split('/slot');
+  const r = rows.find((x) => String(x.year) === S.torpedo.year && x.opening === op && String(x.slot) === slot);
+  const st = r ? (S.torpedo.year !== '2026' ? 'info' : r.clearance_mm <= 0 ? 'fail' : r.clearance_mm < 20 ? 'warn' : 'pass') : null;
+  const m = (tck && tck.metrics) || {};
+  const opts = Object.keys(tp.firing_poses || {}).map((k) => `<option value="${esc(k)}" ${k === S.torpedo.pose ? 'selected' : ''}>${esc(k.replace('/slot', ', slot '))}</option>`).join('');
+  qs('#sceneCard').innerHTML = `<div class="sc-head"><div><div class="eyebrow">${esc(S.torpedo.year)} torpedo stand &middot; ${esc(tp.confidence || '')} confidence model &middot; ${esc(codeOf(S.cur))}</div><h3 class="sc-title">Robot at the firing pose, d = ${fix(m.standoff_d_m || 0.6, 2)} m</h3></div>
+    <div class="sc-chips">${tck ? chip(tck.status, 'check: ' + (ST_LABEL[tck.status] || tck.status)) : ''}</div></div>
+    <div class="play-row"><label class="eyebrow" for="torpPose">Opening</label><select id="torpPose">${opts}</select></div>
+    ${factsHTML([
+      ['Clearance here', r ? `${fix(r.clearance_mm, 1)} mm ${mark(st)} <small>${esc(r.link || '')}</small>` : '—'],
+      ['First target (2026)', `${fix(m.first_target_clearance_mm, 1)} mm`],
+      ['Min standoff, first target', isNum(m.d_min_first_target_m) ? `${fix(m.d_min_first_target_m * 1000, 0)} mm` : '—'],
+      ['Front x', isNum(m.front_x) ? `${fix(mm(m.front_x), 1)} mm <small>limit ${fix(torpLimitMM(), 1)}</small>` : '—'],
+      ['Lateral escape', m.lateral_escape_by_centerline == null ? '—' : (m.lateral_escape_by_centerline ? 'yes' : 'no')],
+    ])}
+    ${tck ? `<p class="hint">${esc(tck.summary)}</p>` : ''}
+    <p class="hint">The sliders still move the claw here, so you can sweep the jaws against the stand.</p>`;
+  const sel = qs('#torpPose');
+  if (sel) sel.addEventListener('change', () => { S.torpedo.pose = sel.value; setTorpedoPose(); renderTorpedoCard(); goView(S.view === 'free' ? 'side' : S.view, true); });
+}
+function torpLimitMM() {
+  const t = ((S.talos || {}).reference || {}).torpedo || {};
+  const x = (t.mouth_x ?? 0.048) + (t.standoff_d ?? 0.6) - (t.arm_tip_from_face ?? 0.4732) - (t.margin ?? 0.02);
+  return x * 1000;
+}
+
+function exitScene(silent) {
+  S.mode = 'robot';
+  S.grasp.playing = false;
+  stopPlayAll();
+  setHitHighlight(null);
+  if (renderer) {
+    tableHolder.clear(); objectHolder.clear(); torpedoHolder.clear();
+    robot.matrix.identity(); robot.matrixWorldNeedsUpdate = true;
+    setGrid(-0.1, 0.03, -0.47, 0.85);
+  }
+  qs('#posePanel').hidden = false; qs('#playPanel').hidden = true;
+  applyPose(); applyLayers(); renderSceneLabel(); renderCaption();
+  if (!silent) { renderObjects(); goView(S.view === 'free' ? 'iso' : S.view); }
+}
+
+// ------------------------------------------------------------------ concept panel
+function ckMap(v) { const m = {}; (v.checks || []).forEach((c) => { m[c.id] = c; }); return m; }
+function metricsOf(v) {
+  const ck = ckMap(v);
+  const M = (id) => (ck[id] && ck[id].metrics) || {};
+  const st = (id) => (ck[id] ? ck[id].status : null);
+  const fr = M('forward_reach'), lr = M('low_reach'), tp = M('torpedo'), dv = M('dvl'), sw = M('stow'), ms = M('mass'), df = M('dfc');
+  return {
+    st,
+    servos: v.concept ? v.concept.servo_count : null,
+    pinchX: mm(fr.pinch_x_max), pinchAft: fr.pinch_aft_of_current_mm,
+    frontX: mm(fr.front_x),
+    drop: lr.jaw_drop_below_feet_mm, dropVs: lr.vs_current_mm,
+    torp: tp.first_target_clearance_mm, dmin: tp.d_min_first_target_m, lateral: tp.lateral_escape_by_centerline,
+    dvl: dv.min_clearance_mm,
+    hasStow: sw.has_stow, stow: sw.has_stow === false ? null : sw.sweep_body_clearance_mm, stowAbove: sw.stowed_above_feet_mm,
+    mass: ms.total_g, massRef: ms.current_model_g || 980, inWater: ms.in_water_g,
+    dfc: isNum(df.claw_fraction_max) ? df.claw_fraction_max * 100 : null,
+    counts: (M('grasp').counts) || null,
+    overall: v.overall,
+    outcomes: outcomesOf(v),
+    fscore: bonusOf(v).score, fmin: bonusOf(v).min, fgrade: bonusOf(v).grade,
+  };
+}
+function outcomesOf(v) {
+  const gs = (v.grasp_scenes || []).filter((g) => g.outcome);
+  if (!gs.length) return null;
+  const o = { lifted: 0, stays_on_table: 0, blocked: 0 };
+  gs.forEach((g) => { o[g.outcome] = (o[g.outcome] || 0) + 1; });
+  return o;
+}
+function bonusOf(v) {
+  const b = v.bonus || {};
+  const fc = (v.checks || []).find((c) => c.id === 'forgiveness');
+  const m = (fc && fc.metrics) || {};
+  return {
+    score: isNum(b.forgiveness_score) ? b.forgiveness_score : (isNum(m.forgiveness_score) ? m.forgiveness_score : null),
+    min: isNum(b.forgiveness_min_object_score) ? b.forgiveness_min_object_score : m.min_object_score,
+    minObj: b.forgiveness_min_object || m.min_object, grade: b.forgiveness_grade || m.grade,
+    per: b.forgiveness_per_object || m.per_object || null, m, check: fc || null,
+  };
+}
+function metricsFromIndex(e) {
+  const k = e.key || {}, cs = e.check_status || {};
+  const hasStow = k.stow_sweep_clearance_mm != null || k.stowed_above_feet_mm != null;
+  return {
+    st: (id) => cs[id] || null,
+    servos: e.servo_count, pinchX: mm(k.pinch_x_max), frontX: mm(k.front_x), drop: k.jaws_below_feet_mm,
+    torp: k.torpedo_first_target_clearance_mm, dmin: k.torpedo_d_min_m, dvl: k.dvl_clearance_mm,
+    hasStow: cs.stow ? hasStow : null, stow: k.stow_sweep_clearance_mm, stowAbove: k.stowed_above_feet_mm,
+    mass: k.mass_g, inWater: k.in_water_g, dfc: k.dfc_claw_percent,
+    counts: e.objects && isNum(e.objects.total) ? { pass: e.objects.pass || 0, warn: e.objects.warn || 0, fail: e.objects.fail || 0 } : null,
+    overall: e.overall, outcomes: e.outcomes && Object.keys(e.outcomes).length ? e.outcomes : null,
+    fscore: k.forgiveness_score, fmin: k.forgiveness_min_object_score, fgrade: k.forgiveness_grade,
+  };
+}
+function rowMetrics(e) {
+  if (e.key) return metricsFromIndex(e);
+  const v = S.data.get(e.id);
+  return v ? metricsOf(v) : null;
+}
+function pwfHTML(cn, withText) {
+  if (!cn) return '—';
+  const p = cn.pass || 0, w = cn.warn || 0, f = cn.fail || 0, e = cn.error || 0;
+  return `<span class="pwf"><span class="pwf-bar" aria-hidden="true">${p ? `<i class="p" style="flex:${p}"></i>` : ''}${w ? `<i class="w" style="flex:${w}"></i>` : ''}${f ? `<i class="f" style="flex:${f}"></i>` : ''}${e ? `<i class="e" style="flex:${e}"></i>` : ''}</span>${withText ? `<span>${p}&middot;${w}&middot;${f}${e ? '&middot;' + e : ''}</span>` : ''}</span>`;
+}
+function kpi(label, st, val, unit, sub) {
+  return `<div class="kpi st-${esc(st || 'none')}"><div class="kpi-top"><span class="kpi-label">${esc(label)}</span><span class="kpi-st">${st ? mark(st) + ' ' + esc(ST_LABEL[st] || st) : ''}</span></div>
+    <div class="kpi-val">${val}${unit ? `<small>${esc(unit)}</small>` : ''}</div><div class="kpi-sub">${sub}</div></div>`;
+}
+function fmtVal(x) {
+  if (x == null) return '—';
+  if (typeof x === 'boolean') return x ? 'yes' : 'no';
+  if (typeof x === 'number') return Number.isInteger(x) ? String(x) : String(+x.toFixed(Math.abs(x) < 1 ? 4 : 2));
+  if (Array.isArray(x)) return x.length > 6 ? `${x.length} items` : '[' + x.map(fmtVal).join(', ') + ']';
+  if (typeof x === 'object') return Object.entries(x).map(([k, y]) => `${k} ${fmtVal(y)}`).join(', ');
+  return String(x);
+}
+function bonusHTML(v) {
+  const b = bonusOf(v);
+  const head = '<div class="bonus-head"><h3>Forgiveness</h3><span class="tagchip">bonus, not pass/fail</span></div>';
+  if (!isNum(b.score)) return `<section class="bonus">${head}<p class="sl-note">Not run for this concept.</p></section>`;
+  const per = Object.entries(b.per || {}).sort((x, y) => x[1] - y[1]);
+  const m = b.m || {};
+  const bars = per.map(([id, sc]) => {
+    const o = objMeta(id) || { id, name: id };
+    const nm = splitName(o);
+    return `<li><span class="bn">${esc(o.year || '')} ${esc(nm.base)}${nm.sub ? ` <small>${esc(nm.sub)}</small>` : ''}</span><span class="bb" aria-hidden="true"><i style="width:${Math.max(0, Math.min(1, sc)) * 100}%"></i></span><span class="bv">${fix(sc, 2)}</span></li>`;
+  }).join('');
+  return `<section class="bonus">${head}
+    <div class="bonus-top"><span class="bonus-score">${fix(b.score, 2)}</span><span class="sl-note">score 0\u20131${b.grade ? ` \u00b7 grade <b>${esc(b.grade)}</b>` : ''}${b.minObj ? ` \u00b7 weakest ${esc(splitName(objMeta(b.minObj) || { name: b.minObj }).base)} ${fix(b.min, 2)}` : ''}</span></div>
+    <p class="sl-note">Perception gives only the object center, never its yaw: one fixed heading per object, object yaw and \u00b120 / \u00b140 mm position error varied.${isNum(m.mean_yaw_success) ? ` Yaw success ${pct(m.mean_yaw_success)}, capture \u00b120 ${pct(m.mean_capture_20)}, \u00b140 ${pct(m.mean_capture_40)}.` : ''}${isNum(m.objects_with_center_plan) ? ` ${m.objects_with_center_plan}/${per.length || 11} objects use a center plan.` : ''}</p>
+    ${bars ? `<ul class="bars">${bars}</ul>` : ''}</section>`;
+}
+function renderPanel(v) {
+  const ref = (S.talos && S.talos.reference) || {};
+  const e = S.index.find((x) => x.id === S.cur) || {};
+  const c = v.concept || {}, t = v.text || {};
+  const M = metricsOf(v);
+  const curPx = mm((ref.current_pinch || [])[0]);
+  const curDrop = isNum(ref.current_lowest_z) && S.talos.feet ? (S.talos.feet.foot_plane_z - ref.current_lowest_z) * 1000 : 80.6;
+  const tgtDrop = ref.target_drop_below_feet || [0.105, 0.11];
+  const n = c.servo_count;
+  const ck = ckMap(v);
+  const checks = CHECK_ORDER.filter((id) => ck[id]).concat((v.checks || []).map((x) => x.id).filter((id) => !CHECK_ORDER.includes(id)));
+  const kpis = [
+    kpi('Pinch x', M.st('forward_reach'), fix(M.pinchX, 1), 'mm', `target ≤ ${fix(mm(ref.target_pinch_x_max || 0.135), 0)} &middot; today ${fix(curPx, 1)}`),
+    kpi('Jaws below feet', M.st('low_reach'), fix(M.drop, 1), 'mm', `target ${fix(tgtDrop[0] * 1000, 0)}–${fix(tgtDrop[1] * 1000, 0)} &middot; today ${fix(curDrop, 1)}`),
+    kpi('Front x / torpedo', M.st('torpedo'), fix(M.frontX, 1), 'mm', `limit ${fix(torpLimitMM(), 1)} &middot; bar ${fix(M.torp, 1)} mm${M.lateral ? ' &middot; lateral escape' : ''}`),
+    kpi('Mass', M.st('mass'), fix(M.mass, 0), 'g', `vs ${fix(M.massRef, 0)} g today &middot; ${fix(M.inWater, 0)} g wet`),
+    kpi('DVL clearance', M.st('dvl'), fix(M.dvl, 1), 'mm', 'beams + housing, pass ≥ 5'),
+    kpi('Stow clearance', M.st('stow'), M.hasStow === false ? 'none' : fix(M.stow, 1), M.hasStow === false ? '' : 'mm', M.hasStow === false ? 'no hand-stow joint' : `sweep vs body &middot; stowed ${fix(M.stowAbove, 0)} above feet`),
+    kpi('dfc image', M.st('dfc'), fix(M.dfc, 2), '%', 'claw share of the image (info only)'),
+    kpi('Objects', M.st('grasp'), M.counts ? `${M.counts.pass || 0}<small>pass</small> ${M.counts.warn || 0}<small>warn</small> ${M.counts.fail || 0}<small>fail</small>` : '—', '', pwfHTML(M.counts, false)),
+  ].join('');
+  const li = (arr) => (arr || []).map((s) => `<li><span>${esc(s)}</span></li>`).join('') || '<li><span class="muted">None listed.</span></li>';
+  const gen = c.generated ? String(c.generated).slice(0, 16) : '';
+  qs('#panel').innerHTML = `
+    <section class="p-head">
+      <div class="p-code"><span>${esc(codeOf(S.cur))}</span><span class="servo">${n ? n + (n > 1 ? ' servos' : ' servo') : ''}</span>${isBaseline(e) ? '<span class="tag-base">Baseline</span>' : ''}${chip(v.overall)}</div>
+      <h2>${esc(c.name || e.name || S.cur)}</h2>
+      <div class="p-meta">${(c.hole_k || []).length ? `<span>holes k ${esc((c.hole_k || []).map((k) => (k > 0 ? '+' : '') + k).join(', ').replace(/-/g, '−'))}</span>` : ''}${gen ? `<span>generated ${esc(gen)}</span>` : ''}${c.quick ? '<span class="chip st-warn"><i></i>quick run</span>' : ''}</div>
+    </section>
+    <section aria-label="Key numbers"><div class="kpis">${kpis}</div></section>
+    ${bonusHTML(v)}
+    <section><p class="summary-text">${esc(t.summary || c.summary || '')}</p></section>
+    <section class="sw-lists">
+      <div><h3>Strengths</h3><ul class="pm plus">${li(t.strengths)}</ul></div>
+      <div><h3>Weaknesses</h3><ul class="pm minus">${li(t.weaknesses)}</ul></div>
+    </section>
+    <section><h3>Checks</h3><div class="checks">${checks.map((id) => {
+      const x = ck[id];
+      const met = Object.entries(x.metrics || {}).map(([k, val]) => `<dt>${esc(k)}</dt><dd>${esc(fmtVal(val))}</dd>`).join('');
+      return `<details class="ck"><summary>${chip(x.status)}<div><div class="ck-title">${esc(x.title || id)}</div><div class="ck-sum">${esc(x.summary || '')}</div></div></summary>
+        <div class="ck-body">${x.criteria ? `<p class="ck-crit">${esc(x.criteria)}</p>` : ''}${met ? `<dl class="kv">${met}</dl>` : ''}</div></details>`;
+    }).join('') || '<p class="muted">No checks in this bundle.</p>'}</div></section>
+    <section><h3>Open questions</h3><ul class="pm ques">${li(t.open_questions)}</ul></section>
+    <section><details class="more"><summary>Stow, firmware and build notes</summary><dl class="notes">
+      <dt>Stow mechanism</dt><dd>${esc(c.stow_mechanism || '—')}</dd>
+      <dt>Firmware</dt><dd>${esc(c.firmware_notes || '—')}</dd>
+      <dt>Manufacturing</dt><dd>${esc(c.manufacturing_notes || '—')}</dd>
+    </dl></details></section>`;
+}
+
+// ------------------------------------------------------------------ comparison table
+const CMP = [
+  { key: 'servos', label: 'Servos', tgt: '\u2264 3', get: (M) => M.servos, fmt: (x) => (x == null ? '\u2014' : String(x)), nodelta: true },
+  { key: 'overall', label: 'Overall', tgt: '', get: (M) => ST_RANK[M.overall], html: (M) => chip(M.overall) },
+  { key: 'mass', label: 'Mass g', tgt: '≤ 980', get: (M) => M.mass, fmt: (x) => fix(x, 0), ck: 'mass' },
+  { key: 'pinchX', label: 'Pinch x', tgt: '≤ 135', get: (M) => M.pinchX, fmt: (x) => fix(x, 1), ck: 'forward_reach' },
+  { key: 'drop', label: 'Below feet', tgt: '105–110', get: (M) => M.drop, fmt: (x) => fix(x, 1), ck: 'low_reach', desc: true },
+  { key: 'frontX', label: 'Front x', tgt: '', get: (M) => M.frontX, fmt: (x) => fix(x, 1), ck: 'torpedo' },
+  { key: 'torp', label: 'Torpedo', tgt: '≥ 20', get: (M) => M.torp, fmt: (x) => fix(x, 1), ck: 'torpedo', desc: true },
+  { key: 'dvl', label: 'DVL', tgt: '≥ 5', get: (M) => M.dvl, fmt: (x) => fix(x, 1), ck: 'dvl', desc: true },
+  { key: 'stow', label: 'Stow', tgt: '≥ 3', get: (M) => M.stow, fmt: (x, M) => (M.hasStow === false ? 'none' : fix(x, 1)), ck: 'stow', desc: true },
+  { key: 'dfc', label: 'dfc %', tgt: 'info', get: (M) => M.dfc, fmt: (x) => fix(x, 2), ck: 'dfc', dd: 2 },
+  { key: 'objects', label: 'Objects P\u00b7W\u00b7F', tgt: 'all pass', get: (M) => (M.counts ? (M.counts.pass || 0) * 100 - (M.counts.fail || 0) * 10 - (M.counts.warn || 0) : null), html: (M) => pwfHTML(M.counts, true), ck: 'grasp', desc: true },
+  { key: 'lifted', label: 'Lifted', tgt: 'nominal', get: (M) => (M.outcomes ? M.outcomes.lifted || 0 : null), html: (M) => outcomesHTML(M.outcomes), desc: true },
+  { key: 'fscore', label: 'Forgiveness', tgt: 'bonus 0\u20131', get: (M) => (isNum(M.fscore) ? M.fscore : null), html: (M) => (isNum(M.fscore) ? `<span class="bonus-val">${fix(M.fscore, 2)}</span>${M.fgrade ? ` <small class="muted">${esc(M.fgrade)}</small>` : ''}` : '<span class="muted">not run</span>'), desc: true },
+];
+function outcomesHTML(o) {
+  if (!o) return '<span class="muted">\u2014</span>';
+  const tot = (o.lifted || 0) + (o.stays_on_table || 0) + (o.blocked || 0);
+  const bad = [o.blocked ? `${o.blocked} blocked` : '', o.stays_on_table ? `${o.stays_on_table} dropped` : ''].filter(Boolean).join(', ');
+  return `${o.lifted || 0}/${tot}${bad ? ` <small class="bad-note">${esc(bad)}</small>` : ''}`;
+}
+function renderCompare() {
+  const tbl = qs('#cmpTable');
+  const order = orderedIndex().flatMap((g) => g.items);
+  if (!order.length) { tbl.innerHTML = ''; return; }
+  CMP.find((c) => c.key === 'frontX').tgt = '≤ ' + fix(torpLimitMM(), 1);
+  let rows = order.map((e, i) => { const v = S.data.get(e.id); return { e, v, i, M: rowMetrics(e) }; });
+  const baseRows = rows.filter((r) => isBaseline(r.e));
+  rows = rows.filter((r) => !isBaseline(r.e));
+  const base = baseRows.find((r) => r.M);
+  const sk = S.sort.key;
+  if (sk) {
+    const col = CMP.find((c) => c.key === sk);
+    rows.sort((a, b) => {
+      const x = a.M ? col.get(a.M, a.v) : null, y = b.M ? col.get(b.M, b.v) : null;
+      if (x == null && y == null) return a.i - b.i;
+      if (x == null) return 1;
+      if (y == null) return -1;
+      return (x - y) * S.sort.dir || a.i - b.i;
+    });
+  }
+  rows = baseRows.concat(rows);
+  const sortAttr = (k) => (S.sort.key === k ? (S.sort.dir > 0 ? 'ascending' : 'descending') : 'none');
+  tbl.innerHTML = `<thead><tr><th scope="col" aria-sort="${sortAttr('name')}"><button type="button" data-sort="name">Concept</button><span class="tgt">mm unless noted</span></th>${CMP.map((c) => `<th scope="col" aria-sort="${sortAttr(c.key)}"><button type="button" data-sort="${c.key}">${esc(c.label)}</button><span class="tgt">${esc(c.tgt || ' ')}</span></th>`).join('')}</tr></thead>
+  <tbody>${rows.map(({ e, v, M }) => `<tr data-id="${esc(e.id)}" class="${e.id === S.cur ? 'is-cur' : ''}">
+    <td><div class="cname"><button type="button" data-id="${esc(e.id)}" aria-label="Show ${esc(e.name || e.id)}">${esc(codeOf(e.id))}</button><span title="${esc(e.name)}">${esc(e.name || '')}</span>${isBaseline(e) ? '<span class="tag-base">Baseline</span>' : ''}</div></td>
+    ${CMP.map((c) => {
+      if (!M) return `<td class="na">${S.errors.has(e.id) ? 'not loaded' : '\u2026'}</td>`;
+      if (c.key === 'fscore' || c.key === 'lifted') return `<td>${c.html(M, v)}</td>`;
+      const val = c.get(M, v);
+      let body = c.html ? c.html(M, v) : esc(c.fmt(val, M));
+      if (S.delta && base && !isBaseline(e) && !c.html && !c.nodelta && isNum(val)) {
+        const b0 = c.get(base.M, base.v);
+        if (isNum(b0)) { const dlt = val - b0; body = `<span title="${esc(c.fmt(val, M))} (C0 ${esc(c.fmt(b0, base.M))})">${dlt > 0 ? '+' : ''}${esc(fix(dlt, c.dd != null ? c.dd : (c.key === 'mass' ? 0 : 1)))}</span>`; }
+      }
+      const st = c.ck ? M.st(c.ck) : null;
+      return `<td class="${val == null && !c.html ? 'na' : ''}">${body}${c.ck && c.key !== 'objects' ? mark(st) : ''}</td>`;
+    }).join('')}</tr>`).join('')}</tbody>`;
+}
+qs('#tg-delta').addEventListener('change', (e) => { S.delta = e.target.checked; renderCompare(); });
+qs('#tg-hidden').addEventListener('change', (e) => { S.showHidden = e.target.checked; renderTabs(); renderCompare(); });
+qs('#cmpTable').addEventListener('click', (e) => {
+  const sb = e.target.closest('button[data-sort]');
+  if (sb) {
+    const k = sb.dataset.sort;
+    if (k === 'name') { S.sort = { key: null, dir: 1 }; }
+    else if (S.sort.key === k) S.sort.dir = -S.sort.dir;
+    else { const col = CMP.find((c) => c.key === k); S.sort = { key: k, dir: col && col.desc ? -1 : 1 }; }
+    renderCompare();
+    return;
+  }
+  const tr = e.target.closest('tr[data-id]');
+  if (tr && tr.dataset.id !== S.cur) {
+    selectConcept(tr.dataset.id);
+    if (window.innerWidth < 1080) { try { qs('.vp-frame').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }); } catch (_) { /* ignore */ } }
+  }
+});
+
+// ------------------------------------------------------------------ boot
+async function boot() {
+  buildToggles();
+  syncPlayAllBtn();
+  syncViewSeg();
+  applyTheme();
+  if (renderer) { setGrid(-0.1, 0.03, -0.47, 0.85); resize(); goView('iso', true); }
+  let idx, talos;
+  try {
+    if (PACKED && typeof DecompressionStream === 'undefined') throw new Error(PACK_ERR);
+    [idx, talos] = await Promise.all([getJSON(DATA + 'concepts.json', { cache: 'no-cache' }, true), getJSON(DATA + 'common/talos.json')]);
+  } catch (err) {
+    qs('#panel').innerHTML = err.message === PACK_ERR ? `<div class="panel-msg"><p class="hint">${esc(PACK_ERR)}</p></div>`
+      : `<div class="panel-msg"><p class="hint">Could not load the concept index (${esc(err.message)}). The page expects <code>data/concepts.json</code> and <code>data/common/talos.json</code> next to it.</p></div>`;
+    if (err.message === PACK_ERR) { const m = qs('#vpMsg'); m.hidden = false; m.textContent = PACK_ERR; }
+    qs('#conceptTabs').innerHTML = '<span class="muted">No concept index.</span>';
+    setStatus('No data');
+    return;
+  }
+  S.talos = talos;
+  S.index = (idx.concepts || []).filter((e) => e && e.id);
+  const nHidden = S.index.filter(isHidden).length;
+  qs('#hiddenWrap').hidden = !nHidden;
+  qs('#hiddenTxt').textContent = `Show hidden (${nHidden})`;
+  buildCommonLayers(talos);
+  applyTheme();
+  const common = loadCommon(talos);
+  const order = orderedIndex().flatMap((g) => g.items);
+  const hash = decodeURIComponent((location.hash || '').slice(1));
+  const first = S.index.find((e) => e.id === hash) || order.find((e) => !isBaseline(e)) || order[0];
+  renderTabs(); renderCompare();
+  if (!first) { qs('#panel').innerHTML = '<div class="panel-msg"><p class="hint">No concept bundles have been synced yet.</p></div>'; setStatus(''); return; }
+  await selectConcept(first.id);
+  if (renderer) goView('iso', true);
+  await common;
+  // background: the other concepts' data for the tabs and the comparison table
+  for (const e of order) {
+    if (S.data.has(e.id) || e.key) continue;
+    try { await loadConceptData(e.id); } catch (err) { /* shown as "not loaded" */ }
+    renderTabs(); renderCompare();
+  }
+}
+window.addEventListener('hashchange', () => {
+  const id = decodeURIComponent((location.hash || '').slice(1));
+  if (id && id !== S.cur && S.index.some((e) => e.id === id)) selectConcept(id);
+});
+if (/[?&]debug\b/.test(location.search)) window.__dbg = { S, get scene() { return scene; }, get robot() { return robot; }, T3, render: requestRender, renderTabs, renderCompare, selectConcept, loadConceptData, enterGrasp, enterTorpedo, goView };
+reduceMQ.addEventListener && reduceMQ.addEventListener('change', () => { if (controls) controls.enableDamping = !reduced(); });
+boot();
+})();
+</script>
+
+</body>
+</html>

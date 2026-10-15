@@ -1,0 +1,751 @@
+{
+ "schema": "clawlab-index/1",
+ "version": 2,
+ "common": "common/",
+ "concepts": [
+  {
+   "id": "c0_current",
+   "name": "Current claw (baseline)",
+   "servo_count": 1,
+   "overall": "fail",
+   "quick": false,
+   "generated": "2026-10-15 12:31:23",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/c0_current/viewer.json",
+   "check_status": {
+    "forward_reach": "fail",
+    "torpedo": "fail",
+    "low_reach": "warn",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "fail",
+    "interference": "warn",
+    "mass": "pass",
+    "grasp": "fail",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "fail": 4,
+    "warn": 2,
+    "pass": 4,
+    "info": 2
+   },
+   "objects": {
+    "pass": 2,
+    "warn": 7,
+    "fail": 2,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 9,
+    "blocked": 2
+   },
+   "key": {
+    "pinch_x": 0.18456,
+    "pinch_x_max": 0.18456,
+    "pinch_z": -0.41644,
+    "front_x": 0.235269,
+    "jaws_below_feet_mm": 80.6,
+    "mass_g": 980.231312,
+    "in_water_g": 349.649312,
+    "dvl_clearance_mm": 48.9,
+    "stow_sweep_clearance_mm": null,
+    "stowed_above_feet_mm": null,
+    "torpedo_first_target_clearance_mm": 0.0,
+    "torpedo_d_min_m": 0.644092,
+    "dfc_claw_percent": 0.0,
+    "forgiveness_score": 0.569529,
+    "forgiveness_min_object_score": 0.096296,
+    "forgiveness_grade": "poor"
+   }
+  },
+  {
+   "id": "c1_tine_cage",
+   "name": "Tine-cage clamshell (single servo, gear-coupled comb hands)",
+   "servo_count": 1,
+   "overall": "warn",
+   "quick": false,
+   "generated": "2026-10-15 12:57:18",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/c1_tine_cage/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "pass",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "pass": 9,
+    "warn": 1,
+    "info": 2
+   },
+   "objects": {
+    "pass": 5,
+    "warn": 6,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.07,
+    "pinch_x_max": 0.07,
+    "pinch_z": -0.46004,
+    "front_x": 0.1085,
+    "jaws_below_feet_mm": 124.0,
+    "mass_g": 680.365563,
+    "in_water_g": 320.748533,
+    "dvl_clearance_mm": 20.5,
+    "stow_sweep_clearance_mm": 3.8,
+    "stowed_above_feet_mm": 111.1,
+    "torpedo_first_target_clearance_mm": 78.0,
+    "torpedo_d_min_m": 0.540161,
+    "dfc_claw_percent": 0.4224,
+    "forgiveness_score": 0.812374,
+    "forgiveness_min_object_score": 0.627778,
+    "forgiveness_grade": "fair"
+   }
+  },
+  {
+   "id": "c2_crab_finray",
+   "name": "Crab Fin Ray: gear-coupled pivoting Fin Ray jaws",
+   "servo_count": 1,
+   "overall": "warn",
+   "quick": false,
+   "generated": "2026-10-15 12:53:50",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/c2_crab_finray/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "pass",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "pass": 9,
+    "warn": 1,
+    "info": 2
+   },
+   "objects": {
+    "pass": 5,
+    "warn": 6,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.074,
+    "pinch_x_max": 0.074,
+    "pinch_z": -0.445377,
+    "front_x": 0.106,
+    "jaws_below_feet_mm": 112.0,
+    "mass_g": 746.29223,
+    "in_water_g": 286.065445,
+    "dvl_clearance_mm": 31.8,
+    "stow_sweep_clearance_mm": 9.5,
+    "stowed_above_feet_mm": 106.1,
+    "torpedo_first_target_clearance_mm": 73.3,
+    "torpedo_d_min_m": 0.541919,
+    "dfc_claw_percent": 0.3134,
+    "forgiveness_score": 0.764057,
+    "forgiveness_min_object_score": 0.463889,
+    "forgiveness_grade": "poor"
+   }
+  },
+  {
+   "id": "c3_extend_grip",
+   "name": "Single-servo extend-and-grip (intermittent gear + barrel cam)",
+   "servo_count": 1,
+   "overall": "warn",
+   "quick": false,
+   "generated": "2026-10-15 13:12:37",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/c3_extend_grip/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "pass",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "pass": 9,
+    "warn": 1,
+    "info": 2
+   },
+   "objects": {
+    "pass": 5,
+    "warn": 6,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.0855,
+    "pinch_x_max": 0.123,
+    "pinch_z": -0.444302,
+    "front_x": 0.1525,
+    "jaws_below_feet_mm": 113.1,
+    "mass_g": 715.142891,
+    "in_water_g": 295.980718,
+    "dvl_clearance_mm": 36.3,
+    "stow_sweep_clearance_mm": 6.9,
+    "stowed_above_feet_mm": 131.0,
+    "torpedo_first_target_clearance_mm": 79.3,
+    "torpedo_d_min_m": 0.3,
+    "dfc_claw_percent": 0.2335,
+    "forgiveness_score": 0.656355,
+    "forgiveness_min_object_score": 0.338889,
+    "forgiveness_grade": "poor"
+   }
+  },
+  {
+   "id": "c4_rack_finray2",
+   "name": "Rack-and-pinion Fin Ray 2.0 (repackaged drive, redesigned fingers)",
+   "servo_count": 1,
+   "overall": "warn",
+   "quick": false,
+   "generated": "2026-10-15 12:52:13",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/c4_rack_finray2/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "pass",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "pass": 9,
+    "warn": 1,
+    "info": 2
+   },
+   "objects": {
+    "pass": 2,
+    "warn": 9,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.065,
+    "pinch_x_max": 0.065,
+    "pinch_z": -0.44404,
+    "front_x": 0.095,
+    "jaws_below_feet_mm": 108.0,
+    "mass_g": 723.189212,
+    "in_water_g": 277.517469,
+    "dvl_clearance_mm": 15.3,
+    "stow_sweep_clearance_mm": 15.9,
+    "stowed_above_feet_mm": 72.0,
+    "torpedo_first_target_clearance_mm": 79.8,
+    "torpedo_d_min_m": 0.540381,
+    "dfc_claw_percent": 0.6719,
+    "forgiveness_score": 0.71048,
+    "forgiveness_min_object_score": 0.441667,
+    "forgiveness_grade": "poor"
+   }
+  },
+  {
+   "id": "c5_fixed_sweep",
+   "name": "Fixed jaw + sweeping Fin Ray jaw (\"dustpan\")",
+   "servo_count": 1,
+   "overall": "warn",
+   "quick": false,
+   "generated": "2026-10-15 12:41:34",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/c5_fixed_sweep/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "pass",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "pass": 9,
+    "warn": 1,
+    "info": 2
+   },
+   "objects": {
+    "pass": 0,
+    "warn": 11,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.05625,
+    "pinch_x_max": 0.130802,
+    "pinch_z": -0.448,
+    "front_x": 0.21723,
+    "jaws_below_feet_mm": 111.0,
+    "mass_g": 592.618891,
+    "in_water_g": 236.440695,
+    "dvl_clearance_mm": 19.7,
+    "stow_sweep_clearance_mm": 11.7,
+    "stowed_above_feet_mm": 118.0,
+    "torpedo_first_target_clearance_mm": 64.0,
+    "torpedo_d_min_m": 0.3,
+    "dfc_claw_percent": 2.0031,
+    "forgiveness_score": 0.55787,
+    "forgiveness_min_object_score": 0.192593,
+    "forgiveness_grade": "poor"
+   }
+  },
+  {
+   "id": "c6_current_mod",
+   "name": "Current claw, slimmed (same rack and pinion and Dragon Skin fingers, compact head, fold-up mount)",
+   "servo_count": 1,
+   "overall": "warn",
+   "quick": false,
+   "generated": "2026-10-15 13:41:02",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/c6_current_mod/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "pass",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "pass": 9,
+    "warn": 1,
+    "info": 2
+   },
+   "objects": {
+    "pass": 6,
+    "warn": 5,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.12,
+    "pinch_x_max": 0.12,
+    "pinch_z": -0.44454,
+    "front_x": 0.170709,
+    "jaws_below_feet_mm": 108.7,
+    "mass_g": 710.016012,
+    "in_water_g": 263.449086,
+    "dvl_clearance_mm": 53.1,
+    "stow_sweep_clearance_mm": 19.8,
+    "stowed_above_feet_mm": 90.0,
+    "torpedo_first_target_clearance_mm": 54.0,
+    "torpedo_d_min_m": 0.566089,
+    "dfc_claw_percent": 0.0,
+    "forgiveness_score": 0.907955,
+    "forgiveness_min_object_score": 0.789352,
+    "forgiveness_grade": "fair"
+   }
+  },
+  {
+   "id": "c7_intermesh",
+   "name": "Intermesh: ROV-style 2-vs-1 intermeshing jaws (fork + blade) on one servo",
+   "servo_count": 1,
+   "overall": "warn",
+   "quick": false,
+   "generated": "2026-10-15 14:05:45",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/c7_intermesh/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "pass",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "pass": 9,
+    "warn": 1,
+    "info": 2
+   },
+   "objects": {
+    "pass": 7,
+    "warn": 4,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.06,
+    "pinch_x_max": 0.06,
+    "pinch_z": -0.442337,
+    "front_x": 0.118012,
+    "jaws_below_feet_mm": 110.0,
+    "mass_g": 723.465645,
+    "in_water_g": 299.146671,
+    "dvl_clearance_mm": 19.0,
+    "stow_sweep_clearance_mm": 17.8,
+    "stowed_above_feet_mm": 130.5,
+    "torpedo_first_target_clearance_mm": 90.2,
+    "torpedo_d_min_m": 0.528076,
+    "dfc_claw_percent": 0.5601,
+    "forgiveness_score": 0.803451,
+    "forgiveness_min_object_score": 0.706481,
+    "forgiveness_grade": "poor"
+   }
+  },
+  {
+   "id": "c8_centric",
+   "name": "Centric claw: 4 Fin Ray fingers, one servo (claw machine / orange peel)",
+   "servo_count": 1,
+   "overall": "warn",
+   "quick": false,
+   "generated": "2026-10-15 15:12:33",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/c8_centric/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "pass",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "pass": 9,
+    "warn": 1,
+    "info": 2
+   },
+   "objects": {
+    "pass": 0,
+    "warn": 11,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.066,
+    "pinch_x_max": 0.066,
+    "pinch_z": -0.445495,
+    "front_x": 0.182835,
+    "jaws_below_feet_mm": 109.4,
+    "mass_g": 671.134523,
+    "in_water_g": 283.978939,
+    "dvl_clearance_mm": 12.9,
+    "stow_sweep_clearance_mm": 7.2,
+    "stowed_above_feet_mm": 58.8,
+    "torpedo_first_target_clearance_mm": 71.0,
+    "torpedo_d_min_m": 0.54895,
+    "dfc_claw_percent": 0.4431,
+    "forgiveness_score": 0.785143,
+    "forgiveness_min_object_score": 0.559259,
+    "forgiveness_grade": "poor"
+   }
+  },
+  {
+   "id": "c9_four_finray",
+   "name": "Four Fin Ray: two opposed Fin Ray pairs on gear-coupled crab jaws",
+   "servo_count": 1,
+   "overall": "warn",
+   "quick": false,
+   "generated": "2026-10-15 13:36:50",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/c9_four_finray/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "pass",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "pass": 9,
+    "warn": 1,
+    "info": 2
+   },
+   "objects": {
+    "pass": 5,
+    "warn": 6,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.074,
+    "pinch_x_max": 0.074,
+    "pinch_z": -0.445064,
+    "front_x": 0.106,
+    "jaws_below_feet_mm": 112.0,
+    "mass_g": 762.133068,
+    "in_water_g": 291.77606,
+    "dvl_clearance_mm": 28.1,
+    "stow_sweep_clearance_mm": 9.5,
+    "stowed_above_feet_mm": 106.1,
+    "torpedo_first_target_clearance_mm": 73.3,
+    "torpedo_d_min_m": 0.546094,
+    "dfc_claw_percent": 0.4219,
+    "forgiveness_score": 0.767508,
+    "forgiveness_min_object_score": 0.452778,
+    "forgiveness_grade": "poor"
+   }
+  },
+  {
+   "id": "m1_grip_lift",
+   "name": "Grip + lift: parallel crab jaws on a powered parallelogram lift",
+   "servo_count": 2,
+   "overall": "warn",
+   "quick": false,
+   "generated": "2026-10-15 13:05:43",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/m1_grip_lift/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "pass",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "pass": 9,
+    "warn": 1,
+    "info": 2
+   },
+   "objects": {
+    "pass": 8,
+    "warn": 3,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.085,
+    "pinch_x_max": 0.085,
+    "pinch_z": -0.49594,
+    "front_x": 0.11,
+    "jaws_below_feet_mm": 160.0,
+    "mass_g": 872.488049,
+    "in_water_g": 381.125077,
+    "dvl_clearance_mm": 33.3,
+    "stow_sweep_clearance_mm": 4.4,
+    "stowed_above_feet_mm": 74.0,
+    "torpedo_first_target_clearance_mm": 65.0,
+    "torpedo_d_min_m": 0.554663,
+    "dfc_claw_percent": 0.7606,
+    "forgiveness_score": 0.748232,
+    "forgiveness_min_object_score": 0.435185,
+    "forgiveness_grade": "poor"
+   }
+  },
+  {
+   "id": "m2_twin_finger",
+   "name": "Twin independent Fin Ray fingers (2 servos)",
+   "servo_count": 2,
+   "overall": "warn",
+   "quick": false,
+   "generated": "2026-10-15 13:29:09",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/m2_twin_finger/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "pass",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "pass": 9,
+    "warn": 1,
+    "info": 2
+   },
+   "objects": {
+    "pass": 4,
+    "warn": 7,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.1,
+    "pinch_x_max": 0.1,
+    "pinch_z": -0.443201,
+    "front_x": 0.1305,
+    "jaws_below_feet_mm": 108.4,
+    "mass_g": 890.886335,
+    "in_water_g": 380.724452,
+    "dvl_clearance_mm": 55.3,
+    "stow_sweep_clearance_mm": 6.7,
+    "stowed_above_feet_mm": 143.3,
+    "torpedo_first_target_clearance_mm": 63.3,
+    "torpedo_d_min_m": 0.3,
+    "dfc_claw_percent": 0.0,
+    "forgiveness_score": 0.815614,
+    "forgiveness_min_object_score": 0.680093,
+    "forgiveness_grade": "fair"
+   }
+  },
+  {
+   "id": "m3_arm",
+   "name": "Two-pitch arm (shoulder + elbow) with a worm-locked Fin Ray pen gripper",
+   "servo_count": 3,
+   "overall": "fail",
+   "quick": false,
+   "generated": "2026-10-15 14:06:45",
+   "hidden": false,
+   "schema_version": 2,
+   "viewer_json": "concepts/m3_arm/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "fail",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info"
+   },
+   "check_counts": {
+    "pass": 8,
+    "fail": 1,
+    "warn": 1,
+    "info": 2
+   },
+   "objects": {
+    "pass": 2,
+    "warn": 9,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.108714,
+    "pinch_x_max": 0.135135,
+    "pinch_z": -0.526532,
+    "front_x": 0.204908,
+    "jaws_below_feet_mm": 203.1,
+    "mass_g": 1103.488161,
+    "in_water_g": 495.790017,
+    "dvl_clearance_mm": 11.0,
+    "stow_sweep_clearance_mm": 14.8,
+    "stowed_above_feet_mm": 33.2,
+    "torpedo_first_target_clearance_mm": 108.4,
+    "torpedo_d_min_m": 0.3,
+    "dfc_claw_percent": 0.8845,
+    "forgiveness_score": 0.632786,
+    "forgiveness_min_object_score": 0.312963,
+    "forgiveness_grade": "poor"
+   }
+  }
+ ]
+}
