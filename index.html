@@ -321,6 +321,7 @@ input[type="range"]:disabled { cursor: not-allowed; opacity: 0.45; }
 .obj[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
 .obj-name { font: 500 13px/1.2 var(--font-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .obj-sub { font: 500 10.5px/1 var(--font-data); color: var(--ink-3); white-space: nowrap; }
+.obj-cause { grid-column: 2 / -1; margin-top: -3px; font: 500 10.5px/1.2 var(--font-data); color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .scene-card { border-top: 1px solid var(--line-2); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; }
 .sc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
 .sc-head h3.sc-title { font: 600 18px/1.15 var(--font-display); letter-spacing: 0.01em; color: var(--ink); text-transform: none; }
@@ -595,7 +596,7 @@ const S = {
   index: [], data: new Map(), errors: new Map(), talos: null,
   cur: null, selTok: 0,
   mode: 'robot',            // robot | grasp | torpedo
-  activeSweep: 'open_close', sweepT: {}, stowT: 0, q: {}, lastServo: null, poseSrc: 'sequence', servoModel: null,
+  activeSweep: 'open_close', sweepT: {}, stowT: 0, q: {}, lastServo: null, poseSrc: 'sequence', servoModel: null, rawServos: false,
   view: 'iso', body: 'clear',
   layers: { holebar: true, dvl: true, ghost: false, foot: true, targets: false, frustum: false, payload: false, stowhw: true, conn: false },
   showHidden: false, ghost: null,
@@ -991,26 +992,41 @@ const _p = renderer ? new T3.Vector3() : null, _q = renderer ? new T3.Quaternion
 // samples) and stays rigid at every u. Pure translations reduce to a lerp.
 const _mat = new WeakMap();
 function matOf(arr) { let m = _mat.get(arr); if (!m) { m = new T3.Matrix4().set(...arr); _mat.set(arr, m); } return m; }
-const SC = renderer ? { Ai: new T3.Matrix4(), D: new T3.Matrix4(), R: new T3.Matrix4(), T: new T3.Matrix4(), q: new T3.Quaternion(), t: new T3.Vector3(), n: new T3.Vector3(), par: new T3.Vector3(), perp: new T3.Vector3(), c: new T3.Vector3(), x: new T3.Vector3() } : null;
+const SC = renderer ? { A: new T3.Matrix4(), B: new T3.Matrix4(), Ai: new T3.Matrix4(), D: new T3.Matrix4(), R: new T3.Matrix4(), T: new T3.Matrix4(), q: new T3.Quaternion(), qi: new T3.Quaternion(), qA: new T3.Quaternion(), qB: new T3.Quaternion(), pA: new T3.Vector3(), pB: new T3.Vector3(), s: new T3.Vector3(), one: new T3.Vector3(1, 1, 1), t: new T3.Vector3(), n: new T3.Vector3(), par: new T3.Vector3(), perp: new T3.Vector3(), c: new T3.Vector3(), x: new T3.Vector3() } : null;
+// Bundle matrices are rounded to 1e-5, so they are not exactly rigid: both ends are re-orthonormalized first (unit
+// quaternion + position), else the screw axis of a tiny rotation (0.03-0.16 deg between keyframes) comes from the
+// rounding noise, lands meters away and the part swings 10-48 mm between two keyframes that barely differ, then snaps
+// back. Rotations under SCREW_MIN_RAD and screws whose axis is far away (SCREW_FAR_M: effectively a translation)
+// interpolate the position linearly and slerp the orientation (arc vs chord differ by < 1 um there).
+const SCREW_MIN_RAD = 1e-3, SCREW_FAR_M = 2;
+function rigidOf(M, p, q, out) {
+  M.decompose(p, q, SC.s);
+  q.normalize();
+  return out.compose(p, q, SC.one);
+}
 function screwBetween(A, B, u, out) {
   if (u <= 0) return out.copy(A);
   if (u >= 1) return out.copy(B);
-  SC.Ai.copy(A).invert();
-  SC.D.multiplyMatrices(B, SC.Ai);
-  SC.q.setFromRotationMatrix(SC.D);
+  rigidOf(A, SC.pA, SC.qA, SC.A);
+  rigidOf(B, SC.pB, SC.qB, SC.B);
+  SC.Ai.copy(SC.A).invert();
+  SC.D.multiplyMatrices(SC.B, SC.Ai);
+  SC.q.copy(SC.qB).multiply(SC.qi.copy(SC.qA).invert());     // D's rotation, unit by construction
   if (SC.q.w < 0) SC.q.set(-SC.q.x, -SC.q.y, -SC.q.z, -SC.q.w);
   SC.t.setFromMatrixPosition(SC.D);
-  const sh = Math.sqrt(Math.max(0, 1 - SC.q.w * SC.q.w));
+  const sh = Math.sqrt(SC.q.x * SC.q.x + SC.q.y * SC.q.y + SC.q.z * SC.q.z);
   const th = 2 * Math.atan2(sh, SC.q.w);
-  if (th < 1e-7) return out.makeTranslation(SC.t.x * u, SC.t.y * u, SC.t.z * u).multiply(A);
+  const linear = () => out.compose(SC.x.copy(SC.pA).lerp(SC.pB, u), SC.q.copy(SC.qA).slerp(SC.qB, u), SC.one);
+  if (th < SCREW_MIN_RAD) return linear();
   SC.n.set(SC.q.x / sh, SC.q.y / sh, SC.q.z / sh);
   SC.par.copy(SC.n).multiplyScalar(SC.n.dot(SC.t));
   SC.perp.copy(SC.t).sub(SC.par);
   SC.c.copy(SC.n).cross(SC.perp).divideScalar(Math.tan(th / 2)).add(SC.perp).multiplyScalar(0.5);   // point on the axis
+  if (SC.c.length() > SCREW_FAR_M) return linear();
   SC.R.makeRotationAxis(SC.n, th * u);
   SC.T.makeTranslation(SC.c.x + u * SC.par.x, SC.c.y + u * SC.par.y, SC.c.z + u * SC.par.z);
   out.makeTranslation(-SC.c.x, -SC.c.y, -SC.c.z).premultiply(SC.R).premultiply(SC.T);
-  return out.multiply(A);
+  return out.multiply(SC.A);
 }
 function lerpM(a, b, u, out) {
   if (!a) return out.identity();
@@ -2094,8 +2110,11 @@ function currentSample(v) {
     const s0 = sw.stow.samples[0];
     const cur = deployedSample(v);
     const SMh = S.stowModel;
-    if (SMh && SMh.hinge && cur && SMh.rigid.size === SMh.moving.size && !SMh.servoDriven) {
-      // the current servo state (any slider combination), carried by the hand-stow hinge
+    const PF = cur ? stowPrep(cur.s, s0) : 0;
+    if (SMh && SMh.hinge && cur && SMh.rigid.size === SMh.moving.size && !SMh.servoDriven && PF === 0) {
+      // the current servo state already is the checked stow state: carried by the hand-stow hinge. Any other state
+      // first blends to the stow sweep's servo state (the one the stow check evaluated), then folds (site audit X-3:
+      // m1 folded its extended head across the hole bar)
       const f = S.stowT;
       const R = SMh.hinge.rot(SMh.hinge.sign * SMh.hinge.tot * SMh.jointFrac(f), new T3.Matrix4());
       const T = {};
@@ -2106,7 +2125,6 @@ function currentSample(v) {
       const atStowQ = Object.keys(s0.q || {}).every((k) => Math.abs((cur.s.q || {})[k] - s0.q[k]) < 0.02);
       return { s: { T, q: cur.s.q, stow: lerp(a.stow, b.stow, u), pinch: cur.s.pinch }, src: 'stow', phase: 'fold', fold: f, atStowQ };
     }
-    const PF = cur ? stowPrep(cur.s, s0) : 0;
     if (PF > 0 && S.stowT <= PF) {
       const b = S.stowT / PF;
       const s = { T: {}, q: {}, stow: s0.stow, pinch: cur.s.pinch };
@@ -2139,7 +2157,155 @@ function applyPose() {
   applyStowVis();
   poseGhost();
   renderReadout();
+  renderComboNote(v);
   requestRender();
+}
+// Servo interlocks and coupling (site audit X-7 / m3-1, REVISION_TODO "coupled servos").
+// - servo_coupling [{servo, follows, ratio}]: the firmware adds ratio x `follows` to `servo`'s command to hold the
+//   opening (m5: grip follows roll). Compensated mode (default): moving `follows` moves `servo` by ratio x the change
+//   (its slider visibly turns), moving `servo` changes only the opening and stops at the open / closed ends. "Raw
+//   servos": every slider moves only its own servo.
+// - servo_exclusions (when exported as data): [{note, ranges: {servo: [lo, hi]}}] (excluded when every listed servo is
+//   inside its range) or [{note, states: [q, ...]}]; a slider stops at the boundary.
+// - The page composes the per-servo 1-D sweeps into any combination. A combination the bundle never carries (more
+//   than one servo away from its open value after removing the coupling, off the open/close path, the grasp
+//   keyframes, the named states and any exported q_samples) gets a quiet caption under the sliders.
+const couplingOf = (v) => (v.servo_coupling || []).filter((c) => c && c.servo && c.follows && isNum(c.ratio));
+const servoOf = (v, n) => (v.servos || []).find((x) => x.name === n);
+const clampTo = (x, lo, hi) => Math.min(Math.max(x, lo), hi);
+function mechQ(v, q) {
+  // the servo state with the firmware compensation removed (the coupled servo's mechanical travel)
+  const m = Object.assign({}, q);
+  couplingOf(v).forEach((c) => {
+    const f = servoOf(v, c.follows);
+    if (isNum(m[c.servo]) && isNum(q[c.follows])) m[c.servo] -= c.ratio * (q[c.follows] - (f && isNum(f.open) ? f.open : 0));
+  });
+  return m;
+}
+function travelLimits(v, c) {
+  // the coupled servo's mechanical range: its open .. closed values (they are set at the follower's open value)
+  const sv = servoOf(v, c.servo);
+  if (!sv || !isNum(sv.open) || !isNum(sv.closed) || sv.open === sv.closed) return null;
+  return [Math.min(sv.open, sv.closed), Math.max(sv.open, sv.closed)];
+}
+function travelOut(v, q) {
+  const m = mechQ(v, q);
+  for (const c of couplingOf(v)) {
+    const lim = travelLimits(v, c), sv = servoOf(v, c.servo);
+    if (!lim || !isNum(m[c.servo])) continue;
+    const tol = 0.005 * (sv.max - sv.min);
+    if (m[c.servo] < lim[0] - tol || m[c.servo] > lim[1] + tol) {
+      const end = (m[c.servo] > lim[1]) === (sv.open > sv.closed) ? 'open' : 'closed';
+      return `At this ${c.follows}, ${c.servo} drives the jaws past their ${end} end; this combination isn’t checked.`;
+    }
+  }
+  return '';
+}
+function exclusionOf(v, q) {
+  for (const e of v.servo_exclusions || []) {
+    if (!e || typeof e !== 'object') continue;
+    const r = e.ranges || e.region || e.when;
+    if (r && typeof r === 'object' && Object.keys(r).length && Object.entries(r).every(([n, lh]) => Array.isArray(lh) && isNum(q[n]) && q[n] >= lh[0] - 1e-9 && q[n] <= lh[1] + 1e-9)) return e.note || 'excluded';
+    const st = e.states || e.q;
+    if (Array.isArray(st) && st.some((x) => x && Object.keys(x).every((n) => !isNum(q[n]) || Math.abs(q[n] - x[n]) < 1e-3))) return e.note || 'excluded';
+  }
+  return '';
+}
+function checkedStates(v) {
+  if (v._checkedQ) return v._checkedQ;
+  const pts = [], paths = [];
+  const oc = sweepsOf(v).open_close;
+  if (oc && (oc.samples || []).length) paths.push(oc.samples.map((x) => x.q || {}));
+  const ex = ((v.checks || []).find((c) => c.id === 'interference') || {}).details || {};
+  [v.q_samples, v.checked_q, ex.q_samples].forEach((a) => { if (Array.isArray(a)) paths.push(a.filter((x) => x && typeof x === 'object')); });
+  (v.grasp_scenes || []).forEach((gs) => { (gs.keyframes || []).forEach((k) => { if (k.q) pts.push(k.q); }); if (gs.transit_q) pts.push(gs.transit_q); });
+  ['open', 'closed', 'transit'].forEach((key) => { const q = {}; (v.servos || []).forEach((sv) => { if (isNum(sv[key])) q[sv.name] = sv[key]; }); pts.push(q); });
+  const st = sweepsOf(v).stow;
+  if (st && (st.samples || []).length && st.samples[0].q) pts.push(st.samples[0].q);
+  v._checkedQ = { pts, paths };
+  return v._checkedQ;
+}
+function isCheckedCombo(v, q) {
+  const svs = (v.servos || []).filter((sv) => sv.max !== sv.min);
+  if (svs.length < 2) return true;
+  const tol = (sv) => Math.max(0.02 * (sv.max - sv.min), 0.035);
+  const open = {}; svs.forEach((sv) => { open[sv.name] = isNum(sv.open) ? sv.open : (sv.min + sv.max) / 2; });
+  const m = mechQ(v, q), m0 = mechQ(v, open);
+  if (svs.filter((sv) => Math.abs(m[sv.name] - m0[sv.name]) > tol(sv)).length <= 1) return true;   // on one servo's sweep
+  const near = (a) => svs.every((sv) => !isNum(a[sv.name]) || Math.abs(q[sv.name] - a[sv.name]) <= tol(sv));
+  const C = checkedStates(v);
+  if (C.pts.some(near)) return true;
+  // on a segment between two consecutive states of an exported path (normalized servo coordinates)
+  const nz = (a, sv) => (a[sv.name] - sv.min) / (sv.max - sv.min);
+  for (const path of C.paths) {
+    for (let i = 0; i < path.length; i++) {
+      const a = path[i], b = path[i + 1] || a;
+      if (svs.some((sv) => !isNum(a[sv.name]) || !isNum(b[sv.name]))) continue;
+      let dd = 0, dq = 0;
+      svs.forEach((sv) => { const d = nz(b, sv) - nz(a, sv); dd += d * d; dq += (nz(q, sv) - nz(a, sv)) * d; });
+      const u = dd > 1e-12 ? clampTo(dq / dd, 0, 1) : 0;
+      if (svs.every((sv) => Math.abs(nz(q, sv) - (nz(a, sv) + u * (nz(b, sv) - nz(a, sv)))) <= 0.02)) return true;
+    }
+  }
+  return false;
+}
+function comboNote(v) {
+  if (!v || S.mode === 'grasp' || S.stowT > 0 || S.poseSrc !== 'servos') return '';
+  const ex = exclusionOf(v, S.q);
+  if (ex) return `This servo combination is excluded (${ex}).`;
+  return travelOut(v, S.q) || (isCheckedCombo(v, S.q) ? '' : 'This servo combination isn’t checked: the page composes it from single-servo sweeps.');
+}
+function renderComboNote(v) {
+  const el = qs('#comboNote');
+  if (!el) return;
+  const t = comboNote(v);
+  el.textContent = t;
+  el.hidden = !t;
+}
+// Moves one servo (slider input), applying the coupling, the coupled servo's travel ends and any exported exclusion.
+function setServo(v, name, val) {
+  const sv = servoOf(v, name);
+  if (!sv) return;
+  const q = Object.assign({}, S.q);
+  q[name] = clampTo(val, Math.min(sv.min, sv.max), Math.max(sv.min, sv.max));
+  if (!S.rawServos) {
+    couplingOf(v).forEach((c) => {
+      const f = servoOf(v, c.servo);
+      if (c.follows === name && f && isNum(q[c.servo]) && isNum(S.q[name])) q[c.servo] = clampTo(q[c.servo] + c.ratio * (q[name] - S.q[name]), Math.min(f.min, f.max), Math.max(f.min, f.max));
+      if (c.servo === name && isNum(q[c.follows])) {
+        const lim = travelLimits(v, c), fo = servoOf(v, c.follows);
+        if (lim) {
+          const off = c.ratio * (q[c.follows] - (fo && isNum(fo.open) ? fo.open : 0));
+          q[name] = clampTo(q[name], lim[0] + off, lim[1] + off);
+        }
+      }
+    });
+  }
+  if (exclusionOf(v, q) && !exclusionOf(v, S.q)) {
+    // stop at the boundary: the furthest point along this move that is not excluded
+    let lo = 0, hi = 1;
+    const at = (u) => { const r = Object.assign({}, S.q); Object.keys(q).forEach((n) => { if (isNum(q[n]) && isNum(S.q[n])) r[n] = S.q[n] + (q[n] - S.q[n]) * u; }); return r; };
+    for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (exclusionOf(v, at(mid))) hi = mid; else lo = mid; }
+    Object.assign(q, at(lo));
+  }
+  Object.assign(S.q, q);
+  (v.servos || []).forEach((x) => {
+    if (x.max === x.min || !isNum(S.q[x.name])) return;
+    S.sweepT['servo:' + x.name] = (S.q[x.name] - x.min) / (x.max - x.min);
+    const se = qs('#sl-sv-' + x.name.replace(/[^\w-]/g, '_'));
+    if (se) se.value = String(Math.round(S.sweepT['servo:' + x.name] * 1000));
+  });
+}
+// Opening of a coupled concept in the composed (per-servo) mode: the coupled servo's own sweep at its mechanical value.
+function coupledOpening(v) {
+  const c = couplingOf(v)[0];
+  if (!c) return null;
+  const sv = servoOf(v, c.servo), sw = sweepsOf(v)['servo:' + c.servo];
+  if (!sv || !sw || !(sw.samples || []).length || !sw.samples[0].pinch) return null;
+  const m = mechQ(v, S.q)[c.servo];
+  if (!isNum(m)) return null;
+  const { a, b, u } = bracket(sw.samples, (m - sv.min) / (sv.max - sv.min));
+  return a.pinch && b.pinch ? lerp(a.pinch.opening, b.pinch.opening, u) : null;
 }
 function sliderHTML(id, label, ends, value, disabled, note) {
   return `<div class="sl${disabled ? ' is-off' : ''}"><label for="${id}">${esc(label)}</label><output id="${id}-out" for="${id}"></output>
@@ -2161,6 +2327,12 @@ function renderPoseControls(v) {
       if (!sw[k]) return;
       html += sliderHTML('sl-sv-' + sv.name.replace(/[^\w-]/g, '_'), `Servo “${sv.name}”`, [`${fix(deg(sv.min), 0)}°`, `${fix(deg(sv.max), 0)}°`], S.sweepT[k], false, '');
     });
+    const cpl = couplingOf(v);
+    if (cpl.length) {
+      html += `<label class="swt" for="tg-raw"><input type="checkbox" role="switch" id="tg-raw" ${S.rawServos ? 'checked' : ''}><span class="trk" aria-hidden="true"></span><span class="txt">Raw servos</span></label>`
+        + `<div class="sl-note">${cpl.map((c) => `Firmware adds ${fix(c.ratio, 3)} \u00d7 ${esc(c.follows)} to ${esc(c.servo)} to hold the opening; raw servos shows each servo alone.`).join(' ')}</div>`;
+    }
+    html += '<div class="sl-note" id="comboNote" hidden></div>';
   }
   const st = v.stow || {};
   const hasStow = !!(st.has_stow && sw.stow);
@@ -2193,8 +2365,7 @@ function renderPoseControls(v) {
       } else {
         const name = key.slice(6);
         const sv = (v.servos || []).find((x) => x.name === name);
-        S.sweepT[key] = t;
-        if (sv) S.q[name] = sv.min + (sv.max - sv.min) * t;
+        if (sv) setServo(v, name, sv.min + (sv.max - sv.min) * t);
         S.lastServo = name; S.activeSweep = key;
         S.poseSrc = S.servoModel ? 'servos' : 'sequence';
       }
@@ -2204,6 +2375,9 @@ function renderPoseControls(v) {
   bind('sl-main', 'open_close');
   if (multi) (v.servos || []).forEach((sv) => bind('sl-sv-' + sv.name.replace(/[^\w-]/g, '_'), 'servo:' + sv.name));
   bind('sl-stow', 'stow');
+  const raw = qs('#tg-raw');
+  if (raw) raw.addEventListener('change', () => { S.rawServos = raw.checked; });
+  renderComboNote(v);
 }
 function renderReadout() {
   const v = S.data.get(S.cur);
@@ -2225,6 +2399,8 @@ function renderReadout() {
     parts.push(`<span><span class="k">${cs.src === 'stow' ? 'Pinch (deployed)' : 'Pinch'}</span>x <b>${fix(mm(p.point[0]), 1)}</b> y <b>${fix(mm(p.point[1]), 1)}</b> z <b>${fix(mm(p.point[2]), 1)}</b></span>`);
     parts.push(`<span><span class="k">Opening</span><b>${fix(mm(p.opening), 1)}</b> mm</span>`);
   }
+  const cop = !p && cs.src === 'servos' ? coupledOpening(v) : null;
+  if (isNum(cop)) parts.push(`<span><span class="k">Opening</span><b>${fix(mm(cop), 1)}</b> mm</span>`);
   const q = Object.entries(s.q || {}).map(([n, r]) => `${esc(n)} <b>${fix(deg(r), 0)}°</b>`).join(' &middot; ');
   if (q) parts.push(`<span><span class="k">Servo</span>${q}</span>`);
   if (isNum(s.stow) && (v.stow || {}).has_stow) parts.push(`<span><span class="k">Stow</span><b>${fix(deg(s.stow), 0)}°</b></span>`);
@@ -2272,6 +2448,62 @@ function splitName(o) {
   if (sub === 'Survey & Repair') sub = 'repair';
   return { base: base.charAt(0).toUpperCase() + base.slice(1).toLowerCase().replace(/\bpvc\b/, 'PVC'), sub };
 }
+// Main cause of an object's warn / fail, for its chip ("capture 78 %", "grip", "twist", ...). Toolkit v6.2 rows /
+// scenes carry `issues` with a type tag; v6 bundles carry `graded_issues` (metric warns) plus the outcome; older ones
+// only the reason text. Fails first, then major before near-miss, then this order (capture, the forgiveness metric,
+// last).
+const CAUSE_ORDER = ['approach', 'table', 'grip', 'crush', 'twist', 'contact', 'push', 'reach', 'model', 'capture'];
+const CAUSE_OF_METRIC = { capture_20: 'capture', capture_40: 'capture', table_reach: 'reach', grip_ratio: 'grip', twist_margin: 'twist', twist_weight_margin: 'twist', antipodal_deg: 'contact', push_mm: 'push', crush: 'crush', crush_risk: 'crush' };
+const CAUSE_ALIAS = { forgiveness: 'capture', antipodal: 'contact', moment: 'twist', pivot: 'twist', pivots: 'twist', blocked: 'approach', collision: 'approach', table_reach: 'reach', force: 'grip' };
+const CAUSE_TEXT = [
+  [/captures only ([\d.]+) ?%/i, 'capture', (m) => +m[1] / 100],
+  [/lands on the|approach hits|hits the (table|object)|before the grasp pose/i, 'approach'],
+  [/crush/i, 'crush'],
+  [/grip [\d.]+ ?N\/jaw|grip .*< .*needed|below need|too weak|slips/i, 'grip'],
+  [/twist|pivot/i, 'twist'],
+  [/antipodal|above the equator|force closure/i, 'contact'],
+  [/pushed/i, 'push'],
+  [/table structure at only ([\d.]+) ?%|table reach/i, 'reach', (m) => (m[1] ? +m[1] / 100 : null)],
+  [/did not (fully )?converge|model/i, 'model'],
+];
+function causeLabel(c) {
+  if (!c) return '';
+  return c.type === 'capture' || c.type === 'reach' ? `${c.type}${isNum(c.value) ? ` ${fix(100 * c.value, 0)} %` : ''}` : c.type;
+}
+function objectCauses(gs, row) {
+  const src = gs || row || {};
+  const st = src.status || (row || {}).status;
+  if (st !== 'warn' && st !== 'fail') return [];
+  const out = [];
+  const add = (type, kind, severity, value, text) => { if (type) out.push({ type, kind: kind || 'warn', severity: severity || 'major', value: isNum(value) ? value : null, text: text || '' }); };
+  const iss = src.issues || (row || {}).issues;
+  if (Array.isArray(iss) && iss.length) {
+    iss.forEach((i) => {
+      if (typeof i === 'string') { const m = CAUSE_TEXT.find(([re]) => re.test(i)); add(m ? m[1] : 'other', st, null, null, i); return; }
+      if (!i || typeof i !== 'object') return;
+      let ty = String(i.type || i.tag || i.cause || i.category || CAUSE_OF_METRIC[i.metric] || 'other').toLowerCase();
+      ty = CAUSE_ALIAS[ty] || ty;
+      const val = isNum(i.value) ? i.value : (isNum(i.fraction) ? i.fraction : null);
+      add(ty, i.kind || i.status, i.severity, ty === 'capture' && val > 1 ? val / 100 : val, i.text || i.reason || i.note);
+    });
+  } else {
+    const oc = src.outcome;
+    if (oc === 'blocked') add('approach', 'fail', 'major');
+    else if (oc === 'stays_on_table') add('grip', 'fail', 'major');
+    const gi = src.graded_issues || (row || {}).graded_issues;
+    (Array.isArray(gi) ? gi : []).forEach((i) => add(CAUSE_OF_METRIC[i.metric] || null, i.kind, i.severity, i.value));
+    [['reasons', 'fail'], ['warnings', 'warn']].forEach(([k, kind]) => (src[k] || (row || {})[k] || []).forEach((t) => {
+      const hit = CAUSE_TEXT.find(([re]) => re.test(t));
+      if (!hit) return;
+      const m = hit[0].exec(t);
+      if (!out.some((c) => c.type === hit[1])) add(hit[1], kind, 'major', hit[2] ? hit[2](m) : null, t);
+      else if (hit[2]) out.filter((c) => c.type === hit[1] && !isNum(c.value)).forEach((c) => { c.value = hit[2](m); });
+    }));
+  }
+  const rk = (c) => (c.kind === 'fail' ? 0 : 10) + (c.severity === 'near_miss' ? 5 : 0);
+  const ord = (c) => { const i = CAUSE_ORDER.indexOf(c.type); return i < 0 ? CAUSE_ORDER.length - 1.5 : i; };
+  return out.sort((a, b) => rk(a) - rk(b) || ord(a) - ord(b)).filter((c, i, a) => a.findIndex((x) => x.type === c.type) === i);
+}
 function renderObjects() {
   const v = S.data.get(S.cur);
   const objs = (S.talos && S.talos.objects) || [];
@@ -2282,7 +2514,9 @@ function renderObjects() {
       const gs = sceneOf(v, o.id);
       const st = gs ? gs.status : (graspRow(v, o.id) || {}).status;
       const nm = splitName(o);
-      return `<button type="button" class="obj" data-obj="${esc(o.id)}" aria-pressed="${S.mode === 'grasp' && S.grasp.obj === o.id}" title="${esc(o.name)}: ${esc(ST_LABEL[st] || 'no grasp scene')}">${mark(st)}<span class="obj-name">${esc(nm.base)}</span><span class="obj-sub">${esc(nm.sub)}</span></button>`;
+      const cz = objectCauses(gs, graspRow(v, o.id));
+      const tip = cz.length ? ' (' + cz.map(causeLabel).join(', ') + ')' : '';
+      return `<button type="button" class="obj" data-obj="${esc(o.id)}" aria-pressed="${S.mode === 'grasp' && S.grasp.obj === o.id}" title="${esc(o.name)}: ${esc(ST_LABEL[st] || 'no grasp scene')}${esc(tip)}">${mark(st)}<span class="obj-name">${esc(nm.base)}</span><span class="obj-sub">${esc(nm.sub)}</span>${cz.length ? `<span class="obj-cause">${esc(causeLabel(cz[0]))}${cz.length > 1 ? ` +${cz.length - 1}` : ''}</span>` : ''}</button>`;
     }).join('')}</div></div>`;
   }).join('');
   const tp = (S.talos && S.talos.torpedo) || {};
