@@ -25,7 +25,7 @@
   "zip": "cad/c5_fixed_sweep.zip"
  },
  "c6_current_mod": {
-  "bytes": 808807,
+  "bytes": 806230,
   "parts": 16,
   "zip": "cad/c6_current_mod.zip"
  },
@@ -70,7 +70,7 @@
   "zip": "cad/m5_static_pitch_rotate.zip"
  },
  "m5b_static_pitch_roll_decoupled": {
-  "bytes": 2249551,
+  "bytes": 2253975,
   "parts": 18,
   "zip": "cad/m5b_static_pitch_roll_decoupled.zip"
  }

@@ -1214,7 +1214,7 @@
    "servo_count": 3,
    "overall": "warn",
    "quick": false,
-   "generated": "2026-10-16 03:30:37",
+   "generated": "2026-10-16 04:26:01",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/m5b_static_pitch_roll_decoupled/viewer.json",
@@ -1230,7 +1230,7 @@
     "mass": "warn",
     "structure": "warn",
     "assembly": "warn",
-    "printability": "warn",
+    "printability": "pass",
     "grasp": "warn",
     "forgiveness": "info",
     "dfc": "info",
@@ -1239,8 +1239,8 @@
     "connector": "warn"
    },
    "check_counts": {
-    "pass": 9,
-    "warn": 6,
+    "pass": 10,
+    "warn": 5,
     "info": 3
    },
    "objects": {
@@ -1258,8 +1258,8 @@
     "pinch_z": -0.571,
     "front_x": 0.22797,
     "jaws_below_feet_mm": 241.7,
-    "mass_g": 1431.50422,
-    "in_water_g": 564.16593,
+    "mass_g": 1431.65939,
+    "in_water_g": 564.19892,
     "dvl_clearance_mm": 7.1,
     "stow_sweep_clearance_mm": 12.3,
     "stowed_above_feet_mm": 73.0,
