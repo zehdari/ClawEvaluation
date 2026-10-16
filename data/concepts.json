@@ -90,7 +90,7 @@
    "servo_count": 1,
    "overall": "warn",
    "quick": false,
-   "generated": "2026-10-16 00:02:00",
+   "generated": "2026-10-16 03:37:34",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c1_tine_cage/viewer.json",
@@ -126,8 +126,7 @@
     "total": 11
    },
    "outcomes": {
-    "lifted": 8,
-    "pivots": 3
+    "lifted": 11
    },
    "key": {
     "pinch_x": 0.07,
@@ -142,25 +141,25 @@
     "stowed_above_feet_mm": 111.1,
     "torpedo_first_target_clearance_mm": 78.0,
     "torpedo_d_min_m": 0.54016,
-    "dfc_claw_percent": 0.572,
+    "dfc_claw_percent": 0.576,
     "forgiveness_score": 0.86196,
     "forgiveness_min_object_score": 0.71827,
     "forgiveness_grade": "fair",
     "forgiveness_score_best_approach": null,
     "connectors_aft": false,
     "connector_in_dfc": false,
-    "table_reach_mean": 0.989617,
-    "table_reach_full_table_mean": 0.821933,
+    "table_reach_mean": 0.995146,
+    "table_reach_full_table_mean": 0.838127,
     "ffc_in_water_max_percent": 0.0,
     "structure_landing_mm": 4.4,
     "structure_f1_water_hz": 19.27527,
-    "grasp_score": 0.87518,
-    "grasp_score_min": 0.691,
+    "grasp_score": 0.90491,
+    "grasp_score_min": 0.818,
     "grasp_near_misses": 1,
-    "grasp_major_issues": 8,
+    "grasp_major_issues": 4,
     "heading_offset_deg": 0.0,
-    "yaw_aligned_lifted": 8,
-    "dfc_show_mean_visible": 0.97637,
+    "yaw_aligned_lifted": 11,
+    "dfc_show_mean_visible": 0.96612,
     "dfc_show_objects_50": 11,
     "forgiveness_score_open_tabletop": 0.83253
    }
