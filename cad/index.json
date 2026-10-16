@@ -30,8 +30,8 @@
   "zip": "cad/c6_current_mod.zip"
  },
  "c7_intermesh": {
-  "bytes": 1045337,
-  "parts": 30,
+  "bytes": 1079827,
+  "parts": 33,
   "zip": "cad/c7_intermesh.zip"
  },
  "c8_centric": {
@@ -65,12 +65,12 @@
   "zip": "cad/m4_static_pitch.zip"
  },
  "m5_static_pitch_rotate": {
-  "bytes": 3170190,
+  "bytes": 3170188,
   "parts": 22,
   "zip": "cad/m5_static_pitch_rotate.zip"
  },
  "m5b_static_pitch_roll_decoupled": {
-  "bytes": 2253975,
+  "bytes": 2253973,
   "parts": 18,
   "zip": "cad/m5b_static_pitch_roll_decoupled.zip"
  }
