@@ -1224,7 +1224,7 @@
    "servo_count": 3,
    "overall": "warn",
    "quick": false,
-   "generated": "2026-10-15 21:05:16",
+   "generated": "2026-10-15 23:46:16",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/m5b_static_pitch_roll_decoupled/viewer.json",
@@ -1254,8 +1254,8 @@
     "info": 3
    },
    "objects": {
-    "pass": 6,
-    "warn": 5,
+    "pass": 2,
+    "warn": 9,
     "fail": 0,
     "total": 11
    },
@@ -1285,10 +1285,10 @@
     "table_reach_mean": 1.0,
     "table_reach_full_table_mean": 0.910305,
     "ffc_in_water_max_percent": 0.0,
-    "structure_landing_mm": 9.2,
+    "structure_landing_mm": 8.1,
     "structure_f1_water_hz": 6.17628,
-    "grasp_score": 0.93246,
-    "grasp_score_min": 0.861,
+    "grasp_score": 0.94027,
+    "grasp_score_min": 0.873,
     "grasp_near_misses": 1,
     "grasp_major_issues": 4,
     "heading_offset_deg": 0.0,

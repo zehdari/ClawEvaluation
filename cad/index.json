@@ -70,7 +70,7 @@
   "zip": "cad/m5_static_pitch_rotate.zip"
  },
  "m5b_static_pitch_roll_decoupled": {
-  "bytes": 2166799,
+  "bytes": 2166800,
   "parts": 18,
   "zip": "cad/m5b_static_pitch_roll_decoupled.zip"
  }
