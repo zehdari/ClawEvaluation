@@ -170,9 +170,9 @@
    "id": "c2_crab_finray",
    "name": "Crab Fin Ray: gear-coupled pivoting Fin Ray jaws",
    "servo_count": 1,
-   "overall": "fail",
+   "overall": "warn",
    "quick": false,
-   "generated": "2026-10-15 23:03:23",
+   "generated": "2026-10-16 00:06:23",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c2_crab_finray/viewer.json",
@@ -189,7 +189,7 @@
     "structure": "warn",
     "assembly": "warn",
     "printability": "warn",
-    "grasp": "fail",
+    "grasp": "warn",
     "forgiveness": "info",
     "dfc": "info",
     "dfc_show": "info",
@@ -198,20 +198,18 @@
    },
    "check_counts": {
     "pass": 10,
-    "warn": 4,
-    "fail": 1,
+    "warn": 5,
     "info": 3
    },
    "objects": {
     "pass": 4,
-    "warn": 6,
-    "fail": 1,
+    "warn": 7,
+    "fail": 0,
     "total": 11
    },
    "outcomes": {
     "lifted": 9,
-    "stays_on_table": 1,
-    "pivots": 1
+    "pivots": 2
    },
    "key": {
     "pinch_x": 0.074,
@@ -227,9 +225,9 @@
     "torpedo_first_target_clearance_mm": 73.3,
     "torpedo_d_min_m": 0.54214,
     "dfc_claw_percent": 0.516,
-    "forgiveness_score": 0.77318,
-    "forgiveness_min_object_score": 0.38963,
-    "forgiveness_grade": "poor",
+    "forgiveness_score": 0.80357,
+    "forgiveness_min_object_score": 0.47876,
+    "forgiveness_grade": "fair",
     "forgiveness_score_best_approach": null,
     "connectors_aft": false,
     "connector_in_dfc": false,
@@ -238,15 +236,15 @@
     "ffc_in_water_max_percent": 0.0,
     "structure_landing_mm": 5.0,
     "structure_f1_water_hz": 12.62492,
-    "grasp_score": 0.88818,
-    "grasp_score_min": 0.514,
+    "grasp_score": 0.90973,
+    "grasp_score_min": 0.721,
     "grasp_near_misses": 3,
-    "grasp_major_issues": 5,
+    "grasp_major_issues": 4,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 9,
-    "dfc_show_mean_visible": 0.93667,
-    "dfc_show_objects_50": 10,
-    "forgiveness_score_open_tabletop": 0.74348
+    "dfc_show_mean_visible": 0.93339,
+    "dfc_show_objects_50": 11,
+    "forgiveness_score_open_tabletop": 0.77403
    }
   },
   {
@@ -255,7 +253,7 @@
    "servo_count": 1,
    "overall": "warn",
    "quick": false,
-   "generated": "2026-10-15 23:03:26",
+   "generated": "2026-10-16 00:06:10",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c3_extend_grip/viewer.json",
@@ -318,7 +316,7 @@
     "ffc_in_water_max_percent": 1.453,
     "structure_landing_mm": 6.5,
     "structure_f1_water_hz": 15.77661,
-    "grasp_score": 0.92209,
+    "grasp_score": 0.92236,
     "grasp_score_min": 0.832,
     "grasp_near_misses": 2,
     "grasp_major_issues": 6,
