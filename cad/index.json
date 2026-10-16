@@ -25,7 +25,7 @@
   "zip": "cad/c5_fixed_sweep.zip"
  },
  "c6_current_mod": {
-  "bytes": 659943,
+  "bytes": 659942,
   "parts": 10,
   "zip": "cad/c6_current_mod.zip"
  },
@@ -55,7 +55,7 @@
   "zip": "cad/m2_twin_finger.zip"
  },
  "m3_arm": {
-  "bytes": 1969124,
+  "bytes": 1969126,
   "parts": 17,
   "zip": "cad/m3_arm.zip"
  },
