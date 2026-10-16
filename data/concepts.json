@@ -9,7 +9,7 @@
    "servo_count": 1,
    "overall": "fail",
    "quick": false,
-   "generated": "2026-10-16 00:20:17",
+   "generated": "2026-10-16 03:23:15",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c0_current/viewer.json",
@@ -26,7 +26,7 @@
     "structure": "pass",
     "assembly": "warn",
     "printability": "warn",
-    "grasp": "fail",
+    "grasp": "warn",
     "forgiveness": "info",
     "dfc": "info",
     "dfc_show": "info",
@@ -34,20 +34,19 @@
     "connector": "warn"
    },
    "check_counts": {
-    "fail": 4,
-    "warn": 4,
+    "fail": 3,
+    "warn": 5,
     "pass": 7,
     "info": 3
    },
    "objects": {
     "pass": 2,
-    "warn": 7,
-    "fail": 2,
+    "warn": 9,
+    "fail": 0,
     "total": 11
    },
    "outcomes": {
-    "lifted": 9,
-    "blocked": 2
+    "lifted": 11
    },
    "key": {
     "pinch_x": 0.18456,
@@ -63,26 +62,26 @@
     "torpedo_first_target_clearance_mm": 0.0,
     "torpedo_d_min_m": 0.64409,
     "dfc_claw_percent": 0.0,
-    "forgiveness_score": 0.6015,
+    "forgiveness_score": 0.58851,
     "forgiveness_min_object_score": 0.10219,
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": null,
     "connector_in_dfc": null,
-    "table_reach_mean": 0.452977,
-    "table_reach_full_table_mean": 0.395369,
+    "table_reach_mean": 0.537128,
+    "table_reach_full_table_mean": 0.455175,
     "ffc_in_water_max_percent": 0.0,
     "structure_landing_mm": 2.1,
     "structure_f1_water_hz": 24.92967,
-    "grasp_score": 0.82382,
-    "grasp_score_min": 0.51,
-    "grasp_near_misses": 1,
+    "grasp_score": 0.87073,
+    "grasp_score_min": 0.765,
+    "grasp_near_misses": 0,
     "grasp_major_issues": 11,
     "heading_offset_deg": 0.0,
-    "yaw_aligned_lifted": 9,
-    "dfc_show_mean_visible": 0.11111,
+    "yaw_aligned_lifted": 10,
+    "dfc_show_mean_visible": 0.09091,
     "dfc_show_objects_50": 1,
-    "forgiveness_score_open_tabletop": 0.57024
+    "forgiveness_score_open_tabletop": 0.54583
    }
   },
   {
