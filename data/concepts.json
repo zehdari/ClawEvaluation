@@ -498,9 +498,9 @@
    "id": "c6_current_mod",
    "name": "Current claw, slimmed (same rack and pinion and Dragon Skin fingers, compact head, fold-up mount)",
    "servo_count": 1,
-   "overall": "fail",
+   "overall": "warn",
    "quick": false,
-   "generated": "2026-10-15 20:13:24",
+   "generated": "2026-10-15 22:26:33",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c6_current_mod/viewer.json",
@@ -517,7 +517,7 @@
     "structure": "warn",
     "assembly": "warn",
     "printability": "warn",
-    "grasp": "fail",
+    "grasp": "warn",
     "forgiveness": "info",
     "dfc": "info",
     "dfc_show": "info",
@@ -526,19 +526,17 @@
    },
    "check_counts": {
     "pass": 10,
-    "warn": 4,
-    "fail": 1,
+    "warn": 5,
     "info": 3
    },
    "objects": {
     "pass": 9,
-    "warn": 1,
-    "fail": 1,
+    "warn": 2,
+    "fail": 0,
     "total": 11
    },
    "outcomes": {
-    "lifted": 10,
-    "blocked": 1
+    "lifted": 11
    },
    "key": {
     "pinch_x": 0.12,
@@ -560,19 +558,19 @@
     "forgiveness_score_best_approach": null,
     "connectors_aft": false,
     "connector_in_dfc": false,
-    "table_reach_mean": 0.994575,
-    "table_reach_full_table_mean": 0.823024,
+    "table_reach_mean": 0.993392,
+    "table_reach_full_table_mean": 0.814585,
     "ffc_in_water_max_percent": 0.0,
     "structure_landing_mm": 8.6,
     "structure_f1_water_hz": 9.39026,
-    "grasp_score": 0.92718,
-    "grasp_score_min": 0.55,
-    "grasp_near_misses": 0,
-    "grasp_major_issues": 2,
+    "grasp_score": 0.96182,
+    "grasp_score_min": 0.92,
+    "grasp_near_misses": 1,
+    "grasp_major_issues": 1,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.79913,
-    "dfc_show_objects_50": 8,
+    "dfc_show_mean_visible": 0.81739,
+    "dfc_show_objects_50": 9,
     "forgiveness_score_open_tabletop": 0.92715
    }
   },
