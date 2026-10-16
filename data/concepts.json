@@ -409,9 +409,9 @@
    "id": "c5_fixed_sweep",
    "name": "Fixed jaw + sweeping Fin Ray jaw (\"dustpan\")",
    "servo_count": 1,
-   "overall": "fail",
+   "overall": "warn",
    "quick": false,
-   "generated": "2026-10-16 03:33:44",
+   "generated": "2026-10-16 04:49:48",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c5_fixed_sweep/viewer.json",
@@ -428,7 +428,7 @@
     "structure": "warn",
     "assembly": "warn",
     "printability": "warn",
-    "grasp": "fail",
+    "grasp": "warn",
     "forgiveness": "info",
     "dfc": "info",
     "dfc_show": "info",
@@ -437,14 +437,13 @@
    },
    "check_counts": {
     "pass": 10,
-    "warn": 4,
-    "fail": 1,
+    "warn": 5,
     "info": 3
    },
    "objects": {
     "pass": 4,
-    "warn": 6,
-    "fail": 1,
+    "warn": 7,
+    "fail": 0,
     "total": 11
    },
    "outcomes": {
