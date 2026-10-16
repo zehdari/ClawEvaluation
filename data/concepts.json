@@ -1149,9 +1149,9 @@
    "id": "m5_static_pitch_rotate",
    "name": "U-frame + pitch through the claw (horizontal side grabs) + wrist roll + parallel Fin Ray claw (3 servos)",
    "servo_count": 3,
-   "overall": "fail",
+   "overall": "warn",
    "quick": false,
-   "generated": "2026-10-15 19:57:12",
+   "generated": "2026-10-15 20:46:07",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/m5_static_pitch_rotate/viewer.json",
@@ -1166,7 +1166,7 @@
     "interference": "pass",
     "mass": "warn",
     "structure": "warn",
-    "assembly": "fail",
+    "assembly": "warn",
     "printability": "pass",
     "grasp": "warn",
     "forgiveness": "info",
@@ -1177,8 +1177,7 @@
    },
    "check_counts": {
     "pass": 10,
-    "warn": 4,
-    "fail": 1,
+    "warn": 5,
     "info": 3
    },
    "objects": {
