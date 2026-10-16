@@ -2483,8 +2483,13 @@ function objectCauses(gs, row) {
       if (!i || typeof i !== 'object') return;
       let ty = String(i.type || i.tag || i.cause || i.category || CAUSE_OF_METRIC[i.metric] || 'other').toLowerCase();
       ty = CAUSE_ALIAS[ty] || ty;
-      const val = isNum(i.value) ? i.value : (isNum(i.fraction) ? i.fraction : null);
-      add(ty, i.kind || i.status, i.severity, ty === 'capture' && val > 1 ? val / 100 : val, i.text || i.reason || i.note);
+      // v6.2: {type, severity: "warn" | "fail", text}; graded rows use kind + severity near_miss / major
+      const sev = String(i.severity || '');
+      const kind = i.kind || i.status || (sev === 'warn' || sev === 'fail' ? sev : null);
+      const txt = i.text || i.reason || i.note || '';
+      let val = isNum(i.value) ? i.value : (isNum(i.fraction) ? i.fraction : null);
+      if (val == null && txt) { const hit = CAUSE_TEXT.find(([re, t, f]) => t === ty && f && re.test(txt)); if (hit) val = hit[2](hit[0].exec(txt)); }
+      add(ty, kind, sev === 'near_miss' || sev === 'major' ? sev : null, ty === 'capture' && val > 1 ? val / 100 : val, txt);
     });
   } else {
     const oc = src.outcome;
