@@ -1648,19 +1648,26 @@ function sanitizeScenes(v) {
   (v.grasp_scenes || []).forEach((gs) => {
     const kf = gs.keyframes || [];
     const iC = kf.findIndex((k) => k.label === 'contact');
+    // squeeze frames are the FE's output steps, evenly spaced in time but not in servo travel (c4 stall-and-hold:
+    // 0 -> 28.6 deg in the first 0.25 s, then 4 deg): retime them by servo travel over the same span, so the jaws and
+    // the finger bend at a steady speed instead of jumping 16 mm in the first step
+    const iQ = kf.map((k, i) => (k.label === 'squeeze' ? i : -1)).filter((i) => i > iC && iC >= 0);
+    if (iQ.length > 1 && iQ[iQ.length - 1] - iQ[0] === iQ.length - 1 && iQ[0] === iC + 1) {
+      const qd = (a, b) => Math.max(0, ...Object.keys(a.q || {}).map((n) => Math.abs((a.q[n] || 0) - ((b.q || {})[n] || 0))));
+      const cum = [0];
+      iQ.forEach((i, j) => cum.push(cum[j] + qd(kf[i], kf[i - 1])));
+      const tot = cum[cum.length - 1], t0 = kf[iC].t, t1 = kf[iQ[iQ.length - 1]].t;
+      if (tot > 1e-6 && cum.every((c, j) => !j || c > cum[j - 1] + 1e-9)) iQ.forEach((i, j) => { kf[i].t = t0 + (t1 - t0) * cum[j + 1] / tot; });
+    }
     if (gs._finray) {
       const f = gs.finray || {};
       const { rot, tip } = gs._finray;
       const bad = gs._finray.bad || conceptBad;
       gs._finray.shown = !bad;
       if (bad) {
-        const C = kf[iC];
-        for (let i = iC + 1; i < kf.length; i++) {
-          if (['squeeze', 'lift', 'post', 'show'].includes(kf[i].label)) { kf[i].T_links = C.T_links; kf[i].opening = C.opening; kf[i].jaw_gap = C.jaw_gap; }
-        }
-        gs._notes = (gs._notes || []).concat([gs._finray.bad
+        holdFinrayAtContact(gs, gs._finray.bad
           ? `Fin Ray squeeze not drawn: the exported finger deformation is outside the model's range (${f.converged === false ? 'FE not converged, ' : ''}pieces turn up to ${fix(rot, 0)}\u00b0, tips move ${fix(tip, 0)} mm); jaws held at contact`
-          : `Fin Ray squeeze not drawn: this concept's squeeze data fails the plausibility check in ${nBad} of ${fr.length} scenes; jaws held at contact`]);
+          : `Fin Ray squeeze not drawn: this concept's squeeze data fails the plausibility check in ${nBad} of ${fr.length} scenes; jaws held at contact`);
       }
     }
     // 2. show frames
@@ -1687,6 +1694,96 @@ function sanitizeScenes(v) {
       }
     }
   });
+}
+// Holds a Fin Ray scene's jaws at its contact frame through squeeze / lift / post / show (undeformed fingers touching
+// the object; the object keeps its exported path) and adds the caption note.
+function holdFinrayAtContact(gs, note) {
+  const kf = gs.keyframes || [];
+  const iC = kf.findIndex((k) => k.label === 'contact');
+  if (iC < 0) return;
+  const C = kf[iC];
+  for (let i = iC + 1; i < kf.length; i++) {
+    if (['squeeze', 'lift', 'post', 'show'].includes(kf[i].label)) { kf[i].T_links = C.T_links; kf[i].opening = C.opening; kf[i].jaw_gap = C.jaw_gap; }
+  }
+  if (gs._finray) gs._finray.shown = false;
+  gs._notes = (gs._notes || []).concat([note]);
+}
+// 3. Fin Ray pieces tearing apart (needs the meshes, so it runs once the claw GLBs are loaded): seams are vertices
+//    that coincide at the open pose on two holders (two pieces, or a piece and the link it is cut from); a squeeze
+//    frame that opens a seam wider than FINRAY_TEAR_MM is not drawn. The v6.1 export assigns whole CAD triangles to
+//    the pieces, and a triangle spanning the finger (a beam side, the pad face) then moves rigidly with one piece and
+//    sticks out of the bent finger as a flat plate (seams 7-18 mm on c4, 5-7 mm on c2). With the toolkit fix
+//    (concepts/audit/compliant_toolkit.patch: split refined in the finger plane, end-weighted piece fits) the seams
+//    stay under 4 mm and the squeeze is drawn again without a viewer change. Same hold and majority rule as guard 1.
+const FINRAY_TEAR_MM = 4.5;
+function checkFinrayTears(v, grp) {
+  if (!renderer || !v || !grp || v._tearChecked) return;
+  v._tearChecked = true;
+  const scenes = (v.grasp_scenes || []).filter((gs) => gs._finray && gs._finray.shown);
+  const subs = (v.links || []).filter((L) => L.follows);
+  const oc = (sweepsOf(v).open_close || {}).samples || [];
+  const T0 = oc.length ? oc[0].T : null;
+  if (!scenes.length || !subs.length || !T0) return;
+  const isSub = new Set(subs.map((L) => L.name));
+  const names = [...new Set(subs.flatMap((L) => [L.name, L.follows]))].filter((n) => grp.userData.links[n] && T0[n]);
+  const tol = 0.0003, cells = new Map(), loc = [];
+  names.forEach((n, hi) => {
+    const h = grp.userData.links[n];
+    h.updateMatrixWorld(true);
+    const inv = h.matrixWorld.clone().invert(), W = matOf(T0[n]), x = new T3.Vector3(), w = new T3.Vector3();
+    h.traverse((o) => {
+      if (!o.isMesh || /_empty$/.test(o.name) || !o.geometry.getAttribute('position')) return;
+      const M = inv.clone().multiply(o.matrixWorld), pos = o.geometry.getAttribute('position');
+      for (let i = 0; i < pos.count; i++) {
+        x.fromBufferAttribute(pos, i).applyMatrix4(M);
+        w.copy(x).applyMatrix4(W);
+        const key = `${Math.floor(w.x / tol)},${Math.floor(w.y / tol)},${Math.floor(w.z / tol)}`;
+        let c = cells.get(key);
+        if (!c) cells.set(key, (c = {}));
+        if (!(hi in c)) { c[hi] = loc.length; loc.push([hi, x.clone()]); }      // one vertex per holder and cell
+      }
+    });
+  });
+  const byPair = new Map();
+  const add = (i, j) => {
+    const a = loc[i][0], b = loc[j][0];
+    if (a === b || !(isSub.has(names[a]) || isSub.has(names[b]))) return;
+    const k = a < b ? `${a}|${b}` : `${b}|${a}`;
+    let arr = byPair.get(k);
+    if (!arr) byPair.set(k, (arr = []));
+    arr.push([i, j]);
+  };
+  cells.forEach((c, key) => {
+    const [ix, iy, iz] = key.split(',').map(Number);
+    const here = Object.values(c);
+    for (let p = 0; p < here.length; p++) for (let q = p + 1; q < here.length; q++) add(here[p], here[q]);
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
+      if (dx < 0 || (dx === 0 && (dy < 0 || (dy === 0 && dz <= 0)))) continue;          // each neighbor pair once
+      const o = cells.get(`${ix + dx},${iy + dy},${iz + dz}`);
+      if (o) here.forEach((i) => Object.values(o).forEach((j) => { if (loc[i][1] && loc[j][1]) add(i, j); }));
+    }
+  });
+  const pairs = [];
+  byPair.forEach((arr) => { const st = Math.max(1, Math.floor(arr.length / 300)); for (let i = 0; i < arr.length; i += st) pairs.push(arr[i]); });
+  if (!pairs.length) return;
+  const a = new T3.Vector3(), b = new T3.Vector3();
+  const seam = (kf) => {
+    const Ms = names.map((n) => (kf.T_links[n] ? matOf(kf.T_links[n]) : null));
+    let m = 0;
+    pairs.forEach(([i, j]) => {
+      const A = Ms[loc[i][0]], B = Ms[loc[j][0]];
+      if (!A || !B) return;
+      m = Math.max(m, a.copy(loc[i][1]).applyMatrix4(A).distanceTo(b.copy(loc[j][1]).applyMatrix4(B)));
+    });
+    return m * 1000;
+  };
+  scenes.forEach((gs) => { gs._finray.seam = Math.max(0, ...(gs.keyframes || []).filter((k) => k.label === 'squeeze').map(seam)); });
+  const torn = scenes.filter((gs) => gs._finray.seam > FINRAY_TEAR_MM);
+  const all = scenes.length >= 3 && torn.length > scenes.length / 2;
+  if (torn.length) console.info(`[claw viewer] ${v.concept && v.concept.id}: Fin Ray pieces tear apart in ${torn.length}/${scenes.length} squeeze scenes${all ? ' (not drawn for any scene)' : ''}`, scenes.map((g) => [g.object, Math.round(g._finray.seam * 10) / 10]));
+  (all ? scenes : torn).forEach((gs) => holdFinrayAtContact(gs, gs._finray.seam > FINRAY_TEAR_MM
+    ? `Fin Ray squeeze not drawn: the exported finger pieces separate by up to ${fix(gs._finray.seam, 0)} mm at the hold (the bundle's piece split is too coarse); jaws held at contact`
+    : `Fin Ray squeeze not drawn: the finger pieces separate in ${torn.length} of ${scenes.length} of this concept's squeeze scenes; jaws held at contact`));
 }
 // schema_version 3 is compact: sweep samples list only the links whose pose differs from links[].T_ref, grasp
 // keyframes point (integer T_links) into the scene's sparse link_poses pool, and Fin Ray piece sub-links `follow`
@@ -1761,6 +1858,7 @@ async function selectConcept(id) {
   clawHolder.children.slice().forEach((c) => clawHolder.remove(c));
   clawHolder.add(grp);
   S.clawGroup = grp;
+  try { checkFinrayTears(v, grp); } catch (err) { console.warn('[claw viewer] Fin Ray seam check failed', err); }
   setHitHighlight(null, true);
   S.stowModel = buildStowModel(v);
   buildStowPath(v);
