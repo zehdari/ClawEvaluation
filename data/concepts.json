@@ -1224,6 +1224,86 @@
     "dfc_show_objects_50": 10,
     "forgiveness_score_open_tabletop": 0.66515
    }
+  },
+  {
+   "id": "m5b_static_pitch_roll_decoupled",
+   "name": "Static mount + elbow pitch + decoupled wrist roll (G on the roll) + parallel Fin Ray claw (3 servos)",
+   "servo_count": 3,
+   "overall": "warn",
+   "quick": false,
+   "generated": "2026-10-15 21:05:16",
+   "hidden": false,
+   "schema_version": 3,
+   "viewer_json": "concepts/m5b_static_pitch_roll_decoupled/viewer.json",
+   "check_status": {
+    "forward_reach": "pass",
+    "torpedo": "pass",
+    "low_reach": "pass",
+    "dvl": "pass",
+    "payload_paths": "pass",
+    "tension_cable": "pass",
+    "stow": "pass",
+    "interference": "pass",
+    "mass": "warn",
+    "structure": "warn",
+    "assembly": "warn",
+    "printability": "pass",
+    "grasp": "warn",
+    "forgiveness": "info",
+    "dfc": "info",
+    "dfc_show": "info",
+    "ffc_in_water": "pass",
+    "connector": "warn"
+   },
+   "check_counts": {
+    "pass": 10,
+    "warn": 5,
+    "info": 3
+   },
+   "objects": {
+    "pass": 6,
+    "warn": 5,
+    "fail": 0,
+    "total": 11
+   },
+   "outcomes": {
+    "lifted": 11
+   },
+   "key": {
+    "pinch_x": 0.105,
+    "pinch_x_max": 0.105,
+    "pinch_z": -0.571,
+    "front_x": 0.22797,
+    "jaws_below_feet_mm": 241.7,
+    "mass_g": 1414.36252,
+    "in_water_g": 560.95976,
+    "dvl_clearance_mm": 7.1,
+    "stow_sweep_clearance_mm": 12.3,
+    "stowed_above_feet_mm": 73.0,
+    "torpedo_first_target_clearance_mm": 36.8,
+    "torpedo_d_min_m": 0.58345,
+    "dfc_claw_percent": 1.889,
+    "forgiveness_score": 0.68373,
+    "forgiveness_min_object_score": 0.39704,
+    "forgiveness_grade": "poor",
+    "forgiveness_score_best_approach": null,
+    "connectors_aft": false,
+    "connector_in_dfc": false,
+    "table_reach_mean": 1.0,
+    "table_reach_full_table_mean": 0.910305,
+    "ffc_in_water_max_percent": 0.0,
+    "structure_landing_mm": 9.2,
+    "structure_f1_water_hz": 6.17628,
+    "grasp_score": 0.93246,
+    "grasp_score_min": 0.861,
+    "grasp_near_misses": 1,
+    "grasp_major_issues": 4,
+    "heading_offset_deg": 0.0,
+    "yaw_aligned_lifted": 11,
+    "dfc_show_mean_visible": 0.47247,
+    "dfc_show_objects_50": 5,
+    "forgiveness_score_open_tabletop": 0.64966
+   }
   }
  ]
 }
