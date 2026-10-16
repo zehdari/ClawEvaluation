@@ -574,7 +574,7 @@
    "servo_count": 1,
    "overall": "warn",
    "quick": false,
-   "generated": "2026-10-16 02:10:46",
+   "generated": "2026-10-16 02:20:20",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c7_intermesh/viewer.json",
@@ -590,7 +590,7 @@
     "mass": "pass",
     "structure": "pass",
     "assembly": "pass",
-    "printability": "warn",
+    "printability": "pass",
     "grasp": "warn",
     "forgiveness": "info",
     "dfc": "info",
@@ -599,8 +599,8 @@
     "connector": "warn"
    },
    "check_counts": {
-    "pass": 12,
-    "warn": 3,
+    "pass": 13,
+    "warn": 2,
     "info": 3
    },
    "objects": {
@@ -618,8 +618,8 @@
     "pinch_z": -0.44234,
     "front_x": 0.11801,
     "jaws_below_feet_mm": 110.0,
-    "mass_g": 967.07396,
-    "in_water_g": 367.58994,
+    "mass_g": 967.03958,
+    "in_water_g": 367.58263,
     "dvl_clearance_mm": 19.0,
     "stow_sweep_clearance_mm": 17.8,
     "stowed_above_feet_mm": 130.5,
