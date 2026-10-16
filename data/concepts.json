@@ -737,9 +737,9 @@
    "id": "c9_four_finray",
    "name": "Four Fin Ray: two opposed Fin Ray pairs on gear-coupled crab jaws",
    "servo_count": 1,
-   "overall": "fail",
+   "overall": "warn",
    "quick": false,
-   "generated": "2026-10-15 20:19:45",
+   "generated": "2026-10-15 23:25:30",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c9_four_finray/viewer.json",
@@ -756,7 +756,7 @@
     "structure": "warn",
     "assembly": "warn",
     "printability": "warn",
-    "grasp": "fail",
+    "grasp": "warn",
     "forgiveness": "info",
     "dfc": "info",
     "dfc_show": "info",
@@ -765,19 +765,18 @@
    },
    "check_counts": {
     "pass": 10,
-    "warn": 4,
-    "fail": 1,
+    "warn": 5,
     "info": 3
    },
    "objects": {
-    "pass": 3,
-    "warn": 7,
-    "fail": 1,
+    "pass": 7,
+    "warn": 4,
+    "fail": 0,
     "total": 11
    },
    "outcomes": {
-    "lifted": 10,
-    "pivots": 1
+    "lifted": 9,
+    "pivots": 2
    },
    "key": {
     "pinch_x": 0.074,
@@ -793,26 +792,26 @@
     "torpedo_first_target_clearance_mm": 73.3,
     "torpedo_d_min_m": 0.54609,
     "dfc_claw_percent": 0.688,
-    "forgiveness_score": 0.69827,
+    "forgiveness_score": 0.76618,
     "forgiveness_min_object_score": 0.34667,
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
     "connectors_aft": false,
     "connector_in_dfc": false,
     "table_reach_mean": 0.987034,
-    "table_reach_full_table_mean": 0.816691,
+    "table_reach_full_table_mean": 0.81684,
     "ffc_in_water_max_percent": 0.0,
     "structure_landing_mm": 5.0,
     "structure_f1_water_hz": 12.46559,
-    "grasp_score": 0.85364,
-    "grasp_score_min": 0.514,
-    "grasp_near_misses": 2,
-    "grasp_major_issues": 10,
+    "grasp_score": 0.90446,
+    "grasp_score_min": 0.738,
+    "grasp_near_misses": 3,
+    "grasp_major_issues": 5,
     "heading_offset_deg": 0.0,
-    "yaw_aligned_lifted": 10,
-    "dfc_show_mean_visible": 0.9119,
+    "yaw_aligned_lifted": 9,
+    "dfc_show_mean_visible": 0.91188,
     "dfc_show_objects_50": 11,
-    "forgiveness_score_open_tabletop": 0.66785
+    "forgiveness_score_open_tabletop": 0.72643
    }
   },
   {
