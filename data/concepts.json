@@ -575,9 +575,9 @@
    "id": "c7_intermesh",
    "name": "Intermesh: ROV-style 2-vs-1 intermeshing jaws (fork + blade) on one servo",
    "servo_count": 1,
-   "overall": "fail",
+   "overall": "warn",
    "quick": false,
-   "generated": "2026-10-15 20:00:33",
+   "generated": "2026-10-15 23:15:24",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c7_intermesh/viewer.json",
@@ -588,7 +588,7 @@
     "dvl": "pass",
     "payload_paths": "pass",
     "tension_cable": "pass",
-    "stow": "fail",
+    "stow": "pass",
     "interference": "pass",
     "mass": "pass",
     "structure": "warn",
@@ -602,19 +602,19 @@
     "connector": "warn"
    },
    "check_counts": {
-    "pass": 9,
-    "fail": 1,
+    "pass": 10,
     "warn": 5,
     "info": 3
    },
    "objects": {
-    "pass": 4,
-    "warn": 7,
+    "pass": 8,
+    "warn": 3,
     "fail": 0,
     "total": 11
    },
    "outcomes": {
-    "lifted": 11
+    "lifted": 10,
+    "pivots": 1
    },
    "key": {
     "pinch_x": 0.06,
@@ -630,26 +630,26 @@
     "torpedo_first_target_clearance_mm": 90.2,
     "torpedo_d_min_m": 0.52808,
     "dfc_claw_percent": 0.809,
-    "forgiveness_score": 0.81708,
-    "forgiveness_min_object_score": 0.35568,
-    "forgiveness_grade": "poor",
+    "forgiveness_score": 0.85762,
+    "forgiveness_min_object_score": 0.77676,
+    "forgiveness_grade": "fair",
     "forgiveness_score_best_approach": null,
     "connectors_aft": false,
     "connector_in_dfc": false,
     "table_reach_mean": 0.986869,
-    "table_reach_full_table_mean": 0.840677,
+    "table_reach_full_table_mean": 0.843048,
     "ffc_in_water_max_percent": 0.0,
     "structure_landing_mm": 3.9,
     "structure_f1_water_hz": 13.32955,
-    "grasp_score": 0.90264,
-    "grasp_score_min": 0.733,
-    "grasp_near_misses": 4,
-    "grasp_major_issues": 5,
+    "grasp_score": 0.92782,
+    "grasp_score_min": 0.748,
+    "grasp_near_misses": 0,
+    "grasp_major_issues": 4,
     "heading_offset_deg": 0.0,
-    "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.90835,
+    "yaw_aligned_lifted": 10,
+    "dfc_show_mean_visible": 0.91375,
     "dfc_show_objects_50": 11,
-    "forgiveness_score_open_tabletop": 0.7782
+    "forgiveness_score_open_tabletop": 0.81557
    }
   },
   {
