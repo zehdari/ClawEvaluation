@@ -30,12 +30,12 @@
   "zip": "cad/c6_current_mod.zip"
  },
  "c7_intermesh": {
-  "bytes": 930973,
-  "parts": 23,
+  "bytes": 1045321,
+  "parts": 30,
   "zip": "cad/c7_intermesh.zip"
  },
  "c8_centric": {
-  "bytes": 393950,
+  "bytes": 393942,
   "parts": 31,
   "zip": "cad/c8_centric.zip"
  },
