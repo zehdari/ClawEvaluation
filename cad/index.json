@@ -40,7 +40,7 @@
   "zip": "cad/c8_centric.zip"
  },
  "c9_four_finray": {
-  "bytes": 1083170,
+  "bytes": 1083162,
   "parts": 41,
   "zip": "cad/c9_four_finray.zip"
  },
@@ -55,12 +55,12 @@
   "zip": "cad/m2_twin_finger.zip"
  },
  "m3_arm": {
-  "bytes": 1969125,
+  "bytes": 1969123,
   "parts": 17,
   "zip": "cad/m3_arm.zip"
  },
  "m4_static_pitch": {
-  "bytes": 1803067,
+  "bytes": 1812929,
   "parts": 17,
   "zip": "cad/m4_static_pitch.zip"
  },
