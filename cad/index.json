@@ -15,9 +15,9 @@
   "zip": "cad/c3_extend_grip_d3346aaf387ddddb.zip"
  },
  "c4_rack_finray2": {
-  "bytes": 926342,
+  "bytes": 926336,
   "parts": 18,
-  "zip": "cad/c4_rack_finray2_06125659ffe8c935.zip"
+  "zip": "cad/c4_rack_finray2_78064a78359511d2.zip"
  },
  "c5_fixed_sweep": {
   "bytes": 121014,
@@ -60,13 +60,13 @@
   "zip": "cad/m3_arm_bcae302b20b25cc0.zip"
  },
  "m4_static_pitch": {
-  "bytes": 1812922,
-  "parts": 17,
-  "zip": "cad/m4_static_pitch_2681ae38f29c2bbf.zip"
+  "bytes": 2457201,
+  "parts": 22,
+  "zip": "cad/m4_static_pitch_1a9a74689d4f8649.zip"
  },
  "m5_static_pitch_rotate": {
-  "bytes": 3968459,
+  "bytes": 3968452,
   "parts": 27,
-  "zip": "cad/m5_static_pitch_rotate_f5728637f39f7f08.zip"
+  "zip": "cad/m5_static_pitch_rotate_34b8e416ef740e7c.zip"
  }
 }
