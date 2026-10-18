@@ -568,7 +568,7 @@ table.cmp { border-collapse: collapse; width: 100%; font: 500 12.5px/1.3 var(--f
 </div>
 
 <script>window.CLAW_PACKED = true; window.CLAW_DOWNLOADS = true;</script>
-<script>window.CLAW_INDEX_FILE = "concepts_4d470584bdd60ebe.json";</script>
+<script>window.CLAW_INDEX_FILE = "concepts_d8a902cdb35652c9.json";</script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
@@ -3464,6 +3464,15 @@ function bonusHTML(v) {
     <p class="sl-note">Perception gives only the object center, never its yaw: one fixed heading per object, object yaw and \u00b120 / \u00b140 mm position error varied.${isNum(m.mean_yaw_success) ? ` Yaw success ${pct(m.mean_yaw_success)}, capture \u00b120 ${pct(m.mean_capture_20)}, \u00b140 ${pct(m.mean_capture_40)}.` : ''}${isNum(m.objects_with_center_plan) ? ` ${m.objects_with_center_plan}/${per.length || 11} objects use a center plan.` : ''}</p>
     ${bars ? `<ul class="bars">${bars}</ul>` : ''}</section>`;
 }
+function failedChecksOf(v) {
+  if (v.evaluation_pending || (v.concept || {}).evaluation_pending) return [];
+  return (v.checks || []).filter((c) => c.status === 'fail' || c.status === 'error');
+}
+function failureReasonsHTML(v) {
+  const failures = failedChecksOf(v);
+  if (!failures.length) return '';
+  return `<div class="overall-reasons"><h3>Failed checks</h3><ul>${failures.map((c) => `<li><strong>${esc(c.title || c.id)}:</strong> ${esc(c.summary || (c.status === 'error' ? 'Execution error' : 'Failed'))}</li>`).join('')}</ul></div>`;
+}
 function renderPanel(v) {
   const ref = (S.talos && S.talos.reference) || {};
   const e = S.index.find((x) => x.id === S.cur) || {};
@@ -3494,6 +3503,7 @@ function renderPanel(v) {
       <div class="p-code"><span>${esc(codeOf(S.cur))}</span><span class="servo">${n ? n + (n > 1 ? ' servos' : ' servo') : ''}</span>${isBaseline(e) ? '<span class="tag-base">Baseline</span>' : ''}${chip(v.overall)}</div>
       <h2>${esc(c.name || e.name || S.cur)}</h2>
       <div class="p-meta">${(c.hole_k || []).length ? `<span>holes k ${esc((c.hole_k || []).map((k) => (k > 0 ? '+' : '') + k).join(', ').replace(/-/g, '−'))}</span>` : ''}${gen ? `<span>generated ${esc(gen)}</span>` : ''}${v.toolkit_version ? `<span>evaluated with toolkit ${esc(v.toolkit_version)}</span>` : ''}${v.toolkit_version === '6.4' ? '<span>broader toolkit regression review pending</span>' : ''}${c.quick ? '<span class="chip st-warn"><i></i>quick run</span>' : ''}</div>
+      ${failureReasonsHTML(v)}
     </section>
     ${v.evaluation_pending ? '<section><p class="summary-text">Geometry preview only. Evaluation is pending; scores, grasp scenes, and CAD downloads are withheld.</p></section>' : `<section aria-label="Key numbers"><div class="kpis">${kpis}</div></section>`}
     ${bonusHTML(v)}
