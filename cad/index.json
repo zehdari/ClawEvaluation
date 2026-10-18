@@ -25,12 +25,9 @@
   "zip": "cad/c5_fixed_sweep_4cf23231a59a6b9e.zip"
  },
  "c6_current_mod": {
-  "bytes": 13028984,
-  "contents": "STEP, STL, print-oriented STL, build notes and bill of materials",
-  "documents": 2,
-  "parts": 24,
-  "stl_files": 44,
-  "zip": "cad/c6_current_mod_2de253dee018a5f8.zip"
+  "bytes": 810613,
+  "parts": 16,
+  "zip": "cad/c6_current_mod_7e7478a4bd3af5c6.zip"
  },
  "c7_intermesh": {
   "bytes": 1079827,
