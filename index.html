@@ -3509,6 +3509,7 @@ function renderPanel(v) {
       <div class="p-code"><span>${esc(codeOf(S.cur))}</span><span class="servo">${n ? n + (n > 1 ? ' servos' : ' servo') : ''}</span>${isBaseline(e) ? '<span class="tag-base">Baseline</span>' : ''}${chip(v.overall)}</div>
       <h2>${esc(c.name || e.name || S.cur)}</h2>
       <div class="p-meta">${(c.hole_k || []).length ? `<span>holes k ${esc((c.hole_k || []).map((k) => (k > 0 ? '+' : '') + k).join(', ').replace(/-/g, '−'))}</span>` : ''}${gen ? `<span>generated ${esc(gen)}</span>` : ''}${v.toolkit_version ? `<span>${v.evaluation_pending ? 'geometry export from' : 'evaluated with'} toolkit ${esc(v.toolkit_version)}</span>` : ''}${v.toolkit_version === '6.4' ? '<span>broader toolkit regression review pending</span>' : ''}${c.quick ? '<span class="chip st-warn"><i></i>quick run</span>' : ''}</div>
+      ${graspComparisonNotice(e, v) ? `<p class="sl-note">${esc(graspComparisonNotice(e, v))}</p>` : ''}
       ${cadDownloadHTML(v)}
       ${failureReasonsHTML(v)}
     </section>
@@ -3566,16 +3567,28 @@ function legacyEvaluation(version) {
   const numbers = String(version).split('.').map(Number);
   return numbers[0] < 6 || (numbers[0] === 6 && numbers[1] < 4);
 }
+function graspComparisonNotice(entry, bundle) {
+  const id = ((bundle || {}).concept || {}).id || entry.id;
+  const version = evaluationVersionOf(entry, bundle);
+  if (!['m4_static_pitch', 'm5_static_pitch_rotate'].includes(id) || !version) return '';
+  const parts = String(version).split('.').map(Number);
+  const old = parts[0] < 6 || (parts[0] === 6 && (parts[1] < 4 || (parts[1] === 4 && (parts[2] || 0) < 1)));
+  return old ? 'Grasp comparisons may be understated: the old search can miss feasible baseline plans and small score improvements. Corrected v6.4.1 evaluation is running.' : '';
+}
 function comparisonVersionHTML(entry, bundle) {
   const version = evaluationVersionOf(entry, bundle);
   if (!version) return '<span class="sl-note">version unrecorded</span>';
   const legacy = legacyEvaluation(version);
-  return `<span class="sl-note" title="${legacy ? 'Earlier evaluation rules include crush warnings removed in 6.4' : 'Evaluation version recorded in this bundle'}">v${esc(version)}${legacy ? ' ? legacy rules' : ''}</span>`;
+  return `<span class="sl-note" title="${legacy ? 'Earlier evaluation rules include crush warnings removed in 6.4' : 'Evaluation version recorded in this bundle'}">v${esc(version)}${legacy ? ' ? legacy rules' : ''}</span>${graspComparisonNotice(entry, bundle) ? `<span class="sl-note" title="${esc(graspComparisonNotice(entry, bundle))}">grasp comparison under review</span>` : ''}`;
 }
 function comparisonVersionNote(rows) {
   const versions = new Set(rows.map((r) => evaluationVersionOf(r.e, r.v)).filter(Boolean));
-  return versions.size > 1 ? '<caption class="sl-note">Evaluation versions differ. Legacy results use earlier rules, including crush warnings removed in 6.4; their counts are not directly comparable.</caption>' : '';
+  const notes = [];
+  if (versions.size > 1) notes.push('Evaluation versions differ. Legacy results use earlier rules, including crush warnings removed in 6.4; their counts are not directly comparable.');
+  if (rows.some((r) => graspComparisonNotice(r.e, r.v))) notes.push('M4/M5 grasp comparisons may be understated by missed baseline plans and the old 0.01 score cutoff. Corrected v6.4.1 evaluation is running.');
+  return notes.length ? `<caption class="sl-note">${esc(notes.join(' '))}</caption>` : '';
 }
+
 function renderCompare() {
   const tbl = qs('#cmpTable');
   const order = orderedIndex().flatMap((g) => g.items);
