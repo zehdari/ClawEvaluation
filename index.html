@@ -3371,6 +3371,9 @@ function metricsOf(v) {
     ...structureOf(v),
   };
 }
+function loadDeflectionDescription(basis) {
+  return 'Predicted deflection under a steady 30 N upward load at the grasp point, in mm (' + (basis || 'model') + ').';
+}
 function structureOf(v) {
   const metrics = ((v.checks || []).find((c) => c.id === 'structure') || {}).metrics || {};
   const sc = v.structure || metrics;
@@ -3497,7 +3500,7 @@ function renderPanel(v) {
     kpi('Mass', M.st('mass'), fix(M.mass, 0), 'g', `vs ${fix(M.massRef, 0)} g today &middot; ${fix(M.inWater, 0)} g wet`),
     kpi('DVL clearance', M.st('dvl'), fix(M.dvl, 1), 'mm', 'beams + housing, pass ≥ 5'),
     kpi('Stow clearance', M.st('stow'), M.hasStow === false ? 'none' : fix(M.stow, 1), M.hasStow === false ? '' : 'mm', M.hasStow === false ? 'no hand-stow joint' : `sweep vs body &middot; stowed ${fix(M.stowAbove, 0)} above feet`),
-    ...(v.structure || M.st('structure') ? [kpi('Structure', M.st('structure'), isNum(M.landing) ? fix(M.landing, 1) : '\u2014', isNum(M.landing) ? 'mm' : '', `30 N landing at the pinch (${esc(M.landingBasis || 'model')})${isNum(M.f1w) ? ` \u00b7 f1 ${fix(M.f1w, 0)} Hz in water` : ''}`)] : []),
+    ...(v.structure || M.st('structure') ? [kpi('Deflection at 30 N', M.st('structure'), isNum(M.landing) ? fix(M.landing, 1) : '\u2014', isNum(M.landing) ? 'mm' : '', `${esc(loadDeflectionDescription(M.landingBasis))}${isNum(M.f1w) ? ` \u00b7 f1 ${fix(M.f1w, 0)} Hz in water` : ''}`)] : []),
     ...(v.connectors || M.st('connector') ? [kpi('Connectors', M.st('connector'), M.connN ? `${M.connN}<small>${M.connN > 1 ? 'plugs' : 'plug'}</small>` : '\u2014', '', 'SubConn plugs + cables in every pose: clear of DVL, torpedo and sensors; routable')] : []),
     kpi('dfc image', M.st('dfc'), fix(M.dfc, 2), '%', 'claw share of the image (info only)'),
     kpi('Objects', M.st('grasp'), M.counts ? `${M.counts.pass || 0}<small>pass</small> ${M.counts.warn || 0}<small>warn</small> ${M.counts.fail || 0}<small>fail</small>` : '—', '', pwfHTML(M.counts, false)),
@@ -3524,7 +3527,7 @@ function renderPanel(v) {
       const x = ck[id];
       const met = Object.entries(x.metrics || {}).map(([k, val]) => `<dt>${esc(k)}</dt><dd>${esc(fmtVal(val))}</dd>`).join('');
       return `<details class="ck"><summary>${chip(x.status)}<div><div class="ck-title">${esc(x.title || id)}</div><div class="ck-sum">${esc(x.summary || '')}</div></div></summary>
-        <div class="ck-body">${x.criteria ? `<p class="ck-crit">${esc(x.criteria)}</p>` : ''}${met ? `<dl class="kv">${met}</dl>` : ''}</div></details>`;
+        <div class="ck-body">${id === 'structure' ? `<p class="ck-crit">${esc(loadDeflectionDescription(M.landingBasis))} This is structural movement, not gripping force or payload capacity.</p>` : ''}${x.criteria ? `<p class="ck-crit">${esc(x.criteria)}</p>` : ''}${met ? `<dl class="kv">${met}</dl>` : ''}</div></details>`;
     }).join('') || '<p class="muted">No checks in this bundle.</p>'}</div></section>
     <section><h3>Open questions</h3><ul class="pm ques">${li(t.open_questions)}</ul></section>
     <section><details class="more"><summary>Stow, firmware and build notes</summary><dl class="notes">
@@ -3545,7 +3548,7 @@ const CMP = [
   { key: 'torp', label: 'Torpedo', tgt: '≥ 20', get: (M) => M.torp, fmt: (x) => fix(x, 1), ck: 'torpedo', desc: true },
   { key: 'dvl', label: 'DVL', tgt: '≥ 5', get: (M) => M.dvl, fmt: (x) => fix(x, 1), ck: 'dvl', desc: true },
   { key: 'stow', label: 'Stow', tgt: '≥ 3', get: (M) => M.stow, fmt: (x, M) => (M.hasStow === false ? 'none' : fix(x, 1)), ck: 'stow', desc: true },
-  { key: 'landing', label: 'Structure', tgt: '30 N landing \u2264 3', get: (M) => M.landing, fmt: (x) => (x == null ? '\u2014' : fix(x, 1)), ck: 'structure' },
+  { key: 'landing', label: 'Deflection at 30 N', tgt: '\u2264 3 mm', title: 'Predicted deflection under a steady 30 N upward load at the grasp point, in mm. Includes mount necks where modeled.', get: (M) => M.landing, fmt: (x) => (x == null ? '\u2014' : fix(x, 1)), ck: 'structure' },
   { key: 'conn', label: 'Plugs', tgt: 'clear + routable', get: (M) => (M.st('connector') ? ST_RANK[M.st('connector')] : null), fmt: (x) => (x == null ? '\u2014' : ''), html: (M) => (M.st('connector') ? `${mark(M.st('connector'))} ${esc(ST_LABEL[M.st('connector')] || M.st('connector'))}` : '<span class="muted">\u2014</span>'), nodelta: true },
   { key: 'dfc', label: 'dfc %', tgt: 'info', get: (M) => M.dfc, fmt: (x) => fix(x, 2), ck: 'dfc', dd: 2 },
   { key: 'objects', label: 'Objects P\u00b7W\u00b7F', tgt: 'all pass', get: (M) => (M.counts ? (M.counts.pass || 0) * 100 - (M.counts.fail || 0) * 10 - (M.counts.warn || 0) : null), html: (M) => pwfHTML(M.counts, true), ck: 'grasp', desc: true },
@@ -3611,7 +3614,7 @@ function renderCompare() {
   }
   rows = baseRows.concat(rows);
   const sortAttr = (k) => (S.sort.key === k ? (S.sort.dir > 0 ? 'ascending' : 'descending') : 'none');
-  tbl.innerHTML = `${comparisonVersionNote(rows)}<thead><tr><th scope="col" aria-sort="${sortAttr('name')}"><button type="button" data-sort="name">Concept</button><span class="tgt">mm unless noted</span></th>${CMP.map((c) => `<th scope="col" aria-sort="${sortAttr(c.key)}"><button type="button" data-sort="${c.key}">${esc(c.label)}</button><span class="tgt">${esc(c.tgt || ' ')}</span></th>`).join('')}</tr></thead>
+  tbl.innerHTML = `${comparisonVersionNote(rows)}<thead><tr><th scope="col" aria-sort="${sortAttr('name')}"><button type="button" data-sort="name">Concept</button><span class="tgt">mm unless noted</span></th>${CMP.map((c) => `<th scope="col"${c.title ? ` title="${esc(c.title)}"` : ''} aria-sort="${sortAttr(c.key)}"><button type="button" data-sort="${c.key}">${esc(c.label)}</button><span class="tgt">${esc(c.tgt || ' ')}</span></th>`).join('')}</tr></thead>
   <tbody>${rows.map(({ e, v, M }) => `<tr data-id="${esc(e.id)}" class="${e.id === S.cur ? 'is-cur' : ''}">
     <td><div class="cname"><button type="button" data-id="${esc(e.id)}" aria-label="Show ${esc(e.name || e.id)}">${esc(codeOf(e.id))}</button><span title="${esc(e.name)}">${esc(e.name || '')}</span>${isBaseline(e) ? '<span class="tag-base">Baseline</span>' : ''}${comparisonVersionHTML(e, v)}</div></td>
     ${CMP.map((c) => {
@@ -3625,7 +3628,7 @@ function renderCompare() {
         if (isNum(b0)) { const dlt = val - b0; body = `<span title="${esc(c.fmt(val, M))} (C0 ${esc(c.fmt(b0, base.M))})">${dlt > 0 ? '+' : ''}${esc(fix(dlt, c.dd != null ? c.dd : (c.key === 'mass' ? 0 : 1)))}</span>`; }
       }
       const st = c.ck ? M.st(c.ck) : null;
-      return `<td class="${val == null && !c.html ? 'na' : ''}"${c.key === 'landing' ? ` title="${esc('30 N landing at the pinch (' + (M.landingBasis || 'model') + ')')}"` : ''}>${body}${c.ck && c.key !== 'objects' ? mark(st) : ''}</td>`;
+      return `<td class="${val == null && !c.html ? 'na' : ''}"${c.key === 'landing' ? ` title="${esc(loadDeflectionDescription(M.landingBasis))}"` : ''}>${body}${c.ck && c.key !== 'objects' ? mark(st) : ''}</td>`;
     }).join('')}</tr>`).join('')}</tbody>`;
 }
 qs('#tg-delta').addEventListener('change', (e) => { S.delta = e.target.checked; renderCompare(); });
