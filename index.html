@@ -568,7 +568,8 @@ table.cmp { border-collapse: collapse; width: 100%; font: 500 12.5px/1.3 var(--f
 </div>
 
 <script>window.CLAW_PACKED = true; window.CLAW_DOWNLOADS = true;</script>
-<script>window.CLAW_INDEX_FILE = "concepts_d8a902cdb35652c9.json";</script>
+<script>window.CLAW_INDEX_FILE = "concepts_7455a503df57b63f.json";</script>
+<script>window.CLAW_CAD_INDEX_FILE = "cad/index_88d5dac0734f376f.json";</script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
@@ -1265,7 +1266,7 @@ function ensureGhost() {
         const links = {};
         await Promise.all((v0.links || []).map(async (L) => {
           const holder = new T3.Group(); holder.matrixAutoUpdate = false;
-          holder.add(ghostify(await loadGLB(`${DATA}concepts/c0_current/${L.glb}`)));
+          holder.add(ghostify(await loadGLB(`${DATA}${bundleAssetBase('c0_current')}${L.glb}`)));
           links[L.name] = holder;
         }));
         Object.values(links).forEach((h) => ghostHolder.add(h));
@@ -3464,6 +3465,11 @@ function bonusHTML(v) {
     <p class="sl-note">Perception gives only the object center, never its yaw: one fixed heading per object, object yaw and \u00b120 / \u00b140 mm position error varied.${isNum(m.mean_yaw_success) ? ` Yaw success ${pct(m.mean_yaw_success)}, capture \u00b120 ${pct(m.mean_capture_20)}, \u00b140 ${pct(m.mean_capture_40)}.` : ''}${isNum(m.objects_with_center_plan) ? ` ${m.objects_with_center_plan}/${per.length || 11} objects use a center plan.` : ''}</p>
     ${bars ? `<ul class="bars">${bars}</ul>` : ''}</section>`;
 }
+function cadDownloadHTML(v) {
+  if (v.evaluation_pending) return '';
+  const item = (S.cadDownloads || {})[(v.concept || {}).id];
+  return item ? `<p class="sl-note"><a href="${esc(item.zip)}" download>Download STEP CAD (${esc(item.parts)} parts)</a></p>` : '';
+}
 function failedChecksOf(v) {
   if (v.evaluation_pending || (v.concept || {}).evaluation_pending) return [];
   return (v.checks || []).filter((c) => c.status === 'fail' || c.status === 'error');
@@ -3502,7 +3508,8 @@ function renderPanel(v) {
     <section class="p-head">
       <div class="p-code"><span>${esc(codeOf(S.cur))}</span><span class="servo">${n ? n + (n > 1 ? ' servos' : ' servo') : ''}</span>${isBaseline(e) ? '<span class="tag-base">Baseline</span>' : ''}${chip(v.overall)}</div>
       <h2>${esc(c.name || e.name || S.cur)}</h2>
-      <div class="p-meta">${(c.hole_k || []).length ? `<span>holes k ${esc((c.hole_k || []).map((k) => (k > 0 ? '+' : '') + k).join(', ').replace(/-/g, '−'))}</span>` : ''}${gen ? `<span>generated ${esc(gen)}</span>` : ''}${v.toolkit_version ? `<span>evaluated with toolkit ${esc(v.toolkit_version)}</span>` : ''}${v.toolkit_version === '6.4' ? '<span>broader toolkit regression review pending</span>' : ''}${c.quick ? '<span class="chip st-warn"><i></i>quick run</span>' : ''}</div>
+      <div class="p-meta">${(c.hole_k || []).length ? `<span>holes k ${esc((c.hole_k || []).map((k) => (k > 0 ? '+' : '') + k).join(', ').replace(/-/g, '−'))}</span>` : ''}${gen ? `<span>generated ${esc(gen)}</span>` : ''}${v.toolkit_version ? `<span>${v.evaluation_pending ? 'geometry export from' : 'evaluated with'} toolkit ${esc(v.toolkit_version)}</span>` : ''}${v.toolkit_version === '6.4' ? '<span>broader toolkit regression review pending</span>' : ''}${c.quick ? '<span class="chip st-warn"><i></i>quick run</span>' : ''}</div>
+      ${cadDownloadHTML(v)}
       ${failureReasonsHTML(v)}
     </section>
     ${v.evaluation_pending ? '<section><p class="summary-text">Geometry preview only. Evaluation is pending; scores, grasp scenes, and CAD downloads are withheld.</p></section>' : `<section aria-label="Key numbers"><div class="kpis">${kpis}</div></section>`}
@@ -3630,6 +3637,10 @@ async function boot() {
   }
   S.talos = talos;
   S.index = (idx.concepts || []).filter((e) => e && e.id);
+  if (window.CLAW_DOWNLOADS && window.CLAW_CAD_INDEX_FILE) {
+    try { S.cadDownloads = await getJSON(window.CLAW_CAD_INDEX_FILE, null, true); }
+    catch (error) { console.warn('CAD download index unavailable', error); }
+  }
   const nHidden = S.index.filter(isHidden).length;
   qs('#hiddenWrap').hidden = !nHidden;
   qs('#hiddenTxt').textContent = `Show hidden (${nHidden})`;

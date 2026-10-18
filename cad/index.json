@@ -2,66 +2,71 @@
  "c1_tine_cage": {
   "bytes": 848932,
   "parts": 19,
-  "zip": "cad/c1_tine_cage.zip"
+  "zip": "cad/c1_tine_cage_37258648ac905383.zip"
  },
  "c2_crab_finray": {
   "bytes": 981754,
   "parts": 29,
-  "zip": "cad/c2_crab_finray.zip"
+  "zip": "cad/c2_crab_finray_3fe7e536bf595953.zip"
  },
  "c3_extend_grip": {
   "bytes": 1194682,
   "parts": 20,
-  "zip": "cad/c3_extend_grip.zip"
+  "zip": "cad/c3_extend_grip_d3346aaf387ddddb.zip"
  },
  "c4_rack_finray2": {
   "bytes": 926342,
   "parts": 18,
-  "zip": "cad/c4_rack_finray2.zip"
+  "zip": "cad/c4_rack_finray2_06125659ffe8c935.zip"
  },
  "c5_fixed_sweep": {
   "bytes": 121014,
   "parts": 8,
-  "zip": "cad/c5_fixed_sweep.zip"
+  "zip": "cad/c5_fixed_sweep_4cf23231a59a6b9e.zip"
  },
  "c6_current_mod": {
   "bytes": 810613,
   "parts": 16,
-  "zip": "cad/c6_current_mod.zip"
+  "zip": "cad/c6_current_mod_7e7478a4bd3af5c6.zip"
  },
  "c7_intermesh": {
   "bytes": 1079827,
   "parts": 33,
-  "zip": "cad/c7_intermesh.zip"
+  "zip": "cad/c7_intermesh_467f5d90495c2179.zip"
+ },
+ "c8_centric": {
+  "bytes": 685025,
+  "parts": 34,
+  "zip": "cad/c8_centric_fc4cbc3288c7459e.zip"
  },
  "c9_four_finray": {
   "bytes": 1083162,
   "parts": 41,
-  "zip": "cad/c9_four_finray.zip"
+  "zip": "cad/c9_four_finray_37e4d39c75d4a5a1.zip"
  },
  "m1_grip_lift": {
   "bytes": 934686,
   "parts": 16,
-  "zip": "cad/m1_grip_lift.zip"
+  "zip": "cad/m1_grip_lift_381c2999b4dd100b.zip"
  },
  "m2_twin_finger": {
   "bytes": 921697,
   "parts": 15,
-  "zip": "cad/m2_twin_finger.zip"
+  "zip": "cad/m2_twin_finger_035428074b43307e.zip"
  },
  "m3_arm": {
   "bytes": 1969123,
   "parts": 17,
-  "zip": "cad/m3_arm.zip"
+  "zip": "cad/m3_arm_bcae302b20b25cc0.zip"
  },
  "m4_static_pitch": {
   "bytes": 1812922,
   "parts": 17,
-  "zip": "cad/m4_static_pitch.zip"
+  "zip": "cad/m4_static_pitch_2681ae38f29c2bbf.zip"
  },
  "m5_static_pitch_rotate": {
   "bytes": 3968459,
   "parts": 27,
-  "zip": "cad/m5_static_pitch_rotate.zip"
+  "zip": "cad/m5_static_pitch_rotate_f5728637f39f7f08.zip"
  }
 }
