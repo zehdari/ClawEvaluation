@@ -568,6 +568,7 @@ table.cmp { border-collapse: collapse; width: 100%; font: 500 12.5px/1.3 var(--f
 </div>
 
 <script>window.CLAW_PACKED = true; window.CLAW_DOWNLOADS = true;</script>
+<script>window.CLAW_INDEX_FILE = "concepts_4d470584bdd60ebe.json";</script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
@@ -585,7 +586,7 @@ const pct = (f, d = 0) => (isNum(f) ? (f * 100).toFixed(d) + ' %' : '—');
 const deg = (r) => (isNum(r) ? r * 180 / Math.PI : null);
 const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
 const reduced = () => reduceMQ.matches;
-const ST_LABEL = { pass: 'Pass', warn: 'Warn', fail: 'Fail', info: 'Info', error: 'Error' };
+const ST_LABEL = { pending: 'Evaluation pending', pass: 'Pass', warn: 'Warn', fail: 'Fail', info: 'Info', error: 'Error' };
 const ST_RANK = { pass: 0, info: 1, warn: 2, fail: 3, error: 4 };
 const chip = (st, txt) => `<span class="chip st-${esc(st || 'none')}"><i aria-hidden="true"></i>${esc(txt || ST_LABEL[st] || st || 'n/a')}</span>`;
 const mark = (st, title) => `<span class="mark st-${esc(st || 'none')}" role="img" aria-label="${esc(ST_LABEL[st] || 'no result')}"${title ? ` title="${esc(title)}"` : ''}></span>`;
@@ -1295,6 +1296,11 @@ const METAL = new Set(['aluminum', 'stainless', 'hardware', 'brass']);
 const keepoutMats = [];
 themeHooks.push(() => keepoutMats.forEach((m) => m.color.copy(tokColor('--v3-keepout'))));
 const clawCache = new Map();
+function bundleAssetBase(id) {
+  const entry = S.index.find((e) => e.id === id) || {};
+  const jsonPath = entry.viewer_json || `concepts/${id}/viewer.json`;
+  return jsonPath.slice(0, jsonPath.lastIndexOf('/') + 1);
+}
 function getClawGroup(id, v, progress) {
   if (clawCache.has(id)) return clawCache.get(id);
   const p = (async () => {
@@ -1306,7 +1312,8 @@ function getClawGroup(id, v, progress) {
     let done = 0;
     await Promise.all((v.links || []).map(async (L) => {
       try {
-        const root = await loadGLB(`${DATA}concepts/${id}/${L.glb}`);
+        const assetBase = bundleAssetBase(id);
+        const root = await loadGLB(`${DATA}${assetBase}${L.glb}`);
         const holder = new T3.Group();
         holder.matrixAutoUpdate = false;
         holder.name = L.name;
@@ -3402,7 +3409,7 @@ function metricsFromIndex(e) {
     torp: k.torpedo_first_target_clearance_mm, dmin: k.torpedo_d_min_m, dvl: k.dvl_clearance_mm,
     hasStow: cs.stow ? hasStow : null, stow: k.stow_sweep_clearance_mm, stowAbove: k.stowed_above_feet_mm,
     mass: k.mass_g, inWater: k.in_water_g, dfc: k.dfc_claw_percent,
-    counts: e.objects && isNum(e.objects.total) ? { pass: e.objects.pass || 0, warn: e.objects.warn || 0, fail: e.objects.fail || 0 } : null,
+    counts: !e.evaluation_pending && e.objects && isNum(e.objects.total) ? { pass: e.objects.pass || 0, warn: e.objects.warn || 0, fail: e.objects.fail || 0 } : null,
     overall: e.overall, outcomes: e.outcomes && Object.keys(e.outcomes).length ? e.outcomes : null,
     fscore: k.forgiveness_score, fmin: k.forgiveness_min_object_score, fgrade: k.forgiveness_grade, fbest: k.forgiveness_score_best_approach,
     landing: isNum(k.structure_landing_mm) ? k.structure_landing_mm : null, landingBasis: k.structure_landing_basis || 'model', f1w: k.structure_f1_water_hz,
@@ -3488,7 +3495,7 @@ function renderPanel(v) {
       <h2>${esc(c.name || e.name || S.cur)}</h2>
       <div class="p-meta">${(c.hole_k || []).length ? `<span>holes k ${esc((c.hole_k || []).map((k) => (k > 0 ? '+' : '') + k).join(', ').replace(/-/g, '−'))}</span>` : ''}${gen ? `<span>generated ${esc(gen)}</span>` : ''}${v.toolkit_version ? `<span>evaluated with toolkit ${esc(v.toolkit_version)}</span>` : ''}${v.toolkit_version === '6.4' ? '<span>broader toolkit regression review pending</span>' : ''}${c.quick ? '<span class="chip st-warn"><i></i>quick run</span>' : ''}</div>
     </section>
-    <section aria-label="Key numbers"><div class="kpis">${kpis}</div></section>
+    ${v.evaluation_pending ? '<section><p class="summary-text">Geometry preview only. Evaluation is pending; scores, grasp scenes, and CAD downloads are withheld.</p></section>' : `<section aria-label="Key numbers"><div class="kpis">${kpis}</div></section>`}
     ${bonusHTML(v)}
     <section><p class="summary-text">${esc(t.summary || c.summary || '')}</p></section>
     <section class="sw-lists">
@@ -3602,7 +3609,7 @@ async function boot() {
   let idx, talos;
   try {
     if (PACKED && typeof DecompressionStream === 'undefined') throw new Error(PACK_ERR);
-    [idx, talos] = await Promise.all([getJSON(DATA + 'concepts.json', { cache: 'no-cache' }, true), getJSON(DATA + 'common/talos.json')]);
+    [idx, talos] = await Promise.all([getJSON(DATA + (window.CLAW_INDEX_FILE || 'concepts.json'), { cache: 'no-cache' }, true), getJSON(DATA + 'common/talos.json')]);
   } catch (err) {
     qs('#panel').innerHTML = err.message === PACK_ERR ? `<div class="panel-msg"><p class="hint">${esc(PACK_ERR)}</p></div>`
       : `<div class="panel-msg"><p class="hint">Could not load the concept index (${esc(err.message)}). The page expects <code>data/concepts.json</code> and <code>data/common/talos.json</code> next to it.</p></div>`;
