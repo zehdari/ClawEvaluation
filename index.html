@@ -568,7 +568,7 @@ table.cmp { border-collapse: collapse; width: 100%; font: 500 12.5px/1.3 var(--f
 </div>
 
 <script>window.CLAW_PACKED = true; window.CLAW_DOWNLOADS = true;</script>
-<script>window.CLAW_INDEX_FILE = "concepts_7455a503df57b63f.json";</script>
+<script>window.CLAW_INDEX_FILE = "concepts_e6f606bbc4ccdc4b.json";</script>
 <script>window.CLAW_CAD_INDEX_FILE = "cad/index_88d5dac0734f376f.json";</script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -3558,6 +3558,24 @@ function outcomesHTML(o) {
   const tw = o.pivots ? ` <small class="warn-note">${o.pivots} twist</small>` : '';
   return `${(o.lifted || 0) + (o.pivots || 0)}/${tot}${tw}${bad ? ` <small class="bad-note">${esc(bad)}</small>` : ''}`;
 }
+function evaluationVersionOf(entry, bundle) {
+  return (bundle && bundle.toolkit_version) || entry.toolkit_version || null;
+}
+function legacyEvaluation(version) {
+  if (!version) return false;
+  const numbers = String(version).split('.').map(Number);
+  return numbers[0] < 6 || (numbers[0] === 6 && numbers[1] < 4);
+}
+function comparisonVersionHTML(entry, bundle) {
+  const version = evaluationVersionOf(entry, bundle);
+  if (!version) return '<span class="sl-note">version unrecorded</span>';
+  const legacy = legacyEvaluation(version);
+  return `<span class="sl-note" title="${legacy ? 'Earlier evaluation rules include crush warnings removed in 6.4' : 'Evaluation version recorded in this bundle'}">v${esc(version)}${legacy ? ' ? legacy rules' : ''}</span>`;
+}
+function comparisonVersionNote(rows) {
+  const versions = new Set(rows.map((r) => evaluationVersionOf(r.e, r.v)).filter(Boolean));
+  return versions.size > 1 ? '<caption class="sl-note">Evaluation versions differ. Legacy results use earlier rules, including crush warnings removed in 6.4; their counts are not directly comparable.</caption>' : '';
+}
 function renderCompare() {
   const tbl = qs('#cmpTable');
   const order = orderedIndex().flatMap((g) => g.items);
@@ -3580,9 +3598,9 @@ function renderCompare() {
   }
   rows = baseRows.concat(rows);
   const sortAttr = (k) => (S.sort.key === k ? (S.sort.dir > 0 ? 'ascending' : 'descending') : 'none');
-  tbl.innerHTML = `<thead><tr><th scope="col" aria-sort="${sortAttr('name')}"><button type="button" data-sort="name">Concept</button><span class="tgt">mm unless noted</span></th>${CMP.map((c) => `<th scope="col" aria-sort="${sortAttr(c.key)}"><button type="button" data-sort="${c.key}">${esc(c.label)}</button><span class="tgt">${esc(c.tgt || ' ')}</span></th>`).join('')}</tr></thead>
+  tbl.innerHTML = `${comparisonVersionNote(rows)}<thead><tr><th scope="col" aria-sort="${sortAttr('name')}"><button type="button" data-sort="name">Concept</button><span class="tgt">mm unless noted</span></th>${CMP.map((c) => `<th scope="col" aria-sort="${sortAttr(c.key)}"><button type="button" data-sort="${c.key}">${esc(c.label)}</button><span class="tgt">${esc(c.tgt || ' ')}</span></th>`).join('')}</tr></thead>
   <tbody>${rows.map(({ e, v, M }) => `<tr data-id="${esc(e.id)}" class="${e.id === S.cur ? 'is-cur' : ''}">
-    <td><div class="cname"><button type="button" data-id="${esc(e.id)}" aria-label="Show ${esc(e.name || e.id)}">${esc(codeOf(e.id))}</button><span title="${esc(e.name)}">${esc(e.name || '')}</span>${isBaseline(e) ? '<span class="tag-base">Baseline</span>' : ''}</div></td>
+    <td><div class="cname"><button type="button" data-id="${esc(e.id)}" aria-label="Show ${esc(e.name || e.id)}">${esc(codeOf(e.id))}</button><span title="${esc(e.name)}">${esc(e.name || '')}</span>${isBaseline(e) ? '<span class="tag-base">Baseline</span>' : ''}${comparisonVersionHTML(e, v)}</div></td>
     ${CMP.map((c) => {
       if (!M) return `<td class="na">${S.errors.has(e.id) ? 'not loaded' : '\u2026'}</td>`;
       if (c.key === 'fscore' || c.key === 'lifted') return `<td>${c.html(M, v)}</td>`;
