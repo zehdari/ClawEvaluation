@@ -1558,7 +1558,7 @@ function renderSceneLabel() {
 
 // ------------------------------------------------------------------ index / tabs
 function codeOf(id) {
-  const m = /^([a-z]+\d+)/i.exec(id || '');
+  const m = /^([a-z]+\d+[a-z]?)(?![a-z])/i.exec(id || '') || /^([a-z]+\d+)/i.exec(id || '');   // m5b -> M5B (was M5, same as m5)
   return m ? m[1].toUpperCase() : String(id || '').replace(/^_+/, '').slice(0, 4).toUpperCase();
 }
 const isBaseline = (e) => e.id === 'c0_current' || /baseline/i.test(e.name || '');
@@ -1626,21 +1626,36 @@ function loadConceptData(id) {
     S.data.set(id, v); S.errors.delete(id); return v;
   }, (err) => { S.errors.set(id, err.message); throw err; });
 }
-// Page-side guards for two bundle problems seen in the v6 export (reported to the toolkit):
+// Page-side guards for bundle problems seen in the v6 export (reported to the toolkit):
 // 1. Fin Ray squeeze frames whose piece poses are outside the model's range (pieces rotating > 40 deg against their
 //    own link, tips moving > 40 mm, or finray.converged false): the jaws are held at the contact frame through
 //    squeeze / lift instead of drawing the exploded pieces; the caption says so.
-// 2. `show` keyframes that do not move the robot and only revert the links to the contact frame (Fin Ray concepts):
-//    held at the previous frame with the object carried. A real show pose (robot or links moving to a new pose)
-//    plays as exported, with the object carried by a jaw link.
+// 2. The held-object dfc `show` pose is removed (site review 10-17: it was broken). Bundles before toolkit v6.4 still
+//    end their scenes with `show` keyframes: they are dropped here, so every attempt ends at its lift / post frame
+//    with the object carried. Crush is no longer graded either: crush issue tags are dropped (the object status is
+//    the bundle's until the v6.4 re-export).
+const HIDDEN_CHECKS = new Set(['dfc_show', 'crush']);
+// crush tags, and the pre-v6.4 crush warning text ("squeeze ~80 N/jaw > 18 N/jaw known safe on this thin-walled object")
+const CRUSH_RE = /crush|N\/jaw known safe|thin-walled object/i;
+const isCrushIssue = (x) => CRUSH_RE.test(typeof x === 'string' ? x : [x && x.type, x && x.tag, x && x.cause, x && x.category, x && x.metric].filter(Boolean).join(' '));
+const dropCrushText = (a) => { if (a && Array.isArray(a.warnings)) a.warnings = a.warnings.filter((w) => !isCrushIssue(w)); if (a && Array.isArray(a.issues)) a.issues = a.issues.filter((x) => !isCrushIssue(x)); };
+function dropShowFrames(gs) {
+  const strip = (a) => { if (a && Array.isArray(a.keyframes)) a.keyframes = a.keyframes.filter((k) => k && k.label !== 'show'); };
+  strip(gs);
+  (gs.offcenter || []).forEach(strip);
+  (gs.object_yaw_attempts || []).forEach(strip);
+  if (gs.timeline && typeof gs.timeline === 'object') delete gs.timeline.show;
+  [gs].concat(gs.offcenter || [], gs.object_yaw_attempts || []).forEach(dropCrushText);
+}
 function sanitizeScenes(v) {
+  (v.grasp_scenes || []).forEach(dropShowFrames);
+  const gck = (v.checks || []).find((c) => c.id === 'grasp');
+  ((gck && gck.details && gck.details.objects) || []).forEach(dropCrushText);
   const M4 = (a) => new T3.Matrix4().set(...a);
   const pe = (a, b) => (a && b ? poseErr(M4(a), M4(b)) : { mm: 0, deg: 0 });
-  const same = (a, b) => { const e = pe(a, b); return e.mm < 0.5 && e.deg < 0.5; };
   const byName = {};
   (v.links || []).forEach((L) => { byName[L.name] = L; });
   const subs = (v.links || []).filter((L) => L.follows).map((L) => L.name);
-  const jawLink = (v.links || []).find((L) => L.jaw_group && !L.follows);
   // 1. Fin Ray squeeze plausibility, per scene; when most of a concept's squeeze scenes fail, the rest are not
   //    trusted either (c4 v6: the two scenes under the thresholds still show the fingers crossing each other)
   const fr = [];
@@ -1686,32 +1701,9 @@ function sanitizeScenes(v) {
           : `Fin Ray squeeze not drawn: this concept's squeeze data fails the plausibility check in ${nBad} of ${fr.length} scenes; jaws held at contact`);
       }
     }
-    // 2. show frames
-    const iS = kf.findIndex((k) => k.label === 'show');
-    if (iS > 0) {
-      const P = kf[iS - 1];
-      const C = iC >= 0 ? kf[iC] : null;
-      for (let i = iS; i < kf.length; i++) {
-        const k = kf[i];
-        if (k.label !== 'show') continue;
-        const robotSame = same(k.T_table_robot, P.T_table_robot);
-        const changed = Object.keys(k.T_links || {}).filter((n) => !same(k.T_links[n], (P.T_links || {})[n]));
-        const toContact = C && changed.length && changed.every((n) => same(k.T_links[n], (C.T_links || {})[n]));
-        if (robotSame && (!changed.length || toContact)) {
-          if (changed.length) gs._notes = (gs._notes || []).concat(['Show frame held at the lift pose: the exported show frame only reverts the jaws to the contact frame']);
-          k.T_links = P.T_links; k.q = Object.assign({}, P.q); k.opening = P.opening; k.jaw_gap = P.jaw_gap;
-          k.T_table_object = P.T_table_object; k._held = true;
-        } else if (jawLink && P.T_links[jawLink.name] && k.T_links[jawLink.name]) {
-          // carried by a jaw link: object pose relative to that link stays as at the previous frame
-          const rel = M4(P.T_links[jawLink.name]).invert().multiply(M4(P.T_table_robot).invert()).multiply(M4(P.T_table_object));
-          const W = M4(k.T_table_robot).multiply(M4(k.T_links[jawLink.name])).multiply(rel);
-          k.T_table_object = W.transpose().toArray();   // row-major
-        }
-      }
-    }
   });
 }
-// Holds a Fin Ray scene's jaws at its contact frame through squeeze / lift / post / show (undeformed fingers touching
+// Holds a Fin Ray scene's jaws at its contact frame through squeeze / lift / post (undeformed fingers touching
 // the object; the object keeps its exported path) and adds the caption note.
 function holdFinrayAtContact(gs, note) {
   const kf = gs.keyframes || [];
@@ -1719,7 +1711,7 @@ function holdFinrayAtContact(gs, note) {
   if (iC < 0) return;
   const C = kf[iC];
   for (let i = iC + 1; i < kf.length; i++) {
-    if (['squeeze', 'lift', 'post', 'show'].includes(kf[i].label)) { kf[i].T_links = C.T_links; kf[i].opening = C.opening; kf[i].jaw_gap = C.jaw_gap; }
+    if (['squeeze', 'lift', 'post'].includes(kf[i].label)) { kf[i].T_links = C.T_links; kf[i].opening = C.opening; kf[i].jaw_gap = C.jaw_gap; }
   }
   if (gs._finray) gs._finray.shown = false;
   gs._notes = (gs._notes || []).concat([note]);
@@ -1927,8 +1919,10 @@ function initPose(v) {
 // toolkit wins when present). Any slider combination is then composed in topological order:
 // T_link = T_parent(current) * T_rel(driver sweep at the driver's current angle) (screw interpolation between samples).
 // Minor coupling (a second servo moving the link by < 1 mm and < 1 deg, numeric noise of the sampled model) is
-// composed as a delta from the reference; real coupling falls back to the most recently moved servo's sweep and is
-// logged to the console.
+// composed as a delta from the reference. A firmware-compensated mechanical coupling (top-level servo_coupling, e.g.
+// m5: the carriers' travel on the roll head is grip - ratio x roll) is posed from the coupled servo's own sweep at its
+// MECHANICAL value (mode 'mech'), validated against the follower's sweep. Other real coupling falls back to the most
+// recently moved servo's sweep and is logged to the console.
 function interpMats(arr, t) {
   const n = arr.length;
   if (n < 2) return arr[0].clone();
@@ -1941,8 +1935,9 @@ function buildServoModel(v) {
   const sw = sweepsOf(v);
   const servos = (v.servos || []).filter((s) => s.max !== s.min && sw['servo:' + s.name] && (sw['servo:' + s.name].samples || []).length > 1);
   if (servos.length < 2) return null;              // single servo: the open/close sweep is exact
-  const parent = {}, given = {};
-  (v.links || []).forEach((L) => { parent[L.name] = L.parent || null; if (L.driver) given[L.name] = L.driver; });
+  const parent = {}, given = {}, coupledDofs = {};
+  (v.links || []).forEach((L) => { parent[L.name] = L.parent || null; if (L.driver) given[L.name] = L.driver; if (Array.isArray(L.coupled)) coupledDofs[L.name] = L.coupled; });
+  v._cplK = {};
   const names = Object.keys(sw['servo:' + servos[0].name].samples[0].T || {});
   const has = new Set(names);
   const relOf = (T, n) => {
@@ -1990,6 +1985,38 @@ function buildServoModel(v) {
       I.validation = be;
       const c = M.coupled.find((x) => x.link === n); if (c) { c.mode = I.mode; c.pathError = fix(be, 3); }
     }
+    // Firmware-compensated coupling: the link moves with the coupled servo's mechanical travel
+    // q[servo] + k x (q[follows] - follows.open), k = -ratio (the firmware adds ratio x follows to the command). The
+    // toolkit exports such links with driver = the coupled servo and coupled: [servo, follows]; taking the driver alone
+    // ignored the follower (site review 10-17: m5's roll then changed the drawn opening by 10.8 mm/rad in compensated
+    // mode and crossed the carriers through each other). Validated on the follower's sweep (which holds the coupled
+    // servo at its open value); the sign that reproduces it wins.
+    const I = M.info[n];
+    for (const c of couplingOf(v)) {
+      const sp = servos.find((x) => x.name === c.servo), sf = servos.find((x) => x.name === c.follows);
+      if (!sp || !sf || !per[c.servo] || !per[c.follows] || !(size[c.follows] > 0.05)) continue;
+      if (!I.drivers.includes(c.servo) && !(coupledDofs[n] || []).includes(c.servo)) continue;
+      const fOpen = isNum(sf.open) ? sf.open : 0;
+      const fs = sw['servo:' + c.follows].samples;
+      const errK = (k) => fs.reduce((m, smp, i) => {
+        const q = smp.q || {};
+        const qm = (isNum(q[c.servo]) ? q[c.servo] : sp.open) + k * (q[c.follows] - fOpen);
+        const e = poseErr(interpMats(per[c.servo], (qm - sp.min) / (sp.max - sp.min)), per[c.follows][i]);
+        return Math.max(m, e.mm, e.deg);
+      }, 0);
+      const eNeg = errK(-c.ratio), ePos = errK(c.ratio);
+      const k = eNeg <= ePos ? -c.ratio : c.ratio, be = Math.min(eNeg, ePos);
+      const rec = { link: n, mode: 'mech', drivers: [c.servo, c.follows], k: fix(k, 5), followerSweepError: fix(be, 3) };
+      if (be < 0.3) {
+        I.mode = 'mech'; I.mech = { servo: c.servo, follows: c.follows, k, fOpen, sp };
+        v._cplK[c.servo] = k;
+        if (k > 0) console.warn(`[claw viewer] ${v.concept && v.concept.id}: servo_coupling ${c.servo} follows ${c.follows}: the sweeps say the mechanical travel is ${c.servo} + ratio x ${c.follows} (the schema says the firmware ADDS ratio x ${c.follows}, i.e. travel = ${c.servo} - ratio x ${c.follows}); following the sweeps`);
+        const j = M.coupled.findIndex((x) => x.link === n);
+        if (j >= 0) M.coupled[j] = rec; else M.coupled.push(rec);
+        break;
+      }
+      console.warn(`[claw viewer] ${v.concept && v.concept.id}: link ${n}: servo_coupling ${c.servo} / ${c.follows} (ratio ${c.ratio}) does not reproduce the ${c.follows} sweep (${fix(be, 2)} mm / deg off); composed without it`);
+    }
   });
   const seen = new Set();
   const visit = (n) => { if (seen.has(n)) return; seen.add(n); const p = parent[n]; if (p && M.info[p]) visit(p); M.order.push(n); };
@@ -2007,6 +2034,7 @@ function composePose(M, q, last) {
     else if (I.mode === 'single') rel = relAt(I, I.drivers[0]);
     else if (I.mode === 'delta') { rel = I.ref.clone(); I.drivers.forEach((d) => rel.multiply(I.refInv.clone().multiply(relAt(I, d)))); }
     else if (I.mode === 'deltaL') { rel = I.ref.clone(); I.drivers.forEach((d) => rel.premultiply(relAt(I, d).multiply(I.refInv))); }
+    else if (I.mode === 'mech') { const C = I.mech; rel = interpMats(I.per[C.servo], (q[C.servo] + C.k * (q[C.follows] - C.fOpen) - C.sp.min) / (C.sp.max - C.sp.min)); }
     else rel = relAt(I, I.drivers.includes(last) ? last : I.drivers[0]);
     out[n] = !I.root && out[M.parent[n]] ? out[M.parent[n]].clone().multiply(rel) : rel.clone();
   });
@@ -2029,7 +2057,9 @@ function deployedSample(v) {
 const deg2rad = (d) => d * Math.PI / 180;
 function poseErr(A, B) {
   const pa = new T3.Vector3().setFromMatrixPosition(A), pb = new T3.Vector3().setFromMatrixPosition(B);
-  const qa = new T3.Quaternion().setFromRotationMatrix(A), qb = new T3.Quaternion().setFromRotationMatrix(B);
+  // normalized: bundle matrices are rounded to 1e-5, and the raw quaternion of such a matrix (length 0.999998) made
+  // two IDENTICAL poses differ by up to 0.3 deg here
+  const qa = new T3.Quaternion().setFromRotationMatrix(A).normalize(), qb = new T3.Quaternion().setFromRotationMatrix(B).normalize();
   return { mm: pa.distanceTo(pb) * 1000, deg: qa.angleTo(qb) * 180 / Math.PI };
 }
 function buildStowModel(v) {
@@ -2171,6 +2201,8 @@ function applyPose() {
 //   than one servo away from its open value after removing the coupling, off the open/close path, the grasp
 //   keyframes, the named states and any exported q_samples) gets a quiet caption under the sliders.
 const couplingOf = (v) => (v.servo_coupling || []).filter((c) => c && c.servo && c.follows && isNum(c.ratio));
+// compensation ratio actually held by the sweeps (buildServoModel validates the sign; the schema's is +ratio)
+const cplRatio = (v, c) => (v._cplK && isNum(v._cplK[c.servo]) ? -v._cplK[c.servo] : c.ratio);
 const servoOf = (v, n) => (v.servos || []).find((x) => x.name === n);
 const clampTo = (x, lo, hi) => Math.min(Math.max(x, lo), hi);
 function mechQ(v, q) {
@@ -2178,7 +2210,7 @@ function mechQ(v, q) {
   const m = Object.assign({}, q);
   couplingOf(v).forEach((c) => {
     const f = servoOf(v, c.follows);
-    if (isNum(m[c.servo]) && isNum(q[c.follows])) m[c.servo] -= c.ratio * (q[c.follows] - (f && isNum(f.open) ? f.open : 0));
+    if (isNum(m[c.servo]) && isNum(q[c.follows])) m[c.servo] -= cplRatio(v, c) * (q[c.follows] - (f && isNum(f.open) ? f.open : 0));
   });
   return m;
 }
@@ -2271,21 +2303,24 @@ function setServo(v, name, val) {
   if (!S.rawServos) {
     couplingOf(v).forEach((c) => {
       const f = servoOf(v, c.servo);
-      if (c.follows === name && f && isNum(q[c.servo]) && isNum(S.q[name])) q[c.servo] = clampTo(q[c.servo] + c.ratio * (q[name] - S.q[name]), Math.min(f.min, f.max), Math.max(f.min, f.max));
+      if (c.follows === name && f && isNum(q[c.servo]) && isNum(S.q[name])) q[c.servo] = clampTo(q[c.servo] + cplRatio(v, c) * (q[name] - S.q[name]), Math.min(f.min, f.max), Math.max(f.min, f.max));
       if (c.servo === name && isNum(q[c.follows])) {
         const lim = travelLimits(v, c), fo = servoOf(v, c.follows);
         if (lim) {
-          const off = c.ratio * (q[c.follows] - (fo && isNum(fo.open) ? fo.open : 0));
+          const off = cplRatio(v, c) * (q[c.follows] - (fo && isNum(fo.open) ? fo.open : 0));
           q[name] = clampTo(q[name], lim[0] + off, lim[1] + off);
         }
       }
     });
   }
-  if (exclusionOf(v, q) && !exclusionOf(v, S.q)) {
-    // stop at the boundary: the furthest point along this move that is not excluded
+  // excluded states, and (both modes) a coupled servo's mechanical travel past its open / closed end: in raw mode
+  // rolling m5 alone drives the carriers into their rack ends or through each other, which the jaws can't do
+  const blocked = (x) => !!(exclusionOf(v, x) || travelOut(v, x));
+  if (blocked(q) && !blocked(S.q)) {
+    // stop at the boundary: the furthest point along this move that is not blocked
     let lo = 0, hi = 1;
     const at = (u) => { const r = Object.assign({}, S.q); Object.keys(q).forEach((n) => { if (isNum(q[n]) && isNum(S.q[n])) r[n] = S.q[n] + (q[n] - S.q[n]) * u; }); return r; };
-    for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (exclusionOf(v, at(mid))) hi = mid; else lo = mid; }
+    for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (blocked(at(mid))) hi = mid; else lo = mid; }
     Object.assign(q, at(lo));
   }
   Object.assign(S.q, q);
@@ -2451,8 +2486,9 @@ function splitName(o) {
 // Main cause of an object's warn / fail, for its chip ("capture 78 %", "grip", "twist", ...). Toolkit v6.2 rows /
 // scenes carry `issues` with a type tag; v6 bundles carry `graded_issues` (metric warns) plus the outcome; older ones
 // only the reason text. Fails first, then major before near-miss, then this order (capture, the forgiveness metric,
-// last).
-const CAUSE_ORDER = ['approach', 'table', 'grip', 'crush', 'twist', 'contact', 'push', 'reach', 'model', 'capture'];
+// last). Crush is not graded any more (site review 10-17): crush tags in older bundles are matched (so their text is
+// not misread as another cause) and then dropped.
+const CAUSE_ORDER = ['approach', 'table', 'grip', 'twist', 'contact', 'push', 'reach', 'model', 'capture'];
 const CAUSE_OF_METRIC = { capture_20: 'capture', capture_40: 'capture', table_reach: 'reach', grip_ratio: 'grip', twist_margin: 'twist', twist_weight_margin: 'twist', antipodal_deg: 'contact', push_mm: 'push', crush: 'crush', crush_risk: 'crush' };
 const CAUSE_ALIAS = { forgiveness: 'capture', antipodal: 'contact', moment: 'twist', pivot: 'twist', pivots: 'twist', blocked: 'approach', collision: 'approach', table_reach: 'reach', force: 'grip' };
 const CAUSE_TEXT = [
@@ -2507,7 +2543,7 @@ function objectCauses(gs, row) {
   }
   const rk = (c) => (c.kind === 'fail' ? 0 : 10) + (c.severity === 'near_miss' ? 5 : 0);
   const ord = (c) => { const i = CAUSE_ORDER.indexOf(c.type); return i < 0 ? CAUSE_ORDER.length - 1.5 : i; };
-  return out.sort((a, b) => rk(a) - rk(b) || ord(a) - ord(b)).filter((c, i, a) => a.findIndex((x) => x.type === c.type) === i);
+  return out.filter((c) => c.type !== 'crush').sort((a, b) => rk(a) - rk(b) || ord(a) - ord(b)).filter((c, i, a) => a.findIndex((x) => x.type === c.type) === i);
 }
 function renderObjects() {
   const v = S.data.get(S.cur);
@@ -3124,7 +3160,7 @@ function buildConnectors(v) {
     a.traverse((o) => { if (o.material) { o.material.depthTest = false; o.material.transparent = true; } o.renderOrder = 10; });
     connGroup.add(a);
     const tip = new T3.Vector3(...c.point).addScaledVector(new T3.Vector3(...c.direction).normalize(), 0.066);
-    addLabel(`${String(c.servo || 'servo').replace(/^servo_/, '')} ${isNum(c.angle_from_aft_deg) ? fix(c.angle_from_aft_deg, 0) + '\u00b0 from aft' : ''}`, tip.toArray(), robot, () => connGroup.visible, c.status === 'pass' ? '--pass' : (c.status === 'fail' ? '--fail' : '--warn'), 'conn');
+    addLabel(String(c.servo || 'servo').replace(/^servo_/, ''), tip.toArray(), robot, () => connGroup.visible, c.status === 'pass' ? '--pass' : (c.status === 'fail' ? '--fail' : '--warn'), 'conn');
   });
 }
 function applyStowVis() {
@@ -3332,8 +3368,7 @@ function structureOf(v) {
   const cases = sc.cases || {};
   const land = cases.landing_30N_up ? cases.landing_30N_up.pinch_mm : sc.landing_mm;
   const conns = (v.connectors || []).filter((c) => c);
-  const aft = conns.filter((c) => isNum(c.angle_from_aft_deg) && c.angle_from_aft_deg <= 45).length;
-  return { landing: isNum(land) ? land : null, f1w: isNum(sc.f1_water_hz) ? sc.f1_water_hz : null, connN: conns.length, connAft: aft, connAftAll: conns.length ? aft === conns.length : null };
+  return { landing: isNum(land) ? land : null, f1w: isNum(sc.f1_water_hz) ? sc.f1_water_hz : null, connN: conns.length };
 }
 function outcomesOf(v) {
   const gs = (v.grasp_scenes || []).filter((g) => g.outcome);
@@ -3367,17 +3402,16 @@ function metricsFromIndex(e) {
     overall: e.overall, outcomes: e.outcomes && Object.keys(e.outcomes).length ? e.outcomes : null,
     fscore: k.forgiveness_score, fmin: k.forgiveness_min_object_score, fgrade: k.forgiveness_grade, fbest: k.forgiveness_score_best_approach,
     landing: isNum(k.structure_landing_mm) ? k.structure_landing_mm : null, f1w: k.structure_f1_water_hz,
-    connAftAll: k.connectors_aft == null ? null : !!k.connectors_aft, reach: isNum(k.table_reach_mean) ? k.table_reach_mean : null,
+    reach: isNum(k.table_reach_mean) ? k.table_reach_mean : null,
   };
 }
 function rowMetrics(e) {
   if (e.key) {
     const M = metricsFromIndex(e);
     const v = S.data.get(e.id);
-    if (v && (M.landing == null || M.connAftAll == null)) {
+    if (v && M.landing == null) {
       const st = structureOf(v);
       if (M.landing == null) M.landing = st.landing;
-      if (M.connAftAll == null) M.connAftAll = st.connAftAll;
     }
     return M;
   }
@@ -3427,7 +3461,7 @@ function renderPanel(v) {
   const tgtDrop = ref.target_drop_below_feet || [0.105, 0.11];
   const n = c.servo_count;
   const ck = ckMap(v);
-  const checks = CHECK_ORDER.filter((id) => ck[id]).concat((v.checks || []).map((x) => x.id).filter((id) => !CHECK_ORDER.includes(id)));
+  const checks = CHECK_ORDER.filter((id) => ck[id]).concat((v.checks || []).map((x) => x.id).filter((id) => !CHECK_ORDER.includes(id) && !HIDDEN_CHECKS.has(id)));
   const kpis = [
     kpi('Pinch x', M.st('forward_reach'), fix(M.pinchX, 1), 'mm', `target ≤ ${fix(mm(ref.target_pinch_x_max || 0.135), 0)} &middot; today ${fix(curPx, 1)}`),
     kpi('Jaws below feet', M.st('low_reach'), fix(M.drop, 1), 'mm', `target ${fix(tgtDrop[0] * 1000, 0)}–${fix(tgtDrop[1] * 1000, 0)} &middot; today ${fix(curDrop, 1)}`),
@@ -3436,7 +3470,7 @@ function renderPanel(v) {
     kpi('DVL clearance', M.st('dvl'), fix(M.dvl, 1), 'mm', 'beams + housing, pass ≥ 5'),
     kpi('Stow clearance', M.st('stow'), M.hasStow === false ? 'none' : fix(M.stow, 1), M.hasStow === false ? '' : 'mm', M.hasStow === false ? 'no hand-stow joint' : `sweep vs body &middot; stowed ${fix(M.stowAbove, 0)} above feet`),
     ...(v.structure || M.st('structure') ? [kpi('Structure', M.st('structure'), isNum(M.landing) ? fix(M.landing, 1) : '\u2014', isNum(M.landing) ? 'mm' : '', `30 N landing at the pinch${isNum(M.f1w) ? ` \u00b7 f1 ${fix(M.f1w, 0)} Hz in water` : ''}`)] : []),
-    ...(v.connectors || M.st('connector') ? [kpi('Connectors', M.st('connector'), M.connN ? `${M.connAft}<small>of ${M.connN} aft</small>` : '\u2014', '', 'SubConn plugs pointing aft (\u2264 45\u00b0)')] : []),
+    ...(v.connectors || M.st('connector') ? [kpi('Connectors', M.st('connector'), M.connN ? `${M.connN}<small>${M.connN > 1 ? 'plugs' : 'plug'}</small>` : '\u2014', '', 'SubConn plugs + cables in every pose: clear of DVL, torpedo and sensors; routable')] : []),
     kpi('dfc image', M.st('dfc'), fix(M.dfc, 2), '%', 'claw share of the image (info only)'),
     kpi('Objects', M.st('grasp'), M.counts ? `${M.counts.pass || 0}<small>pass</small> ${M.counts.warn || 0}<small>warn</small> ${M.counts.fail || 0}<small>fail</small>` : '—', '', pwfHTML(M.counts, false)),
   ].join('');
@@ -3481,7 +3515,7 @@ const CMP = [
   { key: 'dvl', label: 'DVL', tgt: '≥ 5', get: (M) => M.dvl, fmt: (x) => fix(x, 1), ck: 'dvl', desc: true },
   { key: 'stow', label: 'Stow', tgt: '≥ 3', get: (M) => M.stow, fmt: (x, M) => (M.hasStow === false ? 'none' : fix(x, 1)), ck: 'stow', desc: true },
   { key: 'landing', label: 'Structure', tgt: '30 N landing \u2264 3', get: (M) => M.landing, fmt: (x) => (x == null ? '\u2014' : fix(x, 1)), ck: 'structure' },
-  { key: 'conn', label: 'Plugs aft', tgt: 'all aft', get: (M) => (M.connAftAll == null ? null : (M.connAftAll ? 1 : 0)), fmt: (x) => (x == null ? '\u2014' : (x ? 'yes' : 'no')), ck: 'connector', desc: true, nodelta: true },
+  { key: 'conn', label: 'Plugs', tgt: 'clear + routable', get: (M) => (M.st('connector') ? ST_RANK[M.st('connector')] : null), fmt: (x) => (x == null ? '\u2014' : ''), html: (M) => (M.st('connector') ? `${mark(M.st('connector'))} ${esc(ST_LABEL[M.st('connector')] || M.st('connector'))}` : '<span class="muted">\u2014</span>'), nodelta: true },
   { key: 'dfc', label: 'dfc %', tgt: 'info', get: (M) => M.dfc, fmt: (x) => fix(x, 2), ck: 'dfc', dd: 2 },
   { key: 'objects', label: 'Objects P\u00b7W\u00b7F', tgt: 'all pass', get: (M) => (M.counts ? (M.counts.pass || 0) * 100 - (M.counts.fail || 0) * 10 - (M.counts.warn || 0) : null), html: (M) => pwfHTML(M.counts, true), ck: 'grasp', desc: true },
   { key: 'lifted', label: 'Lifted', tgt: 'nominal', get: (M) => (M.outcomes ? M.outcomes.lifted || 0 : null), html: (M) => outcomesHTML(M.outcomes), desc: true },
