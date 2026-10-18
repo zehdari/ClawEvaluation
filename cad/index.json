@@ -10,8 +10,8 @@
   "zip": "cad/c2_crab_finray.zip"
  },
  "c3_extend_grip": {
-  "bytes": 1264343,
-  "parts": 21,
+  "bytes": 1194682,
+  "parts": 20,
   "zip": "cad/c3_extend_grip.zip"
  },
  "c4_rack_finray2": {
@@ -65,8 +65,8 @@
   "zip": "cad/m4_static_pitch.zip"
  },
  "m5_static_pitch_rotate": {
-  "bytes": 3170188,
-  "parts": 22,
+  "bytes": 3968459,
+  "parts": 27,
   "zip": "cad/m5_static_pitch_rotate.zip"
  }
 }

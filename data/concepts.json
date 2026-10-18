@@ -9,7 +9,7 @@
    "servo_count": 1,
    "overall": "fail",
    "quick": false,
-   "generated": "2026-10-16 03:23:15",
+   "generated": "2026-10-17 21:01:30",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c0_current/viewer.json",
@@ -20,33 +20,33 @@
     "dvl": "pass",
     "payload_paths": "pass",
     "tension_cable": "pass",
-    "stow": "fail",
+    "stow": "pass",
     "interference": "pass",
     "mass": "pass",
     "structure": "pass",
     "assembly": "warn",
     "printability": "warn",
-    "grasp": "warn",
+    "grasp": "fail",
     "forgiveness": "info",
     "dfc": "info",
-    "dfc_show": "info",
     "ffc_in_water": "pass",
-    "connector": "warn"
+    "connector": "pass"
    },
    "check_counts": {
     "fail": 3,
-    "warn": 5,
-    "pass": 7,
-    "info": 3
+    "warn": 3,
+    "pass": 9,
+    "info": 2
    },
    "objects": {
-    "pass": 2,
-    "warn": 9,
-    "fail": 0,
+    "pass": 3,
+    "warn": 6,
+    "fail": 2,
     "total": 11
    },
    "outcomes": {
-    "lifted": 11
+    "lifted": 9,
+    "blocked": 2
    },
    "key": {
     "pinch_x": 0.18456,
@@ -54,34 +54,33 @@
     "pinch_z": -0.41644,
     "front_x": 0.23527,
     "jaws_below_feet_mm": 80.6,
-    "mass_g": 980.23131,
-    "in_water_g": 349.64931,
+    "mass_g": 992.29062,
+    "in_water_g": 352.81843,
     "dvl_clearance_mm": 48.9,
     "stow_sweep_clearance_mm": 10.3,
     "stowed_above_feet_mm": 131.2,
     "torpedo_first_target_clearance_mm": 0.0,
     "torpedo_d_min_m": 0.64409,
     "dfc_claw_percent": 0.0,
-    "forgiveness_score": 0.58851,
-    "forgiveness_min_object_score": 0.10219,
+    "forgiveness_score": 0.59988,
+    "forgiveness_min_object_score": 0.1025,
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
-    "connectors_aft": null,
-    "connector_in_dfc": null,
-    "table_reach_mean": 0.537128,
-    "table_reach_full_table_mean": 0.455175,
+    "connectors_aft": false,
+    "connector_in_dfc": false,
+    "table_reach_mean": 0.452977,
+    "table_reach_full_table_mean": 0.395369,
     "ffc_in_water_max_percent": 0.0,
-    "structure_landing_mm": 2.1,
-    "structure_f1_water_hz": 24.92967,
-    "grasp_score": 0.87073,
-    "grasp_score_min": 0.765,
+    "structure_landing_mm": 3.157,
+    "structure_f1_water_hz": 24.22448,
+    "grasp_score": 0.827,
+    "grasp_score_min": 0.524,
     "grasp_near_misses": 0,
     "grasp_major_issues": 11,
     "heading_offset_deg": 0.0,
-    "yaw_aligned_lifted": 10,
-    "dfc_show_mean_visible": 0.09091,
-    "dfc_show_objects_50": 1,
-    "forgiveness_score_open_tabletop": 0.54583
+    "yaw_aligned_lifted": 9,
+    "forgiveness_score_open_tabletop": 0.57024,
+    "structure_landing_basis": "including mount necks"
    }
   },
   {
@@ -159,9 +158,8 @@
     "grasp_major_issues": 4,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.96612,
-    "dfc_show_objects_50": 11,
-    "forgiveness_score_open_tabletop": 0.83253
+    "forgiveness_score_open_tabletop": 0.83253,
+    "structure_landing_basis": "model"
    }
   },
   {
@@ -239,9 +237,8 @@
     "grasp_major_issues": 3,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.93541,
-    "dfc_show_objects_50": 11,
-    "forgiveness_score_open_tabletop": 0.77403
+    "forgiveness_score_open_tabletop": 0.77403,
+    "structure_landing_basis": "model"
    }
   },
   {
@@ -250,7 +247,7 @@
    "servo_count": 1,
    "overall": "warn",
    "quick": false,
-   "generated": "2026-10-16 03:30:58",
+   "generated": "2026-10-17 21:54:14",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/c3_extend_grip/viewer.json",
@@ -265,23 +262,22 @@
     "interference": "pass",
     "mass": "pass",
     "structure": "warn",
-    "assembly": "warn",
+    "assembly": "pass",
     "printability": "warn",
     "grasp": "warn",
     "forgiveness": "info",
     "dfc": "info",
-    "dfc_show": "info",
-    "ffc_in_water": "warn",
-    "connector": "warn"
+    "ffc_in_water": "pass",
+    "connector": "pass"
    },
    "check_counts": {
-    "pass": 9,
-    "warn": 6,
-    "info": 3
+    "pass": 12,
+    "warn": 3,
+    "info": 2
    },
    "objects": {
-    "pass": 6,
-    "warn": 5,
+    "pass": 7,
+    "warn": 4,
     "fail": 0,
     "total": 11
    },
@@ -292,36 +288,35 @@
     "pinch_x": 0.0855,
     "pinch_x_max": 0.123,
     "pinch_z": -0.4443,
-    "front_x": 0.1525,
-    "jaws_below_feet_mm": 113.1,
-    "mass_g": 715.14289,
-    "in_water_g": 295.98072,
-    "dvl_clearance_mm": 36.3,
-    "stow_sweep_clearance_mm": 6.9,
+    "front_x": 0.15582,
+    "jaws_below_feet_mm": 114.0,
+    "mass_g": 875.37461,
+    "in_water_g": 343.87919,
+    "dvl_clearance_mm": 36.0,
+    "stow_sweep_clearance_mm": 3.8,
     "stowed_above_feet_mm": 131.0,
-    "torpedo_first_target_clearance_mm": 79.3,
+    "torpedo_first_target_clearance_mm": 80.0,
     "torpedo_d_min_m": 0.3,
-    "dfc_claw_percent": 0.492,
-    "forgiveness_score": 0.69974,
-    "forgiveness_min_object_score": 0.39475,
+    "dfc_claw_percent": 0.583,
+    "forgiveness_score": 0.6692,
+    "forgiveness_min_object_score": 0.30512,
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
-    "connectors_aft": false,
+    "connectors_aft": true,
     "connector_in_dfc": false,
-    "table_reach_mean": 0.999507,
-    "table_reach_full_table_mean": 0.913135,
-    "ffc_in_water_max_percent": 1.453,
-    "structure_landing_mm": 6.5,
-    "structure_f1_water_hz": 15.77661,
-    "grasp_score": 0.93164,
-    "grasp_score_min": 0.854,
-    "grasp_near_misses": 2,
-    "grasp_major_issues": 4,
+    "table_reach_mean": 0.998878,
+    "table_reach_full_table_mean": 0.905475,
+    "ffc_in_water_max_percent": 0.0,
+    "structure_landing_mm": 15.418,
+    "structure_f1_water_hz": 5.54694,
+    "grasp_score": 0.94118,
+    "grasp_score_min": 0.872,
+    "grasp_near_misses": 1,
+    "grasp_major_issues": 3,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.86876,
-    "dfc_show_objects_50": 10,
-    "forgiveness_score_open_tabletop": 0.67681
+    "forgiveness_score_open_tabletop": 0.65821,
+    "structure_landing_basis": "including mount necks"
    }
   },
   {
@@ -400,9 +395,8 @@
     "grasp_major_issues": 3,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 10,
-    "dfc_show_mean_visible": 0.72272,
-    "dfc_show_objects_50": 9,
-    "forgiveness_score_open_tabletop": 0.73649
+    "forgiveness_score_open_tabletop": 0.73649,
+    "structure_landing_basis": "model"
    }
   },
   {
@@ -480,9 +474,8 @@
     "grasp_major_issues": 14,
     "heading_offset_deg": 135.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.32501,
-    "dfc_show_objects_50": 3,
-    "forgiveness_score_open_tabletop": 0.5822
+    "forgiveness_score_open_tabletop": 0.5822,
+    "structure_landing_basis": "model"
    }
   },
   {
@@ -560,9 +553,8 @@
     "grasp_major_issues": 0,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.80649,
-    "dfc_show_objects_50": 9,
-    "forgiveness_score_open_tabletop": 0.93144
+    "forgiveness_score_open_tabletop": 0.93144,
+    "structure_landing_basis": "model"
    }
   },
   {
@@ -640,9 +632,8 @@
     "grasp_major_issues": 0,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.91331,
-    "dfc_show_objects_50": 11,
-    "forgiveness_score_open_tabletop": 0.81957
+    "forgiveness_score_open_tabletop": 0.81957,
+    "structure_landing_basis": "model"
    }
   },
   {
@@ -721,9 +712,8 @@
     "grasp_major_issues": 7,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.95216,
-    "dfc_show_objects_50": 11,
-    "forgiveness_score_open_tabletop": 0.92193
+    "forgiveness_score_open_tabletop": 0.92193,
+    "structure_landing_basis": "model"
    }
   },
   {
@@ -801,9 +791,8 @@
     "grasp_major_issues": 2,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.90999,
-    "dfc_show_objects_50": 11,
-    "forgiveness_score_open_tabletop": 0.72643
+    "forgiveness_score_open_tabletop": 0.72643,
+    "structure_landing_basis": "model"
    }
   },
   {
@@ -881,9 +870,8 @@
     "grasp_major_issues": 2,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.77887,
-    "dfc_show_objects_50": 10,
-    "forgiveness_score_open_tabletop": 0.73405
+    "forgiveness_score_open_tabletop": 0.73405,
+    "structure_landing_basis": "model"
    }
   },
   {
@@ -961,9 +949,8 @@
     "grasp_major_issues": 0,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.90851,
-    "dfc_show_objects_50": 10,
-    "forgiveness_score_open_tabletop": 0.80572
+    "forgiveness_score_open_tabletop": 0.80572,
+    "structure_landing_basis": "model"
    }
   },
   {
@@ -1042,9 +1029,8 @@
     "grasp_major_issues": 3,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.96697,
-    "dfc_show_objects_50": 11,
-    "forgiveness_score_open_tabletop": 0.67723
+    "forgiveness_score_open_tabletop": 0.67723,
+    "structure_landing_basis": "model"
    }
   },
   {
@@ -1122,18 +1108,17 @@
     "grasp_major_issues": 3,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.7937,
-    "dfc_show_objects_50": 10,
-    "forgiveness_score_open_tabletop": 0.61902
+    "forgiveness_score_open_tabletop": 0.61902,
+    "structure_landing_basis": "model"
    }
   },
   {
    "id": "m5_static_pitch_rotate",
-   "name": "U-frame + pitch through the claw (horizontal side grabs) + wrist roll + parallel Fin Ray claw (3 servos)",
+   "name": "U-frame + 3:1 pitch through the claw (horizontal side grabs) + coupled wrist roll + parallel Fin Ray claw (3 servos)",
    "servo_count": 3,
    "overall": "warn",
    "quick": false,
-   "generated": "2026-10-16 05:26:40",
+   "generated": "2026-10-17 21:05:25",
    "hidden": false,
    "schema_version": 3,
    "viewer_json": "concepts/m5_static_pitch_rotate/viewer.json",
@@ -1153,18 +1138,17 @@
     "grasp": "warn",
     "forgiveness": "info",
     "dfc": "info",
-    "dfc_show": "info",
     "ffc_in_water": "pass",
-    "connector": "warn"
+    "connector": "pass"
    },
    "check_counts": {
-    "pass": 10,
-    "warn": 5,
-    "info": 3
+    "pass": 11,
+    "warn": 4,
+    "info": 2
    },
    "objects": {
-    "pass": 2,
-    "warn": 9,
+    "pass": 7,
+    "warn": 4,
     "fail": 0,
     "total": 11
    },
@@ -1175,36 +1159,35 @@
     "pinch_x": 0.105,
     "pinch_x_max": 0.105,
     "pinch_z": -0.53104,
-    "front_x": 0.2822,
-    "jaws_below_feet_mm": 201.6,
-    "mass_g": 1605.39097,
-    "in_water_g": 612.83677,
-    "dvl_clearance_mm": 7.3,
-    "stow_sweep_clearance_mm": 13.8,
-    "stowed_above_feet_mm": 61.3,
-    "torpedo_first_target_clearance_mm": 42.8,
-    "torpedo_d_min_m": 0.5773,
+    "front_x": 0.29985,
+    "jaws_below_feet_mm": 214.9,
+    "mass_g": 1930.30641,
+    "in_water_g": 698.93219,
+    "dvl_clearance_mm": 7.8,
+    "stow_sweep_clearance_mm": 4.1,
+    "stowed_above_feet_mm": 60.5,
+    "torpedo_first_target_clearance_mm": 20.8,
+    "torpedo_d_min_m": 0.59927,
     "dfc_claw_percent": 2.562,
-    "forgiveness_score": 0.64321,
-    "forgiveness_min_object_score": 0.28272,
+    "forgiveness_score": 0.68866,
+    "forgiveness_min_object_score": 0.39704,
     "forgiveness_grade": "poor",
     "forgiveness_score_best_approach": null,
-    "connectors_aft": true,
+    "connectors_aft": false,
     "connector_in_dfc": true,
     "table_reach_mean": 1.0,
-    "table_reach_full_table_mean": 0.924629,
+    "table_reach_full_table_mean": 0.925441,
     "ffc_in_water_max_percent": 0.0,
-    "structure_landing_mm": 23.6,
-    "structure_f1_water_hz": 3.43663,
-    "grasp_score": 0.94609,
+    "structure_landing_mm": 3.9,
+    "structure_f1_water_hz": 7.99085,
+    "grasp_score": 0.946,
     "grasp_score_min": 0.854,
     "grasp_near_misses": 1,
     "grasp_major_issues": 3,
     "heading_offset_deg": 0.0,
     "yaw_aligned_lifted": 11,
-    "dfc_show_mean_visible": 0.78229,
-    "dfc_show_objects_50": 10,
-    "forgiveness_score_open_tabletop": 0.61902
+    "forgiveness_score_open_tabletop": 0.66448,
+    "structure_landing_basis": "model"
    }
   }
  ]
